@@ -10,7 +10,7 @@ deploy:
     access_key_id: ${AWS_ACCESS_KEY_ID}
     secret_access_key:
       secure: ${AWS_SECRET_ACCESS_KEY}
-    region: "ap-south-1"
+    region: "eu-west-1"
     app: "csgonades-api"
     env: "csgonades-api-production"
     bucket_name: ${AWS_S3_BUCKET}
