@@ -19,7 +19,6 @@
     "@types/passport": "^1.0.1",
     "install": "^0.13.0",
     "nodemon": "^1.19.4",
-    "rimraf": "^3.0.0",
     "ts-node": "^8.4.1",
     "typescript": "^3.7.2"
   },
@@ -33,6 +32,7 @@
     "jsonwebtoken": "^8.5.1",
     "passport": "^0.4.0",
     "passport-steam": "^1.0.11",
-    "validate-typescript": "^4.0.2"
+    "validate-typescript": "^4.0.2",
+    "rimraf": "^3.0.0"
   }
 }
