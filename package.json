@@ -4,6 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
+    "test": "tsc",
     "build": "rimraf ./build && tsc",
     "start:dev": "NODE_ENV=development nodemon",
     "start": "npm run build && node build/index.js"
