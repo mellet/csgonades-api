@@ -1,16 +1,37 @@
-import joi from "joi";
+import firebase from "firebase-admin";
+import { CSGNUser } from "../user/User";
+import { GfycatDetailsResponse } from "gfycat-sdk";
 
-export type CsgoMap = "dust2" | "mirage" | "nuke" | "inferno";
+export type CsgoMap = "notset" | "dust2" | "mirage" | "nuke" | "inferno";
 
-type Movement = "stationary" | "running" | "walking" | "crouching";
+type Movement = "notset" | "stationary" | "running" | "walking" | "crouching";
 
-type Technique = "mouseleft" | "mouseright" | "mouseboth" | "jumpthrow";
+type Status = "pending" | "accepted" | "declined" | "deleted";
+
+type StatusInfo = string;
+
+export type GfycatData = {
+  gfyId: string;
+  smallVideoUrl: string;
+};
+
+export type NadeImages = {
+  thumbnail: string;
+  large: string;
+};
+
+type Technique =
+  | "notset"
+  | "mouseleft"
+  | "mouseright"
+  | "mouseboth"
+  | "jumpthrow";
 
 type Tickrate = "64tick" | "128 tick" | "Any";
 
-type NadeType = "smoke" | "flash" | "molotov" | "he-grenade";
+type NadeType = "notset" | "smoke" | "flash" | "molotov" | "he-grenade";
 
-type NadeStats = {
+export type NadeStats = {
   comments: number;
   favorited: number;
   views: number;
@@ -18,58 +39,128 @@ type NadeStats = {
 
 export type Nade = {
   id: string;
+  title: string;
+  description: string;
+  gfycat: GfycatData;
+  images: NadeImages;
+  map: CsgoMap;
+  stats: NadeStats;
+  movement: Movement;
+  technique: Technique;
+  tickrate: Tickrate;
+  type: NadeType;
+  steamId: string;
+  user: CSGNUser;
+  createdAt: Date;
+  updatedAt: Date;
+  status: Status;
+  statusInfo?: StatusInfo;
+};
+
+export type NadeBody = {
+  gfycatIdOrUrl: string;
+  imageBase64: string;
   title?: string;
   description?: string;
   map?: CsgoMap;
-  gfyID: string;
-  stats: NadeStats;
   movement?: Movement;
   technique?: Technique;
   tickrate?: Tickrate;
   type?: NadeType;
-  createAt: number;
-  updatedAt: number;
+  steamId?: string;
 };
 
-const nadeSchema = joi.object({
-  title: joi.string().optional(),
-  description: joi.string().optional(),
-  map: joi
-    .string()
-    .allow(["dust2", "mirage", "nuke", "inferno"])
-    .optional(),
-  gfyID: joi.string().required(),
-  movement: joi
-    .string()
-    .allow(["stationary", "running", "walking", "crouching"])
-    .optional()
-});
+export type NadeUpdateBody = {
+  title?: string;
+  description?: string;
+  gfycatIdOrUrl?: string;
+  map?: CsgoMap;
+  movement?: Movement;
+  technique?: Technique;
+  tickrate?: Tickrate;
+  type?: NadeType;
+  steamId?: string;
+  status?: Status;
+  statusInfo?: StatusInfo;
+};
 
-export const makeMinimalNade = (gfyID: string): Nade => {
+export const prepareNadeForFirebase = (nade: Nade) => {
   return {
-    id: "",
-    gfyID,
-    stats: {
-      comments: 0,
-      favorited: 0,
-      views: 0
-    },
-    createAt: Date.now(),
-    updatedAt: Date.now()
+    ...nade,
+    createAt: firebase.firestore.Timestamp.fromDate(nade.createdAt),
+    updatedAt: firebase.firestore.Timestamp.fromDate(nade.updatedAt)
   };
 };
 
-export const parseNadeFromBody = (
-  nade: string
-): { nade: Nade; error: Error } => {
-  try {
-    const parsedNade = JSON.parse(nade) as Nade;
-    const { error } = joi.validate(parsedNade, nadeSchema);
-    if (error) {
-      return { nade: null, error };
-    }
-    return { nade: parsedNade, error: null };
-  } catch (error) {
-    return { nade: null, error };
-  }
+export const convertNadeFromFirebase = (
+  data: FirebaseFirestore.DocumentData
+): Nade => {
+  const nade = {
+    ...data,
+    createdAt: data.createAt.toDate(),
+    updatedAt: data.updatedAt.toDate()
+  } as Nade;
+  return nade;
 };
+
+export const makeNadeFromBody = (
+  nade: NadeBody,
+  user: CSGNUser,
+  gfycatData: GfycatDetailsResponse,
+  images: NadeImages
+): Nade => {
+  const timeNow = new Date();
+  return {
+    id: "notset",
+    title: nade.title || "",
+    description: nade.description || "",
+    map: nade.map || "notset",
+    movement: nade.movement || "notset",
+    technique: nade.technique || "notset",
+    type: nade.type || "notset",
+    stats: {
+      views: gfycatData.gfyItem.views || 0,
+      comments: 0,
+      favorited: 0
+    },
+    tickrate: nade.tickrate || "Any",
+    gfycat: {
+      gfyId: gfycatData.gfyItem.gfyId,
+      smallVideoUrl: gfycatData.gfyItem.mobileUrl
+    },
+    createdAt: timeNow,
+    updatedAt: timeNow,
+    images,
+    user,
+    steamId: user.steamID,
+    status: "pending"
+  };
+};
+
+export function updatedNadeMerge(
+  updateFields: NadeUpdateBody,
+  nade: Nade,
+  newUser?: CSGNUser,
+  newGfcatData?: GfycatData,
+  newStats?: NadeStats
+): Nade {
+  const newNade: Nade = {
+    ...nade,
+    title: updateFields.title || nade.title,
+    description: updateFields.description || nade.description,
+    map: updateFields.map || nade.map,
+    movement: updateFields.movement || nade.movement,
+    technique: updateFields.technique || nade.technique,
+    tickrate: updateFields.tickrate || nade.tickrate,
+    type: updateFields.type || nade.type,
+    status: updateFields.status || nade.status,
+    statusInfo: updateFields.statusInfo || nade.statusInfo,
+    updatedAt: new Date(),
+    gfycat: newGfcatData || nade.gfycat,
+    stats: newStats || nade.stats,
+    user: newUser || nade.user,
+    steamId: newUser ? newUser.steamID : nade.steamId
+  };
+
+  return newNade;
+}

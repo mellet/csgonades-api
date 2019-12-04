@@ -1,60 +1,80 @@
 import { NadeRepo } from "./NadeRepo";
-import { Nade, CsgoMap } from "./Nade";
+import {
+  CsgoMap,
+  Nade,
+  convertNadeFromFirebase,
+  prepareNadeForFirebase
+} from "./Nade";
 
-class NadeRepoFirebase implements NadeRepo {
-  private COLLECTION: string = "nades";
-  private db: FirebaseFirestore.Firestore;
-  constructor(db: FirebaseFirestore.Firestore) {
-    this.db = db;
-  }
+export const makeNadeRepoFirebase = (
+  db: FirebaseFirestore.Firestore
+): NadeRepo => {
+  const COLLECTION = "nades";
 
-  get = async (limit: number = 10): Promise<Nade[]> => {
-    const docRef = this.db.collection(this.COLLECTION).limit(limit);
+  const get = async (limit: number = 10): Promise<Nade[]> => {
+    const docRef = db.collection(COLLECTION).limit(limit);
     const querySnap = await docRef.get();
     let nades: Nade[] = [];
 
     querySnap.forEach(item => {
-      const nade = item.data() as Nade;
+      const nade = convertNadeFromFirebase(item.data());
       nades.push(nade);
     });
 
     return nades;
   };
 
-  byID = async (nadeID: string): Promise<Nade> => {
-    const docRef = this.db.collection(this.COLLECTION).doc(nadeID);
-    const docSnap = await docRef.get();
+  const byID = async (nadeID: string): Promise<Nade> => {
+    const docSnap = await db
+      .collection(COLLECTION)
+      .doc(nadeID)
+      .get();
     if (!docSnap.exists) {
+      console.error(nadeID, "Did not excist");
       return null;
     }
-    return docSnap.data() as Nade;
+    const data = docSnap.data();
+    const nade = convertNadeFromFirebase(data);
+
+    return nade;
   };
 
-  byMap = async (mapName: CsgoMap): Promise<Nade[]> => {
-    const docRef = this.db
-      .collection(this.COLLECTION)
-      .where("map", "==", mapName);
+  const byMap = async (mapName: CsgoMap): Promise<Nade[]> => {
+    const docRef = db.collection(COLLECTION).where("map", "==", mapName);
 
     const querySnap = await docRef.get();
     let nades: Nade[] = [];
     querySnap.forEach(docSnap => {
-      const nade = docSnap.data() as Nade;
+      const nade = convertNadeFromFirebase(docSnap.data());
       nades.push(nade);
     });
 
     return nades;
   };
 
-  save = async (nade: Nade): Promise<Nade> => {
-    try {
-      await this.db.collection(this.COLLECTION).add(nade);
-      return nade;
-    } catch (error) {
-      return null;
-    }
-  };
-}
+  const save = async (nade: Nade): Promise<Nade> => {
+    const nadeDoc = prepareNadeForFirebase(nade);
+    const nadeDocRef = await db.collection(COLLECTION).add(nadeDoc);
+    await nadeDocRef.update({ id: nadeDocRef.id });
 
-export const makeNadeRepo = (db: FirebaseFirestore.Firestore): NadeRepo => {
-  return new NadeRepoFirebase(db);
+    const savedNade = await byID(nadeDocRef.id);
+    return savedNade;
+  };
+
+  const update = async (nade: Nade): Promise<Nade> => {
+    const nadeDoc = prepareNadeForFirebase(nade);
+    const nadeDocRef = await db
+      .collection(COLLECTION)
+      .doc(nade.id)
+      .set(nade, { merge: true });
+    return nade;
+  };
+
+  return {
+    get,
+    byID,
+    byMap,
+    save,
+    update
+  };
 };

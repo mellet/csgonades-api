@@ -1,59 +1,84 @@
-import express, { Express } from "express";
+import express from "express";
 import helmet from "helmet";
-import passport, { PassportStatic } from "passport";
-import { config } from "./config/enironment";
+import passport from "passport";
+import { makeConfig, CSGNConfig } from "./config/enironment";
 import cookieParser from "cookie-parser";
-import { makeNadeRepo } from "./nade/NadeRepoFirebase";
 import { makeNadeRouter } from "./nade/NadeRouter";
 import { makeUserRepo } from "./user/UserRepoFirebase";
-import { makeFirestore } from "./storage/FirebaseFirestore";
-import { makeSteamRouter } from "./auth/SteamRouter";
+import { makeSteamRouter } from "./steam/SteamRouter";
+import cors from "cors";
+import { makeSteamService } from "./steam/SteamService";
+import { makeNadeService } from "./nade/NadeService";
+import { makeGfycatService } from "./services/GfycatService";
+import { makeNadeRepoFirebase } from "./nade/NadeRepoFirebase";
+import { makePersistedStorage } from "./storage/FirebaseFirestore";
+import { makeImageStorageService } from "./services/ImageStorageService";
+import { makeUserService } from "./user/UserService";
+import { makeUserRouter } from "./user/UserRouter";
+import { extractTokenMiddleware } from "./utils/AuthUtils";
+import { sessionRoute } from "./utils/SessionRoute";
 
-class Server {
-  private app: Express;
-  private passport: PassportStatic;
+export const AppServer = (config: CSGNConfig) => {
+  const app = express();
 
-  constructor(app: Express, passport: PassportStatic) {
-    this.app = app;
-    this.passport = passport;
-    this.setupExpressDependencies();
-    this.setupRouters();
-  }
+  // Express dependencies
+  app.use(express.json({ limit: "3mb" }));
+  app.use(express.urlencoded({ extended: true }));
+  app.use(passport.initialize());
+  app.use(cookieParser(config.secrets.server_key));
+  app.use(helmet());
+  app.use(cors({ origin: ["http://localhost:3000"], credentials: true }));
+  app.disable("x-powered-by");
+  app.use(extractTokenMiddleware(config));
 
-  setupExpressDependencies = () => {
-    this.app.use(express.json());
-    this.app.use(express.urlencoded({ extended: true }));
-    this.app.use(this.passport.initialize());
-    this.app.use(cookieParser(config.secrets.server_key));
-    this.app.use(helmet());
-    this.app.disable("x-powered-by");
-  };
+  // Storage
+  const { database, bucket } = makePersistedStorage(config);
 
-  setupRouters = () => {
-    const database = makeFirestore();
-    const userRepo = makeUserRepo(database);
-    const nadeRepo = makeNadeRepo(database);
-    const nadeRouter = makeNadeRouter(nadeRepo);
-    const steamRouter = makeSteamRouter(userRepo, this.passport);
+  // Repos
+  const userRepo = makeUserRepo(database);
+  const nadeRepo = makeNadeRepoFirebase(database);
 
-    this.app.use(nadeRouter);
-    this.app.use(steamRouter);
+  // Services
+  const gfycatService = makeGfycatService(config);
+  const steamService = makeSteamService(config);
+  const imageStorageService = makeImageStorageService(bucket);
+  const userService = makeUserService(userRepo, steamService);
+  const nadeService = makeNadeService(
+    nadeRepo,
+    userService,
+    imageStorageService,
+    gfycatService
+  );
 
-    this.app.get("/", (req, res) => {
-      res.send("Hello World");
-    });
-  };
+  // Routers
+  const nadeRouter = makeNadeRouter(config, nadeService, gfycatService);
+  const steamRouter = makeSteamRouter(userService, passport, config);
+  const userRouter = makeUserRouter(config, userRepo);
 
-  start() {
-    this.app.listen(config.server.port, () =>
-      console.log(`Listening on port ${config.server.port}`)
-    );
-  }
-}
+  app.use(nadeRouter);
+  app.use(steamRouter);
+  app.use(userRouter);
+
+  app.get("/", (_, res) => {
+    res.send("Hello :)");
+  });
+
+  // Called by client to set up session
+  app.post("/initSession", sessionRoute);
+
+  return app;
+};
 
 function main() {
-  const server = new Server(express(), passport);
-  server.start();
+  const config = makeConfig();
+  const app = AppServer(config);
+
+  const start = () => {
+    const { port } = config.server;
+    app.listen(port, () => console.log(`Listening on port ${port}`));
+  };
+
+  start();
 }
 
 main();

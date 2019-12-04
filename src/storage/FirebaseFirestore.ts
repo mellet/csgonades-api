@@ -1,7 +1,7 @@
 import firebaseAdmin from "firebase-admin";
-import { config } from "../config/enironment";
+import { CSGNConfig } from "../config/enironment";
 
-export const makeFirestore = () => {
+export const makePersistedStorage = (config: CSGNConfig) => {
   const serviceAccount: firebaseAdmin.ServiceAccount = {
     clientEmail: config.firebase.clientEmail,
     privateKey: config.firebase.privateKey,
@@ -12,7 +12,13 @@ export const makeFirestore = () => {
     credential: firebaseAdmin.credential.cert(serviceAccount)
   });
 
-  const firestore = firebaseAdmin.firestore();
+  const database = firebaseAdmin.firestore();
+  const bucket = firebaseAdmin
+    .storage()
+    .bucket(`gs://${config.firebase.projectId}.appspot.com`);
 
-  return firestore;
+  return {
+    bucket,
+    database
+  };
 };
