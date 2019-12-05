@@ -63,10 +63,10 @@ export const makeNadeRepoFirebase = (
 
   const update = async (nade: Nade): Promise<Nade> => {
     const nadeDoc = prepareNadeForFirebase(nade);
-    const nadeDocRef = await db
+    await db
       .collection(COLLECTION)
       .doc(nade.id)
-      .set(nade, { merge: true });
+      .set(nadeDoc, { merge: true });
     return nade;
   };
 
