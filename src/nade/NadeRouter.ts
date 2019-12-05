@@ -113,8 +113,6 @@ export const makeNadeRouter = (
     const { id } = req.params;
     const identifier = getSessionId(req);
 
-    console.log("Trying to count view for", identifier);
-
     if (identifier) {
       gfycatService.registerView(id, identifier);
     }
