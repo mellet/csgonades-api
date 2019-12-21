@@ -19,6 +19,12 @@ import { SteamService } from "./steam/SteamService";
 import { UserRepo } from "./user/UserRepoFirebase";
 import { UserService } from "./user/UserService";
 
+var whitelist = [
+  "http://www.csgonades.com",
+  "http://beta.csgonades.com",
+  "http://localhost:3000"
+];
+
 export const AppServer = (config: CSGNConfig) => {
   const app = express();
 
@@ -28,7 +34,18 @@ export const AppServer = (config: CSGNConfig) => {
   app.use(passport.initialize());
   app.use(cookieParser(config.secrets.server_key));
   app.use(helmet());
-  app.use(cors({ origin: ["http://localhost:3000"], credentials: true }));
+  app.use(
+    cors({
+      origin: function(origin, callback) {
+        if (whitelist.indexOf(origin) !== -1) {
+          callback(null, true);
+        } else {
+          callback(new Error("Not allowed by CORS"));
+        }
+      },
+      credentials: true
+    })
+  );
   app.disable("x-powered-by");
   app.use(extractTokenMiddleware(config));
 
