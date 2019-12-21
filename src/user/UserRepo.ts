@@ -1,7 +1,10 @@
-import { CSGNUser } from "./User";
+import { Result } from "neverthrow";
+import { UserModel, UserCreateModel } from "./UserModel";
+import { AppResult } from "../utils/Common";
 
-export interface UserRepo {
-  bySteamID(steamID: string): Promise<CSGNUser | null>;
-  createUser(user: CSGNUser): Promise<CSGNUser>;
-  updateActivity(user: CSGNUser): Promise<void>;
+export interface IUserRepo {
+  all(limit?: number): AppResult<UserModel[]>;
+  bySteamID(steamID: string): AppResult<UserModel>;
+  createUser(user: UserCreateModel): AppResult<UserModel>;
+  updateActivity(user: UserModel): AppResult<boolean>;
 }

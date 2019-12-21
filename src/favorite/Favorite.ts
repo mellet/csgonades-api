@@ -1,12 +1,26 @@
-export type Favorite = {
+import { firestore } from "firebase-admin";
+
+export type FavoriteModel = {
   id: string;
   nadeID: string;
   userID: string;
+  createdAt: firestore.Timestamp;
 };
 
-export const makeFavorite = (forNadeId: string, byUserId: string): Favorite => {
+export type FavoriteCreateModel = Omit<FavoriteModel, "createdAt" | "id">;
+
+export type FavoriteDTO = {
+  id: string;
+  nadeID: string;
+  userID: string;
+  createdAt: Date;
+};
+
+export const makeFavorite = (
+  forNadeId: string,
+  byUserId: string
+): FavoriteCreateModel => {
   return {
-    id: "",
     nadeID: forNadeId,
     userID: byUserId
   };

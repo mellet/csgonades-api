@@ -1,101 +1,128 @@
 import { NadeRepo } from "./NadeRepo";
+import { err, ok, Result } from "neverthrow";
 import {
-  Nade,
   NadeBody,
   makeNadeFromBody,
   CsgoMap,
-  NadeUpdateBody,
+  NadeUpdateDTO,
   updatedNadeMerge,
   GfycatData,
-  NadeStats
+  NadeStats,
+  NadeModel
 } from "./Nade";
 import { ImageStorageService } from "../services/ImageStorageService";
 import { GfycatService } from "../services/GfycatService";
-import { SteamService } from "../steam/SteamService";
-import axios from "axios";
-import { UserService } from "../user/UserService";
-import { CSGNUser } from "../user/User";
+import { IUserService } from "../user/UserService";
+import { UserModel } from "../user/UserModel";
+import { AppResult } from "../utils/Common";
 
-export interface NadeService {
-  fetchNades(limit?: number): Promise<Nade[]>;
-  fetchByID(nadeId: string): Promise<Nade>;
-  fetchByMap(map: CsgoMap): Promise<Nade[]>;
-  saveFromBody(body: NadeBody, steamID: string): Promise<Nade>;
+export interface INadeService {
+  fetchNades(limit?: number): AppResult<NadeModel[]>;
+  fetchByID(nadeId: string): AppResult<NadeModel>;
+  fetchByMap(map: CsgoMap): AppResult<NadeModel[]>;
+  saveFromBody(body: NadeBody, steamID: string): AppResult<NadeModel>;
   isAllowedEdit(nadeId: string, steamId: string): Promise<boolean>;
-  update(updateFields: NadeUpdateBody, nadeId: string): Promise<Nade>;
+  update(nadeId: string, updateFields: NadeUpdateDTO): AppResult<NadeModel>;
+  forceUserUpdate(nadeId: string, newSteamId: string): AppResult<boolean>;
 }
 
-export const makeNadeService = (
-  nadeRepo: NadeRepo,
-  userService: UserService,
-  imageStorageService: ImageStorageService,
-  gfycatService: GfycatService
-): NadeService => {
-  const fetchNades = async (limit: number = 10): Promise<Nade[]> => {
-    const nades = await nadeRepo.get(limit);
+export class NadeService implements INadeService {
+  private nadeRepo: NadeRepo;
+  private userService: IUserService;
+  private imageStorageService: ImageStorageService;
+  private gfycatService: GfycatService;
+
+  constructor(
+    nadeRepo: NadeRepo,
+    userService: IUserService,
+    imageStorageService: ImageStorageService,
+    gfycatService: GfycatService
+  ) {
+    this.nadeRepo = nadeRepo;
+    this.userService = userService;
+    this.imageStorageService = imageStorageService;
+    this.gfycatService = gfycatService;
+  }
+
+  async fetchNades(limit: number = 10): AppResult<NadeModel[]> {
+    const result = await this.nadeRepo.get(limit);
+
+    return result;
+  }
+
+  async fetchByID(nadeId: string): AppResult<NadeModel> {
+    const result = await this.nadeRepo.byID(nadeId);
+
+    return result;
+  }
+
+  async fetchByMap(map: CsgoMap): AppResult<NadeModel[]> {
+    const nades = await this.nadeRepo.byMap(map);
 
     return nades;
-  };
+  }
 
-  const fetchByID = async (nadeId: string): Promise<Nade> => {
-    const nade = await nadeRepo.byID(nadeId);
+  async saveFromBody(body: NadeBody, steamID: string): AppResult<NadeModel> {
+    const userResult = await this.userService.bySteamID(steamID);
 
-    return nade;
-  };
-
-  const fetchByMap = async (map: CsgoMap): Promise<Nade[]> => {
-    const nades = await nadeRepo.byMap(map);
-
-    return nades;
-  };
-
-  const saveFromBody = async (
-    body: NadeBody,
-    steamID: string
-  ): Promise<Nade> => {
-    const user = await userService.bySteamID(steamID);
-
-    if (!user) {
+    if (userResult.isErr()) {
       throw new Error("User not found");
     }
 
-    const gfycatData = await gfycatService.getGfycatData(body.gfycatIdOrUrl);
-    const nadeImages = await imageStorageService.saveImage(body.imageBase64);
-    const tmpNade = makeNadeFromBody(body, user, gfycatData, nadeImages);
-    const nade = await nadeRepo.save(tmpNade);
+    const user = userResult.value;
+
+    const gfycatData = await this.gfycatService.getGfycatData(
+      body.gfycatIdOrUrl
+    );
+    const nadeImages = await this.imageStorageService.saveImage(
+      body.imageBase64
+    );
+    const tmpNade = makeNadeFromBody(user, gfycatData, nadeImages);
+    const nade = await this.nadeRepo.save(tmpNade);
 
     return nade;
-  };
+  }
 
-  const isAllowedEdit = async (nadeId: string, steamId: string) => {
-    try {
-      const nade = await nadeRepo.byID(nadeId);
-      const user = await userService.bySteamID(steamId);
+  async isAllowedEdit(nadeId: string, steamId: string): Promise<boolean> {
+    const nadeResult = await this.nadeRepo.byID(nadeId);
+    const userResult = await this.userService.bySteamID(steamId);
 
-      if (user.role === "admin" || user.role === "moderator") {
-        return true;
-      }
-
-      if (nade.steamId === user.steamID) {
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      console.error("NadeService.isAllowedEdit", error);
+    if (userResult.isErr() || nadeResult.isErr()) {
       return false;
     }
-  };
 
-  const update = async (updateFields: NadeUpdateBody, nadeId: string) => {
-    const oldNade = await nadeRepo.byID(nadeId);
+    const nade = nadeResult.value;
+    const user = userResult.value;
+
+    if (user.role === "administrator" || user.role === "moderator") {
+      return true;
+    }
+
+    if (nade.steamId === user.steamId) {
+      return true;
+    }
+
+    return false;
+  }
+
+  async update(
+    nadeId: string,
+    updateFields: NadeUpdateDTO
+  ): AppResult<NadeModel> {
+    const nadeResult = await this.nadeRepo.byID(nadeId);
+
+    if (nadeResult.isErr()) {
+      return nadeResult;
+    }
+
+    const oldNade = nadeResult.value;
 
     let newGfyData: GfycatData;
-    let newUser: CSGNUser;
+    let newUser: UserModel;
     let newStats: NadeStats;
 
     if (updateFields.gfycatIdOrUrl) {
-      const { gfyItem } = await gfycatService.getGfycatData(
+      const { gfyItem } = await this.gfycatService.getGfycatData(
         updateFields.gfycatIdOrUrl
       );
       newGfyData = {
@@ -108,10 +135,6 @@ export const makeNadeService = (
       };
     }
 
-    if (updateFields.steamId) {
-      newUser = await userService.getOrCreateUser(updateFields.steamId);
-    }
-
     const mergedNade = updatedNadeMerge(
       updateFields,
       oldNade,
@@ -120,16 +143,37 @@ export const makeNadeService = (
       newStats
     );
 
-    const updatedNade = await nadeRepo.update(mergedNade);
+    const updatedNade = await this.nadeRepo.update(mergedNade.id, mergedNade);
     return updatedNade;
-  };
+  }
 
-  return {
-    fetchNades,
-    fetchByMap,
-    fetchByID,
-    saveFromBody,
-    isAllowedEdit,
-    update
-  };
-};
+  async forceUserUpdate(
+    nadeId: string,
+    newSteamId: string
+  ): AppResult<boolean> {
+    const userResult = await this.userService.getOrCreateUser(newSteamId);
+
+    if (userResult.isErr()) {
+      const { error } = userResult;
+      console.error(error);
+      return ok(false);
+    }
+
+    const user = userResult.value;
+
+    const updateResult = await this.nadeRepo.update(nadeId, {
+      steamId: newSteamId,
+      user: {
+        nickname: user.nickname,
+        steamId: user.steamId,
+        avatar: user.avatar
+      }
+    });
+
+    if (updateResult.isErr()) {
+      return ok(false);
+    }
+
+    return ok(true);
+  }
+}

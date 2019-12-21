@@ -1,8 +1,7 @@
 import jwt from "jsonwebtoken";
-import { CSGNUser, Role } from "../user/User";
+import { Role, UserModel } from "../user/UserModel";
 import { NextFunction, Response, Request } from "express";
 import { CSGNConfig } from "../config/enironment";
-import { NadeBody } from "../nade/Nade";
 import { userFromRequest } from "./RouterUtils";
 
 type JWTPayload = {
@@ -17,10 +16,10 @@ export type RequestUser = {
   role: Role;
 };
 
-export const createRefreshToken = (secret: string, user: CSGNUser): string => {
+export const createRefreshToken = (secret: string, user: UserModel): string => {
   const token = jwt.sign(
     {
-      steamId: user.steamID,
+      steamId: user.steamId,
       role: user.role
     },
     secret,
@@ -29,10 +28,10 @@ export const createRefreshToken = (secret: string, user: CSGNUser): string => {
   return token;
 };
 
-export const createAccessToken = (secret: string, user: CSGNUser): string => {
+export const createAccessToken = (secret: string, user: UserModel): string => {
   const token = jwt.sign(
     {
-      steamId: user.steamID,
+      steamId: user.steamId,
       role: user.role
     },
     secret,

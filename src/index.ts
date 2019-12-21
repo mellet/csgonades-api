@@ -4,19 +4,20 @@ import passport from "passport";
 import { makeConfig, CSGNConfig } from "./config/enironment";
 import cookieParser from "cookie-parser";
 import { makeNadeRouter } from "./nade/NadeRouter";
-import { makeUserRepo } from "./user/UserRepoFirebase";
 import { makeSteamRouter } from "./steam/SteamRouter";
 import cors from "cors";
-import { makeSteamService } from "./steam/SteamService";
-import { makeNadeService } from "./nade/NadeService";
 import { makeGfycatService } from "./services/GfycatService";
-import { makeNadeRepoFirebase } from "./nade/NadeRepoFirebase";
 import { makePersistedStorage } from "./storage/FirebaseFirestore";
 import { makeImageStorageService } from "./services/ImageStorageService";
-import { makeUserService } from "./user/UserService";
 import { makeUserRouter } from "./user/UserRouter";
 import { extractTokenMiddleware } from "./utils/AuthUtils";
 import { sessionRoute } from "./utils/SessionRoute";
+import { makeStatusRouter } from "./status/StatusRouter";
+import { NadeRepoFirebase } from "./nade/NadeRepoFirebase";
+import { NadeService } from "./nade/NadeService";
+import { SteamService } from "./steam/SteamService";
+import { UserRepo } from "./user/UserRepoFirebase";
+import { UserService } from "./user/UserService";
 
 export const AppServer = (config: CSGNConfig) => {
   const app = express();
@@ -35,15 +36,15 @@ export const AppServer = (config: CSGNConfig) => {
   const { database, bucket } = makePersistedStorage(config);
 
   // Repos
-  const userRepo = makeUserRepo(database);
-  const nadeRepo = makeNadeRepoFirebase(database);
+  const userRepo = new UserRepo(database);
+  const nadeRepo = new NadeRepoFirebase(database);
 
   // Services
   const gfycatService = makeGfycatService(config);
-  const steamService = makeSteamService(config);
+  const steamService = new SteamService(config);
   const imageStorageService = makeImageStorageService(bucket);
-  const userService = makeUserService(userRepo, steamService);
-  const nadeService = makeNadeService(
+  const userService = new UserService(userRepo, steamService);
+  const nadeService = new NadeService(
     nadeRepo,
     userService,
     imageStorageService,
@@ -51,6 +52,7 @@ export const AppServer = (config: CSGNConfig) => {
   );
 
   // Routers
+  const statusRouter = makeStatusRouter(config);
   const nadeRouter = makeNadeRouter(config, nadeService, gfycatService);
   const steamRouter = makeSteamRouter(userService, passport, config);
   const userRouter = makeUserRouter(config, userRepo);
@@ -58,9 +60,10 @@ export const AppServer = (config: CSGNConfig) => {
   app.use(nadeRouter);
   app.use(steamRouter);
   app.use(userRouter);
+  app.use(statusRouter);
 
   app.get("/", (_, res) => {
-    res.send("Hello :)");
+    res.send("");
   });
 
   // Called by client to set up session

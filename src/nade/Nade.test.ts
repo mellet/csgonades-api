@@ -1,13 +1,14 @@
 import {
-  Nade,
+  NadeDTO,
   updatedNadeMerge,
-  NadeUpdateBody,
+  NadeUpdateDTO,
   GfycatData,
   NadeStats
 } from "./Nade";
-import { CSGNUser } from "../user/User";
+import { UserModel } from "../user/UserModel";
+import { firestore } from "firebase-admin";
 
-const dummyNade: Nade = {
+const dummyNade: NadeDTO = {
   id: "123",
   title: "Old title",
   description: "Old description",
@@ -35,14 +36,8 @@ const dummyNade: Nade = {
   steamId: "old-steamId",
   user: {
     nickname: "old-user-nickname",
-    steamID: "old-steamId",
-    role: "user",
-    createdAt: new Date(),
-    lastActive: new Date(),
-    updatedAt: new Date(),
-    avatar: null,
-    bio: null,
-    email: null
+    steamId: "old-steamId",
+    avatar: ""
   },
   statusInfo: "old-statusInfo"
 };
@@ -71,7 +66,7 @@ describe("Nade tests", () => {
   });
 
   it("Updates simple fields", () => {
-    const updatedField: NadeUpdateBody = {
+    const updatedField: NadeUpdateDTO = {
       title: "NewTitle",
       description: "NewDescription",
       map: "mirage",
@@ -106,22 +101,22 @@ describe("Nade tests", () => {
   });
 
   it("Updates user", () => {
-    const newUser: CSGNUser = {
-      steamID: "new-steamId",
+    const newUser: UserModel = {
+      steamId: "new-steamId",
       nickname: "new-nickName",
       role: "moderator",
       email: "new-Email",
       avatar: "avatarUrl",
       bio: "newBio",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      lastActive: new Date()
+      createdAt: firestore.Timestamp.fromDate(new Date()),
+      updatedAt: firestore.Timestamp.fromDate(new Date()),
+      lastActive: firestore.Timestamp.fromDate(new Date())
     };
 
     const updatedNade = updatedNadeMerge({}, dummyNade, newUser);
 
     expect(updatedNade.user).toEqual(newUser);
-    expect(updatedNade.steamId).toEqual(newUser.steamID);
+    expect(updatedNade.steamId).toEqual(newUser.steamId);
   });
 
   it("Updates gfycat data", () => {

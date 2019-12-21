@@ -7,11 +7,11 @@ import {
   createAccessToken,
   payloadFromToken
 } from "../utils/AuthUtils";
-import { UserService } from "../user/UserService";
-import { CSGNUser } from "../user/User";
+import { IUserService } from "../user/UserService";
+import { UserModel } from "../user/UserModel";
 
 export const makeSteamRouter = (
-  userService: UserService,
+  userService: IUserService,
   passport: PassportStatic,
   config: CSGNConfig
 ): Router => {
@@ -48,7 +48,14 @@ export const makeSteamRouter = (
     async (req, res) => {
       let steamId = req.user as string;
 
-      let user = await userService.getOrCreateUser(steamId);
+      const result = await userService.getOrCreateUser(steamId);
+
+      if (result.isErr()) {
+        console.error("Ops");
+        throw result.error;
+      }
+
+      const user = result.value;
 
       let isFirstSignIn = checkIsFirstSignIn(user);
 
@@ -70,7 +77,14 @@ export const makeSteamRouter = (
         csgonadestoken
       );
 
-      const user = await userService.bySteamID(payload.steamId);
+      const result = await userService.bySteamID(payload.steamId);
+
+      if (result.isErr()) {
+        console.error(result.error);
+        return res.status(500).send(result.error);
+      }
+
+      const user = result.value;
 
       const accessToken = createAccessToken(config.secrets.server_key, user);
       const refreshToken = createRefreshToken(config.secrets.server_key, user);
@@ -86,10 +100,10 @@ export const makeSteamRouter = (
   return router;
 };
 
-function checkIsFirstSignIn(user: CSGNUser): boolean {
+function checkIsFirstSignIn(user: UserModel): boolean {
   const ONE_MINUTE = 60 * 1000;
   const now = Date.now();
-  const createdAt = user.createdAt.getTime() / 1000;
+  const createdAt = user.createdAt.toDate().getTime() / 1000;
 
   if (now - createdAt < ONE_MINUTE) {
     return true;

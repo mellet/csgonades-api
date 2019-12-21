@@ -1,23 +1,29 @@
 import { CSGNConfig } from "../config/enironment";
 import SteamAPI, { SteamPlayerSummary } from "steamapi";
-import { CSGNUser, makeUser } from "../user/User";
+import { AppResult, AppError } from "../utils/Common";
+import { ok, err } from "neverthrow";
 
-export interface SteamService {
-  getPlayerBySteamID(steamID: string): Promise<SteamPlayerSummary>;
+export interface ISteamService {
+  getPlayerBySteamID(steamID: string): AppResult<SteamPlayerSummary>;
 }
 
-export const makeSteamService = (config: CSGNConfig): SteamService => {
-  const steamApi = new SteamAPI(config.secrets.steam_api_key);
+export class SteamService implements ISteamService {
+  private steamApi: SteamAPI;
 
-  async function getPlayerBySteamID(
-    steamID: string
-  ): Promise<SteamPlayerSummary> {
-    const steamPlayerSummary = await steamApi.getUserSummary(steamID);
-
-    return steamPlayerSummary;
+  constructor(config: CSGNConfig) {
+    this.steamApi = new SteamAPI(config.secrets.steam_api_key);
   }
 
-  return {
-    getPlayerBySteamID
-  };
-};
+  async getPlayerBySteamID(steamID: string): AppResult<SteamPlayerSummary> {
+    try {
+      const steamPlayerSummary = await this.steamApi.getUserSummary(steamID);
+      return ok(steamPlayerSummary);
+    } catch (error) {
+      const appError: AppError = {
+        status: 500,
+        message: "Steam API looks to be down"
+      };
+      return err(appError);
+    }
+  }
+}

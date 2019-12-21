@@ -1,6 +1,7 @@
 import firebase from "firebase-admin";
-import { CSGNUser } from "../user/User";
 import { GfycatDetailsResponse } from "gfycat-sdk";
+import { UserLightModel, UserModel } from "../user/UserModel";
+import { removeUndefines } from "../utils/Common";
 
 export type CsgoMap = "notset" | "dust2" | "mirage" | "nuke" | "inferno";
 
@@ -37,24 +38,63 @@ export type NadeStats = {
   views: number;
 };
 
-export type Nade = {
+export type NadeModel = {
   id: string;
-  title: string;
-  description: string;
+  title?: string;
   gfycat: GfycatData;
   images: NadeImages;
-  map: CsgoMap;
-  stats: NadeStats;
-  movement: Movement;
-  technique: Technique;
-  tickrate: Tickrate;
-  type: NadeType;
   steamId: string;
-  user: CSGNUser;
+  user: UserLightModel;
+  createdAt: FirebaseFirestore.Timestamp;
+  updatedAt: FirebaseFirestore.Timestamp;
+  status: Status;
+  description?: string;
+  map?: CsgoMap;
+  stats: NadeStats;
+  movement?: Movement;
+  technique?: Technique;
+  tickrate?: Tickrate;
+  type?: NadeType;
+  statusInfo?: StatusInfo;
+};
+
+export type NadeCreateModel = {
+  gfycat: GfycatData;
+  images: NadeImages;
+  steamId: string;
+  user: UserLightModel;
+  stats: NadeStats;
+};
+
+export type NadeDTO = {
+  id: string;
+  title: string;
+  description?: string;
+  gfycat: GfycatData;
+  images: NadeImages;
+  map?: CsgoMap;
+  stats: NadeStats;
+  movement?: Movement;
+  technique?: Technique;
+  tickrate?: Tickrate;
+  type?: NadeType;
+  steamId: string;
+  user: UserLightModel;
   createdAt: Date;
   updatedAt: Date;
   status: Status;
   statusInfo?: StatusInfo;
+};
+
+export type NadeLightDTO = {
+  id: string;
+  title?: string;
+  gfycat: GfycatData;
+  images: NadeImages;
+  stats: NadeStats;
+  type?: NadeType;
+  tickrate?: Tickrate;
+  createdAt: Date;
 };
 
 export type NadeBody = {
@@ -70,7 +110,7 @@ export type NadeBody = {
   steamId?: string;
 };
 
-export type NadeUpdateBody = {
+export type NadeUpdateDTO = {
   title?: string;
   description?: string;
   gfycatIdOrUrl?: string;
@@ -79,72 +119,37 @@ export type NadeUpdateBody = {
   technique?: Technique;
   tickrate?: Tickrate;
   type?: NadeType;
-  steamId?: string;
-  status?: Status;
-  statusInfo?: StatusInfo;
-};
-
-export const prepareNadeForFirebase = (nade: Nade) => {
-  return {
-    ...nade,
-    createAt: firebase.firestore.Timestamp.fromDate(nade.createdAt),
-    updatedAt: firebase.firestore.Timestamp.fromDate(nade.updatedAt)
-  };
-};
-
-export const convertNadeFromFirebase = (
-  data: FirebaseFirestore.DocumentData
-): Nade => {
-  const nade = {
-    ...data,
-    createdAt: data.createAt.toDate(),
-    updatedAt: data.updatedAt.toDate()
-  } as Nade;
-  return nade;
 };
 
 export const makeNadeFromBody = (
-  nade: NadeBody,
-  user: CSGNUser,
+  user: UserLightModel,
   gfycatData: GfycatDetailsResponse,
   images: NadeImages
-): Nade => {
-  const timeNow = new Date();
+): NadeCreateModel => {
   return {
-    id: "notset",
-    title: nade.title || "",
-    description: nade.description || "",
-    map: nade.map || "notset",
-    movement: nade.movement || "notset",
-    technique: nade.technique || "notset",
-    type: nade.type || "notset",
     stats: {
       views: gfycatData.gfyItem.views || 0,
       comments: 0,
       favorited: 0
     },
-    tickrate: nade.tickrate || "Any",
     gfycat: {
       gfyId: gfycatData.gfyItem.gfyId,
       smallVideoUrl: gfycatData.gfyItem.mobileUrl
     },
-    createdAt: timeNow,
-    updatedAt: timeNow,
     images,
     user,
-    steamId: user.steamID,
-    status: "pending"
+    steamId: user.steamId
   };
 };
 
 export function updatedNadeMerge(
-  updateFields: NadeUpdateBody,
-  nade: Nade,
-  newUser?: CSGNUser,
+  updateFields: NadeUpdateDTO,
+  nade: NadeModel,
+  newUser?: UserModel,
   newGfcatData?: GfycatData,
   newStats?: NadeStats
-): Nade {
-  const newNade: Nade = {
+): NadeModel {
+  const newNade: NadeModel = {
     ...nade,
     title: updateFields.title || nade.title,
     description: updateFields.description || nade.description,
@@ -153,14 +158,11 @@ export function updatedNadeMerge(
     technique: updateFields.technique || nade.technique,
     tickrate: updateFields.tickrate || nade.tickrate,
     type: updateFields.type || nade.type,
-    status: updateFields.status || nade.status,
-    statusInfo: updateFields.statusInfo || nade.statusInfo,
-    updatedAt: new Date(),
     gfycat: newGfcatData || nade.gfycat,
     stats: newStats || nade.stats,
     user: newUser || nade.user,
-    steamId: newUser ? newUser.steamID : nade.steamId
+    steamId: newUser ? newUser.steamId : nade.steamId
   };
 
-  return newNade;
+  return removeUndefines(newNade);
 }

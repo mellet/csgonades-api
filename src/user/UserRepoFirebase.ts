@@ -1,59 +1,80 @@
-import { UserRepo } from "./UserRepo";
-import {
-  CSGNUser,
-  convertUserFromFirebase,
-  CSGNUserDoc,
-  convertUserToFirebase
-} from "./User";
+import { IUserRepo } from "./UserRepo";
+import { UserModel, UserCreateModel } from "./UserModel";
 import { firestore } from "firebase-admin";
+import { ok, err, Result } from "neverthrow";
+import { extractFirestoreData } from "../utils/Firebase";
+import { AppResult, AppError } from "../utils/Common";
 
-export const makeUserRepo = (db: FirebaseFirestore.Firestore): UserRepo => {
-  const COLLECTION_NAME = "users";
-  const collectionRef = db.collection(COLLECTION_NAME);
+export class UserRepo implements IUserRepo {
+  private collection: firestore.CollectionReference;
 
-  const bySteamID = async (steamId: string): Promise<CSGNUser> => {
+  constructor(db: FirebaseFirestore.Firestore) {
+    const COLLECTION_NAME = "users";
+    this.collection = db.collection(COLLECTION_NAME);
+  }
+
+  async bySteamID(steamId: string): AppResult<UserModel> {
     try {
-      const userRef = collectionRef.doc(steamId);
+      const userRef = this.collection.doc(steamId);
       const userDocSnap = await userRef.get();
 
       if (!userDocSnap.exists) {
-        return null;
+        const notFoundError: AppError = {
+          status: 404,
+          message: "User not found"
+        };
+        return err(notFoundError);
       }
 
-      const userDoc = userDocSnap.data() as CSGNUserDoc;
-      const user = convertUserFromFirebase(userDoc);
-      return user;
+      const userDoc = userDocSnap.data() as UserModel;
+      return ok(userDoc);
     } catch (error) {
-      console.error(`Failed userRepo.bySteamID: ${error.message}`);
-      return null;
+      return err(error);
     }
-  };
+  }
 
-  const createUser = async (user: CSGNUser): Promise<CSGNUser> => {
+  async all(limit: number = 10): AppResult<UserModel[]> {
     try {
-      const userDoc = convertUserToFirebase(user);
-      await collectionRef.doc(userDoc.steamID).set(userDoc);
-      return user;
-    } catch (error) {
-      console.error("UserRepo.createUser", error);
-      throw new Error("Failed to create user.");
-    }
-  };
+      const usersRef = this.collection.limit(limit);
+      const usersDocSnap = await usersRef.get();
+      const users = extractFirestoreData<UserModel>(usersDocSnap);
 
-  const updateActivity = async (user: CSGNUser) => {
+      return users;
+    } catch (error) {
+      return err(error);
+    }
+  }
+
+  async createUser(user: UserCreateModel): AppResult<UserModel> {
+    try {
+      const model = {
+        ...user,
+        createdAt: firestore.FieldValue.serverTimestamp(),
+        updatedAt: firestore.FieldValue.serverTimestamp(),
+        lastActive: firestore.FieldValue.serverTimestamp()
+      };
+
+      await this.collection.doc(user.steamId).set(model);
+
+      const savedUser = await this.bySteamID(model.steamId);
+
+      return savedUser;
+    } catch (error) {
+      console.error(error);
+      return err(error);
+    }
+  }
+
+  async updateActivity(user: UserModel): AppResult<boolean> {
     const now = new Date();
     try {
-      await collectionRef
-        .doc(user.steamID)
-        .update({ lastActive: firestore.Timestamp.fromDate(now) });
-    } catch (error) {
-      console.error("UserRepo.updateActivity", error);
-    }
-  };
+      await this.collection
+        .doc(user.steamId)
+        .update({ lastActive: firestore.FieldValue.serverTimestamp });
 
-  return {
-    bySteamID,
-    createUser,
-    updateActivity
-  };
-};
+      return ok(true);
+    } catch (error) {
+      return err(error);
+    }
+  }
+}
