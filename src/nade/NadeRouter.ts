@@ -122,6 +122,9 @@ export const makeNadeRouter = (
 
     if (identifier) {
       gfycatService.registerView(id, identifier);
+      return res.status(202).send();
+    } else {
+      return res.status(406).send();
     }
   });
 
