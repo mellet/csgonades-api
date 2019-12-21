@@ -3,12 +3,13 @@ import {
   updatedNadeMerge,
   NadeUpdateDTO,
   GfycatData,
-  NadeStats
+  NadeStats,
+  NadeModel
 } from "./Nade";
 import { UserModel } from "../user/UserModel";
 import { firestore } from "firebase-admin";
 
-const dummyNade: NadeDTO = {
+const dummyNade: NadeModel = {
   id: "123",
   title: "Old title",
   description: "Old description",
@@ -17,8 +18,8 @@ const dummyNade: NadeDTO = {
   technique: "mouseleft",
   tickrate: "Any",
   type: "smoke",
-  updatedAt: new Date(),
-  createdAt: new Date(),
+  updatedAt: firestore.Timestamp.fromDate(new Date()),
+  createdAt: firestore.Timestamp.fromDate(new Date()),
   gfycat: {
     gfyId: "old-gfyId",
     smallVideoUrl: "old-smallUrl"
@@ -43,11 +44,10 @@ const dummyNade: NadeDTO = {
 };
 
 describe("Nade tests", () => {
-  it("Empty case only updates updatedAtDate", () => {
+  it("Empty case", () => {
     const updatedNade = updatedNadeMerge({}, dummyNade);
-    expect(updatedNade.updatedAt).not.toEqual(dummyNade.updatedAt);
 
-    // All other field should be unchanged
+    // All field should be unchanged
     expect(updatedNade.title).toEqual(dummyNade.title);
     expect(updatedNade.description).toEqual(dummyNade.description);
     expect(updatedNade.map).toEqual(dummyNade.map);
@@ -70,12 +70,10 @@ describe("Nade tests", () => {
       title: "NewTitle",
       description: "NewDescription",
       map: "mirage",
-      status: "accepted",
       tickrate: "128 tick",
       technique: "jumpthrow",
       type: "flash",
-      movement: "running",
-      statusInfo: "New status info"
+      movement: "running"
     };
 
     const updatedNade = updatedNadeMerge(updatedField, dummyNade);
@@ -86,8 +84,6 @@ describe("Nade tests", () => {
     expect(updatedNade.map).toEqual(updatedField.map);
     expect(updatedNade.tickrate).toEqual(updatedField.tickrate);
     expect(updatedNade.movement).toEqual(updatedField.movement);
-    expect(updatedNade.status).toEqual(updatedField.status);
-    expect(updatedNade.statusInfo).toEqual(updatedField.statusInfo);
     expect(updatedNade.technique).toEqual(updatedField.technique);
     expect(updatedNade.type).toEqual(updatedField.type);
 
