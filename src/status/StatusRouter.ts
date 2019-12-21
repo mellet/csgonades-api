@@ -7,7 +7,8 @@ export const makeStatusRouter = (config: CSGNConfig): Router => {
   router.get("/status", (req, res) => {
     res.send({
       status: "OK",
-      uptime: format(process.uptime())
+      uptime: format(process.uptime()),
+      node_env: process.env.NODE_ENV
     });
   });
 
