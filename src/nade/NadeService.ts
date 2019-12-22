@@ -8,13 +8,16 @@ import {
   updatedNadeMerge,
   GfycatData,
   NadeStats,
-  NadeModel
+  NadeModel,
+  NadeStatus,
+  NadeStatusDTO
 } from "./Nade";
 import { ImageStorageService } from "../services/ImageStorageService";
 import { GfycatService } from "../services/GfycatService";
 import { IUserService } from "../user/UserService";
 import { UserModel } from "../user/UserModel";
 import { AppResult } from "../utils/Common";
+import { ErrorGenerator } from "../utils/ErrorUtil";
 
 export interface INadeService {
   fetchNades(limit?: number): AppResult<NadeModel[]>;
@@ -23,7 +26,11 @@ export interface INadeService {
   saveFromBody(body: NadeBody, steamID: string): AppResult<NadeModel>;
   isAllowedEdit(nadeId: string, steamId: string): Promise<boolean>;
   update(nadeId: string, updateFields: NadeUpdateDTO): AppResult<NadeModel>;
-  forceUserUpdate(nadeId: string, newSteamId: string): AppResult<boolean>;
+  forceUserUpdate(nadeId: string, newSteamId: string): AppResult<NadeModel>;
+  updateNadeStatus(
+    nadeId: string,
+    updatedStatus: NadeStatusDTO
+  ): AppResult<NadeModel>;
 }
 
 export class NadeService implements INadeService {
@@ -150,13 +157,13 @@ export class NadeService implements INadeService {
   async forceUserUpdate(
     nadeId: string,
     newSteamId: string
-  ): AppResult<boolean> {
+  ): AppResult<NadeModel> {
     const userResult = await this.userService.getOrCreateUser(newSteamId);
 
     if (userResult.isErr()) {
       const { error } = userResult;
       console.error(error);
-      return ok(false);
+      return ErrorGenerator.NOT_FOUND("User");
     }
 
     const user = userResult.value;
@@ -170,10 +177,14 @@ export class NadeService implements INadeService {
       }
     });
 
-    if (updateResult.isErr()) {
-      return ok(false);
-    }
+    return updateResult;
+  }
 
-    return ok(true);
+  async updateNadeStatus(
+    nadeId: string,
+    updatedStatus: NadeStatusDTO
+  ): AppResult<NadeModel> {
+    const result = await this.nadeRepo.update(nadeId, updatedStatus);
+    return result;
   }
 }

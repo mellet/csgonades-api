@@ -7,7 +7,7 @@ export type CsgoMap = "notset" | "dust2" | "mirage" | "nuke" | "inferno";
 
 type Movement = "notset" | "stationary" | "running" | "walking" | "crouching";
 
-type Status = "pending" | "accepted" | "declined" | "deleted";
+export type NadeStatus = "pending" | "accepted" | "declined" | "deleted";
 
 type StatusInfo = string;
 
@@ -47,7 +47,7 @@ export type NadeModel = {
   user: UserLightModel;
   createdAt: FirebaseFirestore.Timestamp;
   updatedAt: FirebaseFirestore.Timestamp;
-  status: Status;
+  status: NadeStatus;
   description?: string;
   map?: CsgoMap;
   stats: NadeStats;
@@ -82,7 +82,7 @@ export type NadeDTO = {
   user: UserLightModel;
   createdAt: Date;
   updatedAt: Date;
-  status: Status;
+  status: NadeStatus;
   statusInfo?: StatusInfo;
 };
 
@@ -108,6 +108,11 @@ export type NadeBody = {
   tickrate?: Tickrate;
   type?: NadeType;
   steamId?: string;
+};
+
+export type NadeStatusDTO = {
+  status: NadeStatus;
+  statusInfo?: StatusInfo;
 };
 
 export type NadeUpdateDTO = {

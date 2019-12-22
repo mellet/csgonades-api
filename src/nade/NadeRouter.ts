@@ -1,10 +1,10 @@
 import { Router } from "express";
 import { validateNade } from "./NadeMiddleware";
-import { CsgoMap, NadeBody, NadeUpdateDTO } from "./Nade";
+import { CsgoMap, NadeBody, NadeUpdateDTO, NadeStatusDTO } from "./Nade";
 import { INadeService } from "./NadeService";
 import { createHttpError } from "../utils/ErrorUtil";
 import { CSGNConfig } from "../config/enironment";
-import { authenticateRoute } from "../utils/AuthUtils";
+import { authenticateRoute, adminOrModeratorRouter } from "../utils/AuthUtils";
 import { userFromRequest } from "../utils/RouterUtils";
 import { GfycatService } from "../services/GfycatService";
 import { getSessionId } from "../utils/SessionRoute";
@@ -128,8 +128,9 @@ export const makeNadeRouter = (
     }
   });
 
-  NadeRouter.post<{ nadeId: string; steamId: string }>(
+  NadeRouter.patch<{ nadeId: string; steamId: string }>(
     "/nades/:nadeId/setuser/:steamId",
+    adminOrModeratorRouter,
     async (req, res) => {
       const { nadeId, steamId } = req.params; // TODO: Sanitize
       const successResult = await nadeService.forceUserUpdate(nadeId, steamId);
@@ -138,7 +139,36 @@ export const makeNadeRouter = (
         return res.status(error.status).send(error);
       }
 
-      return res.status(201).send();
+      const nade = nadeDTOfromModel(successResult.value);
+
+      return res.status(201).send(nade);
+    }
+  );
+
+  NadeRouter.patch<IdParam>(
+    "/nades/:id/status",
+    adminOrModeratorRouter,
+    async (req, res) => {
+      const { id } = req.params; // TODO: Sanitize
+      const statusUpdate = req.body as NadeStatusDTO;
+      const user = userFromRequest(req);
+
+      if (user.role !== "moderator" && user.role !== "administrator") {
+        return res.status(403).send({
+          error:
+            "Only administrator or administrator are allowed to update nade status."
+        });
+      }
+
+      const result = await nadeService.updateNadeStatus(id, statusUpdate);
+
+      if (result.isErr()) {
+        return res.status(result.error.status).send(result.error);
+      }
+
+      const nade = nadeDTOfromModel(result.value);
+
+      return res.status(202).send(nade);
     }
   );
 

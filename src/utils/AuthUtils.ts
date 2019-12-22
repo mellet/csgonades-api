@@ -61,6 +61,27 @@ export const authenticateRoute = (
   next();
 };
 
+export const adminOrModeratorRouter = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const user = userFromRequest(req);
+  if (!user) {
+    return res.status(401).send({
+      error: "Access denied. No user detected."
+    });
+  }
+
+  if (user.role === "user") {
+    return res.status(403).send({
+      error: "Only allowed by admin or moderator."
+    });
+  }
+
+  next();
+};
+
 export const extractTokenMiddleware = (config: CSGNConfig) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const token = (req.headers["x-access-token"] ||
