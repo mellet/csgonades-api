@@ -9,7 +9,7 @@ import {
 } from "../utils/AuthUtils";
 import { IUserService } from "../user/UserService";
 import { UserModel } from "../user/UserModel";
-import expAutoSan from "express-autosanitizer";
+import { sanitizeString } from "../utils/Sanitize";
 
 export const makeSteamRouter = (
   userService: IUserService,
@@ -39,21 +39,16 @@ export const makeSteamRouter = (
     )
   );
 
-  router.get(
-    "/auth/steam",
-    expAutoSan.route,
-    passport.authenticate("steam"),
-    (req, res) => {
-      // no-op
-    }
-  );
+  router.get("/auth/steam", passport.authenticate("steam"), (req, res) => {
+    // no-op
+  });
 
   router.get(
     "/auth/steam/return",
-    expAutoSan.route,
     passport.authenticate("steam", { session: false, failureRedirect: "/" }),
     async (req, res) => {
-      let steamId = req.user as string;
+      const dirtySteamId = req.user as string;
+      let steamId = sanitizeString(dirtySteamId);
 
       const result = await userService.getOrCreateUser(steamId);
 
@@ -76,7 +71,7 @@ export const makeSteamRouter = (
     }
   );
 
-  router.get("/auth/refresh", expAutoSan.route, async (req, res) => {
+  router.get("/auth/refresh", async (req, res) => {
     try {
       const csgonadestoken = req.signedCookies.csgonadestoken as string;
       const payload = payloadFromToken(
@@ -104,7 +99,7 @@ export const makeSteamRouter = (
     }
   });
 
-  router.post("/auth/signout", expAutoSan.route, (req, res) => {
+  router.post("/auth/signout", (_, res) => {
     res.clearCookie("csgonadestoken", makeCookieOptions(config));
     return res.status(202).send();
   });

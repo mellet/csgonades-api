@@ -1,4 +1,5 @@
 import { RequestUser } from "./AuthUtils";
+import { sanitizeObject } from "./Sanitize";
 
 export const userFromRequest = (
   request: Express.Request
@@ -7,7 +8,7 @@ export const userFromRequest = (
     return;
   }
 
-  const user = request.user as RequestUser;
+  const user = sanitizeObject(request.user) as RequestUser;
 
   return user;
 };

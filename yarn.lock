@@ -668,6 +668,11 @@
   resolved "https://registry.yarnpkg.com/@types/range-parser/-/range-parser-1.2.3.tgz#7ee330ba7caafb98090bece86a5ee44115904c2c"
   integrity sha512-ewFXqrQHlFsgc09MK5jP5iR7vumV/BYayNC6PgJO2LPe8vrnNFyjQjSppfEngITi0qvfKtzFvgKymGheFM9UOA==
 
+"@types/sanitizer@^0.0.28":
+  version "0.0.28"
+  resolved "https://registry.yarnpkg.com/@types/sanitizer/-/sanitizer-0.0.28.tgz#dd3d3c1da2789e1810e2b01aeee0218f31d41dd2"
+  integrity sha1-3T08HaJ4nhgQ4rAa7uAhjzHUHdI=
+
 "@types/serve-static@*":
   version "1.13.3"
   resolved "https://registry.yarnpkg.com/@types/serve-static/-/serve-static-1.13.3.tgz#eb7e1c41c4468272557e897e9171ded5e2ded9d1"
@@ -1997,13 +2002,6 @@ expect@^24.9.0:
     jest-matcher-utils "^24.9.0"
     jest-message-util "^24.9.0"
     jest-regex-util "^24.9.0"
-
-express-autosanitizer@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/express-autosanitizer/-/express-autosanitizer-1.0.1.tgz#ce9dd634adeb406398c88760397d405c11889c99"
-  integrity sha512-wtNa1Wgd1zIV6zyqaUSedEhhOH1cu4ENfd6+oD/lEbaFi06xdOBbgGsY3yBV+8i0zWJ/R+PIbXP8r3kV6lXZ/A==
-  dependencies:
-    sanitizer "^0.1.3"
 
 express-validator@^6.3.0:
   version "6.3.0"

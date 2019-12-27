@@ -1,11 +1,10 @@
 import { Router } from "express";
 import { CSGNConfig } from "../config/enironment";
-import expAutoSan from "express-autosanitizer";
 
 export const makeStatusRouter = (config: CSGNConfig): Router => {
   const router = Router();
 
-  router.get("/status", expAutoSan.route, (req, res) => {
+  router.get("/status", (req, res) => {
     res.send({
       status: "OK",
       uptime: format(process.uptime()),
