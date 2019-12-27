@@ -9,6 +9,7 @@ export interface IFavoriteRepo {
   setFavorite(favorite: FavoriteCreateModel): AppResult<FavoriteModel>;
   unFavorite(favoriteId: string): AppResult<boolean>;
   getUserFavorites(steamId: string): AppResult<FavoriteModel[]>;
+  getFavorite(favoriteId: string): AppResult<FavoriteModel>;
 }
 
 export class FavoriteRepo implements IFavoriteRepo {
@@ -51,7 +52,7 @@ export class FavoriteRepo implements IFavoriteRepo {
     try {
       const result = await this.db
         .collection(this.COLLECTION)
-        .where("steamId", "==", steamId)
+        .where("userId", "==", steamId)
         .get();
       const favorites = extractFirestoreData<FavoriteModel>(result);
 
@@ -61,7 +62,7 @@ export class FavoriteRepo implements IFavoriteRepo {
     }
   }
 
-  private async getFavorite(favoriteId: string): AppResult<FavoriteModel> {
+  async getFavorite(favoriteId: string): AppResult<FavoriteModel> {
     const docSnap = await this.db
       .collection(this.COLLECTION)
       .doc(favoriteId)

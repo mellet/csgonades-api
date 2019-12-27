@@ -18,6 +18,9 @@ import { NadeService } from "./nade/NadeService";
 import { SteamService } from "./steam/SteamService";
 import { UserRepo } from "./user/UserRepoFirebase";
 import { UserService } from "./user/UserService";
+import { makeFavoriteRouter } from "./favorite/FavoriteRouter";
+import { FavoriteService } from "./favorite/FavoriteService";
+import { FavoriteRepo } from "./favorite/FavoriteRepo";
 
 export const AppServer = (config: CSGNConfig) => {
   const app = express();
@@ -47,6 +50,7 @@ export const AppServer = (config: CSGNConfig) => {
   // Repos
   const userRepo = new UserRepo(database);
   const nadeRepo = new NadeRepoFirebase(database);
+  const favoriteRepo = new FavoriteRepo(database);
 
   // Services
   const gfycatService = makeGfycatService(config);
@@ -59,17 +63,20 @@ export const AppServer = (config: CSGNConfig) => {
     imageStorageService,
     gfycatService
   );
+  const favoriteService = new FavoriteService(favoriteRepo);
 
   // Routers
   const statusRouter = makeStatusRouter(config);
   const nadeRouter = makeNadeRouter(config, nadeService, gfycatService);
   const steamRouter = makeSteamRouter(userService, passport, config);
   const userRouter = makeUserRouter(config, userRepo);
+  const favoriteRouter = makeFavoriteRouter(favoriteService);
 
   app.use(nadeRouter);
   app.use(steamRouter);
   app.use(userRouter);
   app.use(statusRouter);
+  app.use(favoriteRouter);
 
   app.get("/", (_, res) => {
     res.send("");

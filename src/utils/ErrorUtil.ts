@@ -15,4 +15,12 @@ export class ErrorGenerator {
     };
     return err<any, AppError>(error);
   }
+
+  static FORBIDDEN(message: string) {
+    const error: AppError = {
+      status: 403,
+      message
+    };
+    return err<any, AppError>(error);
+  }
 }
