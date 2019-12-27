@@ -1,20 +1,29 @@
 import sharp from "sharp";
 import { Bucket } from "@google-cloud/storage";
 import nanoid from "nanoid";
+import { CSGNConfig } from "../config/enironment";
+import { storage } from "firebase-admin";
 
-type NadeImages = {
-  thumbnail: string;
-  large: string;
+export type NadeImages = {
+  thumbnailId: string;
+  thumbnailUrl: string;
+  largeId: string;
+  largeUrl: string;
 };
 
-export interface ImageStorageService {
+export interface IImageStorageService {
   saveImage(imageBase64: string): Promise<NadeImages>;
+  deleteImage(fileId: string): Promise<boolean>;
 }
 
-export const makeImageStorageService = (
-  bucket: Bucket
-): ImageStorageService => {
-  const saveImage = async (imageBase64: string): Promise<NadeImages> => {
+export class ImageStorageService implements IImageStorageService {
+  private bucket: Bucket;
+
+  constructor(config: CSGNConfig, bucket: Bucket) {
+    this.bucket = bucket;
+  }
+
+  async saveImage(imageBase64: string): Promise<NadeImages> {
     try {
       const uri = imageBase64.split(";base64,").pop();
       const imgBuffer = Buffer.from(uri, "base64");
@@ -38,7 +47,7 @@ export const makeImageStorageService = (
         .resize(1000, null)
         .toFile(`tmp/${largeName}`);
 
-      await bucket.upload(`tmp/${thumbnailName}`, {
+      await this.bucket.upload(`tmp/${thumbnailName}`, {
         public: true,
         gzip: true,
         destination: `${thumbnailName}`,
@@ -49,7 +58,7 @@ export const makeImageStorageService = (
         }
       });
 
-      await bucket.upload(`tmp/${largeName}`, {
+      await this.bucket.upload(`tmp/${largeName}`, {
         public: true,
         gzip: true,
         destination: `${largeName}`,
@@ -60,21 +69,36 @@ export const makeImageStorageService = (
         }
       });
       return {
-        thumbnail: createPublicFileURL(bucket.name, thumbnailName),
-        large: createPublicFileURL(bucket.name, largeName)
+        thumbnailId: thumbnailName,
+        thumbnailUrl: this.createPublicFileURL(this.bucket.name, thumbnailName),
+        largeId: largeName,
+        largeUrl: this.createPublicFileURL(this.bucket.name, largeName)
       };
     } catch (error) {
       console.error(error.message);
     }
-  };
+  }
 
-  return {
-    saveImage
-  };
-};
+  async deleteImage(fileId: string) {
+    try {
+      const image = this.bucket.file(fileId);
 
-function createPublicFileURL(bucketName: string, storageName: string) {
-  return `https://storage.googleapis.com/${bucketName}/${encodeURIComponent(
-    storageName
-  )}`;
+      const result = await image.delete();
+      console.log("Image deleted", result);
+      return true;
+    } catch (error) {
+      console.error("Failed to delete image", error);
+      return false;
+    }
+  }
+
+  private createPublicFileURL(bucketName: string, storageName: string) {
+    return `https://storage.googleapis.com/${bucketName}/${encodeURIComponent(
+      storageName
+    )}`;
+  }
+
+  private getFileNameFromUrl(url: string) {
+    url.split("/");
+  }
 }

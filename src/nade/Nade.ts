@@ -2,6 +2,7 @@ import firebase from "firebase-admin";
 import { GfycatDetailsResponse } from "gfycat-sdk";
 import { UserLightModel, UserModel } from "../user/UserModel";
 import { removeUndefines } from "../utils/Common";
+import { NadeImages } from "../services/ImageStorageService";
 
 export type CsgoMap = "notset" | "dust2" | "mirage" | "nuke" | "inferno";
 
@@ -14,11 +15,6 @@ type StatusInfo = string;
 export type GfycatData = {
   gfyId: string;
   smallVideoUrl: string;
-};
-
-export type NadeImages = {
-  thumbnail: string;
-  large: string;
 };
 
 type Technique =
@@ -47,6 +43,7 @@ export type NadeModel = {
   user: UserLightModel;
   createdAt: FirebaseFirestore.Timestamp;
   updatedAt: FirebaseFirestore.Timestamp;
+  lastGfycatUpdate: FirebaseFirestore.Timestamp;
   status: NadeStatus;
   description?: string;
   map?: CsgoMap;

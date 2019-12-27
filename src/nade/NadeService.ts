@@ -12,12 +12,13 @@ import {
   NadeStatus,
   NadeStatusDTO
 } from "./Nade";
-import { ImageStorageService } from "../services/ImageStorageService";
+import { IImageStorageService } from "../services/ImageStorageService";
 import { GfycatService } from "../services/GfycatService";
 import { IUserService } from "../user/UserService";
 import { UserModel } from "../user/UserModel";
 import { AppResult } from "../utils/Common";
 import { ErrorGenerator } from "../utils/ErrorUtil";
+import { StatsService } from "../stats/StatsService";
 
 export interface INadeService {
   fetchNades(limit?: number): AppResult<NadeModel[]>;
@@ -36,14 +37,16 @@ export interface INadeService {
 export class NadeService implements INadeService {
   private nadeRepo: NadeRepo;
   private userService: IUserService;
-  private imageStorageService: ImageStorageService;
+  private imageStorageService: IImageStorageService;
   private gfycatService: GfycatService;
+  private statsService: StatsService;
 
   constructor(
     nadeRepo: NadeRepo,
     userService: IUserService,
-    imageStorageService: ImageStorageService,
-    gfycatService: GfycatService
+    imageStorageService: IImageStorageService,
+    gfycatService: GfycatService,
+    statsService: StatsService
   ) {
     this.nadeRepo = nadeRepo;
     this.userService = userService;
@@ -86,6 +89,7 @@ export class NadeService implements INadeService {
     );
     const tmpNade = makeNadeFromBody(user, gfycatData, nadeImages);
     const nade = await this.nadeRepo.save(tmpNade);
+    this.statsService.incrementNadeCounter();
 
     return nade;
   }

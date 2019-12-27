@@ -8,7 +8,7 @@ import { makeSteamRouter } from "./steam/SteamRouter";
 import cors from "cors";
 import { makeGfycatService } from "./services/GfycatService";
 import { makePersistedStorage } from "./storage/FirebaseFirestore";
-import { makeImageStorageService } from "./services/ImageStorageService";
+import { ImageStorageService } from "./services/ImageStorageService";
 import { makeUserRouter } from "./user/UserRouter";
 import { extractTokenMiddleware } from "./utils/AuthUtils";
 import { sessionRoute } from "./utils/SessionRoute";
@@ -21,6 +21,8 @@ import { UserService } from "./user/UserService";
 import { makeFavoriteRouter } from "./favorite/FavoriteRouter";
 import { FavoriteService } from "./favorite/FavoriteService";
 import { FavoriteRepo } from "./favorite/FavoriteRepo";
+import { StatsRepo } from "./stats/StatsRepo";
+import { StatsService } from "./stats/StatsService";
 
 export const AppServer = (config: CSGNConfig) => {
   const app = express();
@@ -51,17 +53,20 @@ export const AppServer = (config: CSGNConfig) => {
   const userRepo = new UserRepo(database);
   const nadeRepo = new NadeRepoFirebase(database);
   const favoriteRepo = new FavoriteRepo(database);
+  const statsRepo = new StatsRepo(database);
 
   // Services
   const gfycatService = makeGfycatService(config);
   const steamService = new SteamService(config);
-  const imageStorageService = makeImageStorageService(bucket);
-  const userService = new UserService(userRepo, steamService);
+  const statsService = new StatsService(statsRepo);
+  const imageStorageService = new ImageStorageService(config, bucket);
+  const userService = new UserService(userRepo, steamService, statsService);
   const nadeService = new NadeService(
     nadeRepo,
     userService,
     imageStorageService,
-    gfycatService
+    gfycatService,
+    statsService
   );
   const favoriteService = new FavoriteService(favoriteRepo);
 

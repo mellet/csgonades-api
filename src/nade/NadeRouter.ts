@@ -2,13 +2,13 @@ import { Router } from "express";
 import { validateNade } from "./NadeMiddleware";
 import { CsgoMap, NadeBody, NadeUpdateDTO, NadeStatusDTO } from "./Nade";
 import { INadeService } from "./NadeService";
-import { createHttpError } from "../utils/ErrorUtil";
 import { CSGNConfig } from "../config/enironment";
 import { authenticateRoute, adminOrModeratorRouter } from "../utils/AuthUtils";
 import { userFromRequest } from "../utils/RouterUtils";
 import { GfycatService } from "../services/GfycatService";
 import { getSessionId } from "../utils/SessionRoute";
 import { nadeModelsToLightDTO, nadeDTOfromModel } from "./NadeConverters";
+import expAutoSan from "express-autosanitizer";
 
 type IdParam = {
   id: string;
@@ -25,7 +25,7 @@ export const makeNadeRouter = (
 ): Router => {
   const NadeRouter = Router();
 
-  NadeRouter.get("/nades", async (_, res) => {
+  NadeRouter.get("/nades", expAutoSan.route, async (_, res) => {
     const nadesResult = await nadeService.fetchNades();
 
     if (nadesResult.isErr()) {
@@ -38,8 +38,8 @@ export const makeNadeRouter = (
     return res.status(200).send(nades);
   });
 
-  NadeRouter.get<IdParam>("/nades/:id", async (req, res) => {
-    const { id } = req.params; // TODO: Sanitze
+  NadeRouter.get<IdParam>("/nades/:id", expAutoSan.route, async (req, res) => {
+    const { id } = req.params;
 
     const nadeResult = await nadeService.fetchByID(id);
 
@@ -53,22 +53,30 @@ export const makeNadeRouter = (
     return res.status(200).send(nade);
   });
 
-  NadeRouter.get<MapNameParam>("/nades/map/:mapname", async (req, res) => {
-    const mapname = req.params.mapname; // TODO: Sanitze
+  NadeRouter.get<MapNameParam>(
+    "/nades/map/:mapname",
+    expAutoSan.route,
+    async (req, res) => {
+      const mapname = req.params.mapname;
 
-    const nadesResult = await nadeService.fetchByMap(mapname);
+      const nadesResult = await nadeService.fetchByMap(mapname);
 
-    if (nadesResult.isErr()) {
-      const { error } = nadesResult;
-      return res.status(error.status).send(error);
+      if (nadesResult.isErr()) {
+        const { error } = nadesResult;
+        return res.status(error.status).send(error);
+      }
+
+      const nades = nadeModelsToLightDTO(nadesResult.value);
+
+      return res.status(200).send(nades);
     }
+  );
 
-    const nades = nadeModelsToLightDTO(nadesResult.value);
-
-    return res.status(200).send(nades);
-  });
-
-  const postNadeMiddleware = [authenticateRoute, validateNade];
+  const postNadeMiddleware = [
+    expAutoSan.route,
+    authenticateRoute,
+    validateNade
+  ];
 
   NadeRouter.post("/nades", ...postNadeMiddleware, async (req, res) => {
     const user = userFromRequest(req);
@@ -86,13 +94,13 @@ export const makeNadeRouter = (
     return res.status(201).send(nade);
   });
 
-  const putNadeMiddleware = [authenticateRoute];
+  const putNadeMiddleware = [expAutoSan.route, authenticateRoute];
 
   NadeRouter.put<IdParam>(
     "/nades/:id",
     ...putNadeMiddleware,
     async (req, res) => {
-      const { id } = req.params; // TODO: Sanitze
+      const { id } = req.params;
       const user = userFromRequest(req);
 
       const nadeBody = req.body as NadeUpdateDTO; // TODO: Validate NadeUpdateBody
@@ -116,20 +124,25 @@ export const makeNadeRouter = (
     }
   );
 
-  NadeRouter.post<IdParam>("/nades/:id/countView", (req, res) => {
-    const { id } = req.params;
-    const identifier = getSessionId(req);
+  NadeRouter.post<IdParam>(
+    "/nades/:id/countView",
+    expAutoSan.route,
+    (req, res) => {
+      const { id } = req.params;
+      const identifier = getSessionId(req);
 
-    if (identifier) {
-      gfycatService.registerView(id, identifier);
-      return res.status(202).send();
-    } else {
-      return res.status(406).send();
+      if (identifier) {
+        gfycatService.registerView(id, identifier);
+        return res.status(202).send();
+      } else {
+        return res.status(406).send();
+      }
     }
-  });
+  );
 
   NadeRouter.patch<{ nadeId: string; steamId: string }>(
     "/nades/:nadeId/setuser/:steamId",
+    expAutoSan.route,
     adminOrModeratorRouter,
     async (req, res) => {
       const { nadeId, steamId } = req.params; // TODO: Sanitize
@@ -147,6 +160,7 @@ export const makeNadeRouter = (
 
   NadeRouter.patch<IdParam>(
     "/nades/:id/status",
+    expAutoSan.route,
     adminOrModeratorRouter,
     async (req, res) => {
       const { id } = req.params; // TODO: Sanitize

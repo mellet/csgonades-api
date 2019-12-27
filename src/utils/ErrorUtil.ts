@@ -23,4 +23,12 @@ export class ErrorGenerator {
     };
     return err<any, AppError>(error);
   }
+
+  static UNKNOWN(message: string) {
+    const error: AppError = {
+      status: 500,
+      message
+    };
+    return err<any, AppError>(error);
+  }
 }

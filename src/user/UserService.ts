@@ -2,6 +2,7 @@ import { IUserRepo } from "./UserRepo";
 import { ISteamService } from "../steam/SteamService";
 import { UserModel, UserCreateModel } from "./UserModel";
 import { AppResult } from "../utils/Common";
+import { StatsService } from "../stats/StatsService";
 
 export interface IUserService {
   bySteamID(steamId: string): AppResult<UserModel>;
@@ -12,10 +13,16 @@ export interface IUserService {
 export class UserService implements IUserService {
   private userRepo: IUserRepo;
   private steamService: ISteamService;
+  private statsService: StatsService;
 
-  constructor(userRepo: IUserRepo, steamService: ISteamService) {
+  constructor(
+    userRepo: IUserRepo,
+    steamService: ISteamService,
+    statsService: StatsService
+  ) {
     this.userRepo = userRepo;
     this.steamService = steamService;
+    this.statsService = statsService;
   }
 
   async bySteamID(steamId: string): AppResult<UserModel> {
@@ -41,6 +48,7 @@ export class UserService implements IUserService {
         };
 
         user = await this.userRepo.createUser(newUser);
+        this.statsService.incrementUserCounter();
       }
     }
 

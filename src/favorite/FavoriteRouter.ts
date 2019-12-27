@@ -3,28 +3,35 @@ import { FavoriteService } from "./FavoriteService";
 import { authenticateRoute } from "../utils/AuthUtils";
 import { userFromRequest } from "../utils/RouterUtils";
 import { toFavoriteDTO } from "./Favorite";
+import expAutoSan from "express-autosanitizer";
 
 export const makeFavoriteRouter = (
   favoriteService: FavoriteService
 ): Router => {
   const FavoriteRouter = Router();
 
-  FavoriteRouter.get("/favorites", authenticateRoute, async (req, res) => {
-    const user = userFromRequest(req);
-    const result = await favoriteService.getFavoritesForUser(user.steamId);
+  FavoriteRouter.get(
+    "/favorites",
+    expAutoSan.route,
+    authenticateRoute,
+    async (req, res) => {
+      const user = userFromRequest(req);
+      const result = await favoriteService.getFavoritesForUser(user.steamId);
 
-    if (result.isErr()) {
-      console.error(result.error);
-      return res.status(result.error.status).send(result.error);
+      if (result.isErr()) {
+        console.error(result.error);
+        return res.status(result.error.status).send(result.error);
+      }
+
+      const favorites = result.value.map(toFavoriteDTO);
+
+      return res.status(200).send(favorites);
     }
-
-    const favorites = result.value.map(toFavoriteDTO);
-
-    return res.status(200).send(favorites);
-  });
+  );
 
   FavoriteRouter.post(
     "/favorites/:nadeId",
+    expAutoSan.route,
     authenticateRoute,
     async (req, res) => {
       const user = userFromRequest(req);
@@ -47,6 +54,7 @@ export const makeFavoriteRouter = (
 
   FavoriteRouter.delete(
     "/favorites/:favoriteId",
+    expAutoSan.route,
     authenticateRoute,
     async (req, res) => {
       const favoriteId = req.params.favoriteId; // TODO: Sanitze
