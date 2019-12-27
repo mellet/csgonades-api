@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { validateNade } from "./NadeMiddleware";
-import { CsgoMap, NadeBody, NadeUpdateDTO, NadeStatusDTO } from "./Nade";
+import { CsgoMap, NadeCreateDTO, NadeUpdateDTO, NadeStatusDTO } from "./Nade";
 import { INadeService } from "./NadeService";
 import { CSGNConfig } from "../config/enironment";
 import { authenticateRoute, adminOrModeratorRouter } from "../utils/AuthUtils";
@@ -8,7 +8,7 @@ import { userFromRequest } from "../utils/RouterUtils";
 import { GfycatService } from "../services/GfycatService";
 import { getSessionId } from "../utils/SessionRoute";
 import { nadeModelsToLightDTO, nadeDTOfromModel } from "./NadeConverters";
-import { sanitizeString, sanitizeObject } from "../utils/Sanitize";
+import { sanitizeIt } from "../utils/Sanitize";
 
 type IdParam = {
   id: string;
@@ -39,7 +39,7 @@ export const makeNadeRouter = (
   });
 
   NadeRouter.get<IdParam>("/nades/:id", async (req, res) => {
-    const id = sanitizeString(req.params.id);
+    const id = sanitizeIt(req.params.id);
 
     const nadeResult = await nadeService.fetchByID(id);
 
@@ -54,7 +54,7 @@ export const makeNadeRouter = (
   });
 
   NadeRouter.get<MapNameParam>("/nades/map/:mapname", async (req, res) => {
-    const mapname = sanitizeString(req.params.mapname);
+    const mapname = sanitizeIt(req.params.mapname);
 
     const nadesResult = await nadeService.fetchByMap(mapname);
 
@@ -72,8 +72,11 @@ export const makeNadeRouter = (
 
   NadeRouter.post("/nades", ...postNadeMiddleware, async (req, res) => {
     const user = userFromRequest(req);
-    const dirtyNadeBody = req.body as NadeBody;
-    const nadeBody = sanitizeObject(dirtyNadeBody);
+    const dirtyNadeBody = req.body as NadeCreateDTO;
+    const nadeBody: NadeCreateDTO = {
+      gfycatIdOrUrl: sanitizeIt(dirtyNadeBody.gfycatIdOrUrl),
+      imageBase64: dirtyNadeBody.imageBase64
+    };
 
     const nadeResult = await nadeService.saveFromBody(nadeBody, user.steamId);
 
@@ -93,11 +96,11 @@ export const makeNadeRouter = (
     "/nades/:id",
     ...putNadeMiddleware,
     async (req, res) => {
-      const id = sanitizeString(req.params.id);
+      const id = sanitizeIt(req.params.id);
       const user = userFromRequest(req);
 
       const dirtyNadeBody = req.body as NadeUpdateDTO; // TODO: Validate NadeUpdateBody
-      const nadeBody = sanitizeObject(dirtyNadeBody);
+      const nadeBody = sanitizeIt(dirtyNadeBody);
 
       const isAllowedEdit = await nadeService.isAllowedEdit(id, user.steamId);
 
@@ -119,7 +122,7 @@ export const makeNadeRouter = (
   );
 
   NadeRouter.post<IdParam>("/nades/:id/countView", (req, res) => {
-    const id = sanitizeString(req.params.id);
+    const id = sanitizeIt(req.params.id);
     const identifier = getSessionId(req);
 
     if (identifier) {
@@ -134,8 +137,8 @@ export const makeNadeRouter = (
     "/nades/:nadeId/setuser/:steamId",
     adminOrModeratorRouter,
     async (req, res) => {
-      const nadeId = sanitizeString(req.params.nadeId);
-      const steamId = sanitizeString(req.params.steamId);
+      const nadeId = sanitizeIt(req.params.nadeId);
+      const steamId = sanitizeIt(req.params.steamId);
 
       const successResult = await nadeService.forceUserUpdate(nadeId, steamId);
       if (successResult.isErr()) {
@@ -153,10 +156,10 @@ export const makeNadeRouter = (
     "/nades/:id/status",
     adminOrModeratorRouter,
     async (req, res) => {
-      const id = sanitizeString(req.params.id);
+      const id = sanitizeIt(req.params.id);
       const user = userFromRequest(req);
       const dirtyStatusUpdate = req.body as NadeStatusDTO; // TODO: Validate NadeStatusDTO
-      const statusUpdate = sanitizeObject(dirtyStatusUpdate);
+      const statusUpdate = sanitizeIt(dirtyStatusUpdate);
 
       if (user.role !== "moderator" && user.role !== "administrator") {
         return res.status(403).send({

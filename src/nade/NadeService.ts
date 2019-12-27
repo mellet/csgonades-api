@@ -1,7 +1,7 @@
 import { NadeRepo } from "./NadeRepo";
 import { err, ok, Result } from "neverthrow";
 import {
-  NadeBody,
+  NadeCreateDTO,
   makeNadeFromBody,
   CsgoMap,
   NadeUpdateDTO,
@@ -24,7 +24,7 @@ export interface INadeService {
   fetchNades(limit?: number): AppResult<NadeModel[]>;
   fetchByID(nadeId: string): AppResult<NadeModel>;
   fetchByMap(map: CsgoMap): AppResult<NadeModel[]>;
-  saveFromBody(body: NadeBody, steamID: string): AppResult<NadeModel>;
+  saveFromBody(body: NadeCreateDTO, steamID: string): AppResult<NadeModel>;
   isAllowedEdit(nadeId: string, steamId: string): Promise<boolean>;
   update(nadeId: string, updateFields: NadeUpdateDTO): AppResult<NadeModel>;
   forceUserUpdate(nadeId: string, newSteamId: string): AppResult<NadeModel>;
@@ -72,7 +72,10 @@ export class NadeService implements INadeService {
     return nades;
   }
 
-  async saveFromBody(body: NadeBody, steamID: string): AppResult<NadeModel> {
+  async saveFromBody(
+    body: NadeCreateDTO,
+    steamID: string
+  ): AppResult<NadeModel> {
     const userResult = await this.userService.bySteamID(steamID);
 
     if (userResult.isErr()) {

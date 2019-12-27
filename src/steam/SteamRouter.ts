@@ -9,7 +9,7 @@ import {
 } from "../utils/AuthUtils";
 import { IUserService } from "../user/UserService";
 import { UserModel } from "../user/UserModel";
-import { sanitizeString } from "../utils/Sanitize";
+import { sanitizeIt } from "../utils/Sanitize";
 
 export const makeSteamRouter = (
   userService: IUserService,
@@ -48,7 +48,7 @@ export const makeSteamRouter = (
     passport.authenticate("steam", { session: false, failureRedirect: "/" }),
     async (req, res) => {
       const dirtySteamId = req.user as string;
-      let steamId = sanitizeString(dirtySteamId);
+      let steamId = sanitizeIt(dirtySteamId);
 
       const result = await userService.getOrCreateUser(steamId);
 

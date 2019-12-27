@@ -94,17 +94,9 @@ export type NadeLightDTO = {
   createdAt: Date;
 };
 
-export type NadeBody = {
+export type NadeCreateDTO = {
   gfycatIdOrUrl: string;
   imageBase64: string;
-  title?: string;
-  description?: string;
-  map?: CsgoMap;
-  movement?: Movement;
-  technique?: Technique;
-  tickrate?: Tickrate;
-  type?: NadeType;
-  steamId?: string;
 };
 
 export type NadeStatusDTO = {

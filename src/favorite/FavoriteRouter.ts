@@ -3,7 +3,7 @@ import { FavoriteService } from "./FavoriteService";
 import { authenticateRoute } from "../utils/AuthUtils";
 import { userFromRequest } from "../utils/RouterUtils";
 import { toFavoriteDTO } from "./Favorite";
-import { sanitizeString } from "../utils/Sanitize";
+import { sanitizeIt } from "../utils/Sanitize";
 
 export const makeFavoriteRouter = (
   favoriteService: FavoriteService
@@ -29,7 +29,7 @@ export const makeFavoriteRouter = (
     authenticateRoute,
     async (req, res) => {
       const user = userFromRequest(req);
-      const nadeId = sanitizeString(req.params.nadeId);
+      const nadeId = sanitizeIt(req.params.nadeId);
 
       const result = await favoriteService.createFavoriteForUser(
         user.steamId,
@@ -50,7 +50,7 @@ export const makeFavoriteRouter = (
     "/favorites/:favoriteId",
     authenticateRoute,
     async (req, res) => {
-      const favoriteId = sanitizeString(req.params.favoriteId);
+      const favoriteId = sanitizeIt(req.params.favoriteId);
       const user = userFromRequest(req);
 
       const result = await favoriteService.unFavorite(user.steamId, favoriteId);

@@ -20,6 +20,7 @@ const dummyNade: NadeModel = {
   type: "smoke",
   updatedAt: firestore.Timestamp.fromDate(new Date()),
   createdAt: firestore.Timestamp.fromDate(new Date()),
+  lastGfycatUpdate: firestore.Timestamp.fromDate(new Date()),
   gfycat: {
     gfyId: "old-gfyId",
     smallVideoUrl: "old-smallUrl"
@@ -30,8 +31,10 @@ const dummyNade: NadeModel = {
     views: 3
   },
   images: {
-    thumbnail: "old-thumburl",
-    large: "old-largeurl"
+    largeId: "largeId",
+    largeUrl: "largeUrl",
+    thumbnailId: "thumbId",
+    thumbnailUrl: "thumbUrl"
   },
   status: "pending",
   steamId: "old-steamId",

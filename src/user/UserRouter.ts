@@ -4,7 +4,7 @@ import { IUserRepo } from "./UserRepo";
 import { authenticateRoute } from "../utils/AuthUtils";
 import { userFromRequest } from "../utils/RouterUtils";
 import { userModelToDTO, desensitizeUser } from "./UserConverters";
-import { sanitizeString } from "../utils/Sanitize";
+import { sanitizeIt } from "../utils/Sanitize";
 
 export const makeUserRouter = (
   config: CSGNConfig,
@@ -28,7 +28,7 @@ export const makeUserRouter = (
   });
 
   UserRouter.get("/users/:id", async (req, res) => {
-    const id = sanitizeString(req.params.id);
+    const id = sanitizeIt(req.params.id);
     const requestUser = userFromRequest(req);
 
     const result = await userRepo.bySteamID(id);
