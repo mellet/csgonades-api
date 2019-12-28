@@ -118,8 +118,6 @@ export const makeNadeRouter = (
   NadeRouter.post("/nades/list", async (req, res) => {
     const nadeList = req.body.nadeIds as string[];
 
-    console.log("Requested to get nadelist", nadeList);
-
     const nadeResult = await nadeService.fetchByIdList(nadeList);
 
     if (nadeResult.isErr()) {
@@ -128,8 +126,6 @@ export const makeNadeRouter = (
     }
 
     const nades = nadeModelsToLightDTO(nadeResult.value);
-
-    console.log("Found nades", nades.length);
 
     return res.status(200).send(nades);
   });
