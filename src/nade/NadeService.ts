@@ -15,7 +15,7 @@ import {
 import { IImageStorageService } from "../services/ImageStorageService";
 import { GfycatService } from "../services/GfycatService";
 import { IUserService } from "../user/UserService";
-import { UserModel } from "../user/UserModel";
+import { UserModel, UserLightModel } from "../user/UserModel";
 import { AppResult } from "../utils/Common";
 import { ErrorGenerator } from "../utils/ErrorUtil";
 import { StatsService } from "../stats/StatsService";
@@ -23,7 +23,9 @@ import { StatsService } from "../stats/StatsService";
 export interface INadeService {
   fetchNades(limit?: number): AppResult<NadeModel[]>;
   fetchByID(nadeId: string): AppResult<NadeModel>;
+  fetchByIdList(ids: string[]): AppResult<NadeModel[]>;
   fetchByMap(map: CsgoMap): AppResult<NadeModel[]>;
+  fetchByUser(steamId: string): AppResult<NadeModel[]>;
   saveFromBody(body: NadeCreateDTO, steamID: string): AppResult<NadeModel>;
   isAllowedEdit(nadeId: string, steamId: string): Promise<boolean>;
   update(nadeId: string, updateFields: NadeUpdateDTO): AppResult<NadeModel>;
@@ -67,10 +69,16 @@ export class NadeService implements INadeService {
     return result;
   }
 
-  async fetchByMap(map: CsgoMap): AppResult<NadeModel[]> {
-    const nades = await this.nadeRepo.byMap(map);
+  fetchByIdList(ids: string[]): AppResult<NadeModel[]> {
+    return this.nadeRepo.listByIds(ids);
+  }
 
-    return nades;
+  fetchByMap(map: CsgoMap): AppResult<NadeModel[]> {
+    return this.nadeRepo.byMap(map);
+  }
+
+  fetchByUser(steamId: string): AppResult<NadeModel[]> {
+    return this.nadeRepo.byUser(steamId);
   }
 
   async saveFromBody(
@@ -84,6 +92,11 @@ export class NadeService implements INadeService {
     }
 
     const user = userResult.value;
+    const userLight: UserLightModel = {
+      nickname: user.nickname,
+      avatar: user.avatar,
+      steamId: user.steamId
+    };
 
     const gfycatDataResult = await this.gfycatService.getGfycatData(
       body.gfycatIdOrUrl
@@ -99,7 +112,7 @@ export class NadeService implements INadeService {
       body.imageBase64
     );
 
-    const tmpNade = makeNadeFromBody(user, gfycatData, nadeImages);
+    const tmpNade = makeNadeFromBody(userLight, gfycatData, nadeImages);
     const nade = await this.nadeRepo.save(tmpNade);
     this.statsService.incrementNadeCounter();
 

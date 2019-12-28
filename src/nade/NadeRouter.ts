@@ -25,6 +25,10 @@ type MapNameParam = {
   mapname: CsgoMap;
 };
 
+type SteamIdParam = {
+  steamId: string;
+};
+
 export const makeNadeRouter = (
   config: CSGNConfig,
   nadeService: INadeService,
@@ -75,6 +79,20 @@ export const makeNadeRouter = (
     return res.status(200).send(nades);
   });
 
+  NadeRouter.get<SteamIdParam>("/nades/user/:steamId", async (req, res) => {
+    const steamId = sanitizeIt(req.params.steamId);
+
+    const nadeResult = await nadeService.fetchByUser(steamId);
+
+    if (nadeResult.isErr()) {
+      return res.status(500).send(nadeResult.error);
+    }
+
+    const nades = nadeModelsToLightDTO(nadeResult.value);
+
+    return res.status(200).send(nades);
+  });
+
   const postNadeMiddleware = [authenticateRoute, validateNade];
 
   NadeRouter.post("/nades", ...postNadeMiddleware, async (req, res) => {
@@ -95,6 +113,25 @@ export const makeNadeRouter = (
     const nade = nadeDTOfromModel(nadeResult.value);
 
     return res.status(201).send(nade);
+  });
+
+  NadeRouter.post("/nades/list", async (req, res) => {
+    const nadeList = req.body.nadeIds as string[];
+
+    console.log("Requested to get nadelist", nadeList);
+
+    const nadeResult = await nadeService.fetchByIdList(nadeList);
+
+    if (nadeResult.isErr()) {
+      const { error } = nadeResult;
+      return res.status(404).send(error);
+    }
+
+    const nades = nadeModelsToLightDTO(nadeResult.value);
+
+    console.log("Found nades", nades.length);
+
+    return res.status(200).send(nades);
   });
 
   NadeRouter.put<IdParam>("/nades/:id", authenticateRoute, async (req, res) => {

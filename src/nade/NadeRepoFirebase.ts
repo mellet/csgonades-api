@@ -30,6 +30,17 @@ export class NadeRepoFirebase implements NadeRepo {
     }
   }
 
+  async listByIds(ids: string[]): AppResult<NadeModel[]> {
+    try {
+      const docRef = this.db.collection(this.COLLECTION).where("id", "in", ids);
+      const querySnap = await docRef.get();
+      const nades = extractFirestoreData<NadeModel>(querySnap);
+      return nades;
+    } catch (error) {
+      return err(error);
+    }
+  }
+
   async byID(nadeId: string): AppResult<NadeModel> {
     try {
       const docSnap = await this.db
@@ -56,6 +67,19 @@ export class NadeRepoFirebase implements NadeRepo {
       const querySnap = await docRef.get();
       const nades = extractFirestoreData<NadeModel>(querySnap);
 
+      return nades;
+    } catch (error) {
+      return err(error);
+    }
+  }
+
+  async byUser(steamId: string): AppResult<NadeModel[]> {
+    try {
+      const docRef = this.db
+        .collection(this.COLLECTION)
+        .where("steamId", "==", steamId);
+      const querySnap = await docRef.get();
+      const nades = extractFirestoreData<NadeModel>(querySnap);
       return nades;
     } catch (error) {
       return err(error);

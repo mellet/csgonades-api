@@ -5,7 +5,9 @@ import { AppResult } from "../utils/Common";
 export interface NadeRepo {
   get(limit?: number): AppResult<NadeModel[]>;
   byID(steamID: string): AppResult<NadeModel>;
+  listByIds(ids: string[]): AppResult<NadeModel[]>;
   byMap(map: CsgoMap): AppResult<NadeModel[]>;
+  byUser(steamId: string): AppResult<NadeModel[]>;
   save(nade: NadeCreateModel): AppResult<NadeModel>;
   update(nadeId: string, updates: Partial<NadeModel>): AppResult<NadeModel>;
 }
