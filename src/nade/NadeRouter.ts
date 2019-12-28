@@ -1,6 +1,13 @@
 import { Router } from "express";
 import { validateNade } from "./NadeMiddleware";
-import { CsgoMap, NadeCreateDTO, NadeUpdateDTO, NadeStatusDTO } from "./Nade";
+import {
+  CsgoMap,
+  NadeCreateDTO,
+  NadeUpdateDTO,
+  NadeStatusDTO,
+  NadeGfycatValidateDTO,
+  GfycatData
+} from "./Nade";
 import { INadeService } from "./NadeService";
 import { CSGNConfig } from "../config/enironment";
 import { authenticateRoute, adminOrModeratorRouter } from "../utils/AuthUtils";
@@ -173,6 +180,28 @@ export const makeNadeRouter = (
       return res.status(202).send(nade);
     }
   );
+
+  NadeRouter.post("/nades/validateGfycat", async (req, res) => {
+    const validateGfycat = req.body as NadeGfycatValidateDTO;
+
+    const result = await gfycatService.getGfycatData(
+      validateGfycat.gfycatIdOrUrl
+    );
+
+    if (result.isErr()) {
+      return res.status(500).send(result.error);
+    }
+
+    const { gfyItem } = result.value;
+
+    const gfyData: GfycatData = {
+      gfyId: gfyItem.gfyId,
+      smallVideoUrl: gfyItem.mobileUrl,
+      largeVideoUrl: gfyItem.mp4Url
+    };
+
+    return res.status(200).send(gfyData);
+  });
 
   return NadeRouter;
 };

@@ -16,6 +16,7 @@ type StatusInfo = string;
 export type GfycatData = {
   gfyId: string;
   smallVideoUrl: string;
+  largeVideoUrl: string;
 };
 
 type Technique =
@@ -132,6 +133,10 @@ export type NadeUpdateDTO = {
   mapSite?: MapSite;
 };
 
+export type NadeGfycatValidateDTO = {
+  gfycatIdOrUrl: string;
+};
+
 export const makeNadeFromBody = (
   user: UserLightModel,
   gfycatData: GfycatDetailsResponse,
@@ -145,7 +150,8 @@ export const makeNadeFromBody = (
     },
     gfycat: {
       gfyId: gfycatData.gfyItem.gfyId,
-      smallVideoUrl: gfycatData.gfyItem.mobileUrl
+      smallVideoUrl: gfycatData.gfyItem.mobileUrl,
+      largeVideoUrl: gfycatData.gfyItem.mp4Url
     },
     images,
     user,

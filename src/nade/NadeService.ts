@@ -85,12 +85,20 @@ export class NadeService implements INadeService {
 
     const user = userResult.value;
 
-    const gfycatData = await this.gfycatService.getGfycatData(
+    const gfycatDataResult = await this.gfycatService.getGfycatData(
       body.gfycatIdOrUrl
     );
+
+    if (gfycatDataResult.isErr()) {
+      return err(gfycatDataResult.error);
+    }
+
+    const gfycatData = gfycatDataResult.value;
+
     const nadeImages = await this.imageStorageService.saveImage(
       body.imageBase64
     );
+
     const tmpNade = makeNadeFromBody(user, gfycatData, nadeImages);
     const nade = await this.nadeRepo.save(tmpNade);
     this.statsService.incrementNadeCounter();
@@ -137,16 +145,24 @@ export class NadeService implements INadeService {
     let newStats: NadeStats;
 
     if (updateFields.gfycatIdOrUrl) {
-      const { gfyItem } = await this.gfycatService.getGfycatData(
+      const gfycatResult = await this.gfycatService.getGfycatData(
         updateFields.gfycatIdOrUrl
       );
+
+      if (gfycatResult.isErr()) {
+        return err(gfycatResult.error);
+      }
+
+      const gfycatDate = gfycatResult.value;
+
       newGfyData = {
-        gfyId: gfyItem.gfyId,
-        smallVideoUrl: gfyItem.mobileUrl
+        gfyId: gfycatDate.gfyItem.gfyId,
+        smallVideoUrl: gfycatDate.gfyItem.mobileUrl,
+        largeVideoUrl: gfycatDate.gfyItem.mp4Url
       };
       newStats = {
         ...oldNade.stats,
-        views: gfyItem.views
+        views: gfycatDate.gfyItem.views
       };
     }
 
