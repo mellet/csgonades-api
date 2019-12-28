@@ -16,7 +16,8 @@ export const validateNade = (
       movement: joi.string(),
       technique: joi.string(),
       tickrate: joi.string(),
-      type: joi.string()
+      type: joi.string(),
+      mapSite: joi.string()
     })
     .unknown(false);
 

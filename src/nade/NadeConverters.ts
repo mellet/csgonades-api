@@ -38,7 +38,8 @@ export const nadeDTOfromModel = (nade: NadeModel): NadeDTO => {
     statusInfo: nade.statusInfo,
     technique: nade.technique,
     tickrate: nade.tickrate,
-    type: nade.type
+    type: nade.type,
+    mapSite: nade.mapSite
   };
   return removeUndefines(dto);
 };

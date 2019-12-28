@@ -1,6 +1,6 @@
 import { NadeRepo } from "./NadeRepo";
 import { ok, err, Result } from "neverthrow";
-import { CsgoMap, NadeModel, NadeCreateModel } from "./Nade";
+import { CsgoMap, NadeModel, NadeCreateModel, NadeModelInsert } from "./Nade";
 import { firestore } from "firebase-admin";
 import { extractFirestoreData } from "../utils/Firebase";
 import { AppError, AppResult, removeUndefines } from "../utils/Common";
@@ -64,10 +64,16 @@ export class NadeRepoFirebase implements NadeRepo {
 
   async save(nade: NadeCreateModel): AppResult<NadeModel> {
     try {
-      const saveNade = {
-        ...nade,
+      const saveNade: NadeModelInsert = {
         createdAt: firestore.FieldValue.serverTimestamp(),
-        updatedAt: firestore.FieldValue.serverTimestamp()
+        updatedAt: firestore.FieldValue.serverTimestamp(),
+        gfycat: nade.gfycat,
+        images: nade.images,
+        lastGfycatUpdate: firestore.FieldValue.serverTimestamp(),
+        stats: nade.stats,
+        status: "pending",
+        steamId: nade.steamId,
+        user: nade.user
       };
 
       const cleanNade = removeUndefines(saveNade);

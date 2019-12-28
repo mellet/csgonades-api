@@ -1,4 +1,3 @@
-import firebase from "firebase-admin";
 import { GfycatDetailsResponse } from "gfycat-sdk";
 import { UserLightModel, UserModel } from "../user/UserModel";
 import { removeUndefines } from "../utils/Common";
@@ -9,6 +8,8 @@ export type CsgoMap = "notset" | "dust2" | "mirage" | "nuke" | "inferno";
 type Movement = "notset" | "stationary" | "running" | "walking" | "crouching";
 
 export type NadeStatus = "pending" | "accepted" | "declined" | "deleted";
+
+export type MapSite = "a" | "b" | "mid";
 
 type StatusInfo = string;
 
@@ -53,6 +54,19 @@ export type NadeModel = {
   tickrate?: Tickrate;
   type?: NadeType;
   statusInfo?: StatusInfo;
+  mapSite?: MapSite;
+};
+
+export type NadeModelInsert = {
+  gfycat: GfycatData;
+  images: NadeImages;
+  steamId: string;
+  user: UserLightModel;
+  createdAt: FirebaseFirestore.FieldValue;
+  updatedAt: FirebaseFirestore.FieldValue;
+  lastGfycatUpdate: FirebaseFirestore.FieldValue;
+  status: NadeStatus;
+  stats: NadeStats;
 };
 
 export type NadeCreateModel = {
@@ -81,6 +95,7 @@ export type NadeDTO = {
   updatedAt: Date;
   status: NadeStatus;
   statusInfo?: StatusInfo;
+  mapSite?: MapSite;
 };
 
 export type NadeLightDTO = {
@@ -90,6 +105,7 @@ export type NadeLightDTO = {
   images: NadeImages;
   stats: NadeStats;
   type?: NadeType;
+  nadeSite?: MapSite;
   tickrate?: Tickrate;
   createdAt: Date;
 };
@@ -113,6 +129,7 @@ export type NadeUpdateDTO = {
   technique?: Technique;
   tickrate?: Tickrate;
   type?: NadeType;
+  mapSite?: MapSite;
 };
 
 export const makeNadeFromBody = (
@@ -155,7 +172,8 @@ export function updatedNadeMerge(
     gfycat: newGfcatData || nade.gfycat,
     stats: newStats || nade.stats,
     user: newUser || nade.user,
-    steamId: newUser ? newUser.steamId : nade.steamId
+    steamId: newUser ? newUser.steamId : nade.steamId,
+    mapSite: updateFields.mapSite || nade.mapSite
   };
 
   return removeUndefines(newNade);

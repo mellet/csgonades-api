@@ -90,36 +90,30 @@ export const makeNadeRouter = (
     return res.status(201).send(nade);
   });
 
-  const putNadeMiddleware = [authenticateRoute];
+  NadeRouter.put<IdParam>("/nades/:id", authenticateRoute, async (req, res) => {
+    const id = sanitizeIt(req.params.id);
+    const user = userFromRequest(req);
 
-  NadeRouter.put<IdParam>(
-    "/nades/:id",
-    ...putNadeMiddleware,
-    async (req, res) => {
-      const id = sanitizeIt(req.params.id);
-      const user = userFromRequest(req);
+    const dirtyNadeBody = req.body as NadeUpdateDTO; // TODO: Validate NadeUpdateBody
+    const nadeBody = sanitizeIt(dirtyNadeBody);
 
-      const dirtyNadeBody = req.body as NadeUpdateDTO; // TODO: Validate NadeUpdateBody
-      const nadeBody = sanitizeIt(dirtyNadeBody);
+    const isAllowedEdit = await nadeService.isAllowedEdit(id, user.steamId);
 
-      const isAllowedEdit = await nadeService.isAllowedEdit(id, user.steamId);
-
-      if (!isAllowedEdit) {
-        return res.status(401).send({ error: "Not allowed to edit this nade" });
-      }
-
-      const updatedNadeResult = await nadeService.update(id, nadeBody);
-
-      if (updatedNadeResult.isErr()) {
-        const { error } = updatedNadeResult;
-        return res.status(error.status).send(error);
-      }
-
-      const nade = nadeDTOfromModel(updatedNadeResult.value);
-
-      return res.status(202).send(nade);
+    if (!isAllowedEdit) {
+      return res.status(401).send({ error: "Not allowed to edit this nade" });
     }
-  );
+
+    const updatedNadeResult = await nadeService.update(id, nadeBody);
+
+    if (updatedNadeResult.isErr()) {
+      const { error } = updatedNadeResult;
+      return res.status(error.status).send(error);
+    }
+
+    const nade = nadeDTOfromModel(updatedNadeResult.value);
+
+    return res.status(202).send(nade);
+  });
 
   NadeRouter.post<IdParam>("/nades/:id/countView", (req, res) => {
     const id = sanitizeIt(req.params.id);

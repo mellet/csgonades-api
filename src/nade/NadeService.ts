@@ -52,6 +52,7 @@ export class NadeService implements INadeService {
     this.userService = userService;
     this.imageStorageService = imageStorageService;
     this.gfycatService = gfycatService;
+    this.statsService = statsService;
   }
 
   async fetchNades(limit: number = 10): AppResult<NadeModel[]> {

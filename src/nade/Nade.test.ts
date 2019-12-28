@@ -43,7 +43,8 @@ const dummyNade: NadeModel = {
     steamId: "old-steamId",
     avatar: ""
   },
-  statusInfo: "old-statusInfo"
+  statusInfo: "old-statusInfo",
+  mapSite: "a"
 };
 
 describe("Nade tests", () => {
@@ -66,6 +67,7 @@ describe("Nade tests", () => {
     expect(updatedNade.steamId).toEqual(dummyNade.steamId);
     expect(updatedNade.createdAt).toEqual(dummyNade.createdAt);
     expect(updatedNade.images).toEqual(dummyNade.images);
+    expect(updatedNade.mapSite).toEqual(dummyNade.mapSite);
   });
 
   it("Updates simple fields", () => {
