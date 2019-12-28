@@ -23,7 +23,8 @@ const dummyNade: NadeModel = {
   lastGfycatUpdate: firestore.Timestamp.fromDate(new Date()),
   gfycat: {
     gfyId: "old-gfyId",
-    smallVideoUrl: "old-smallUrl"
+    smallVideoUrl: "old-smallUrl",
+    largeVideoUrl: "old-largeVideo"
   },
   stats: {
     comments: 1,
@@ -123,7 +124,8 @@ describe("Nade tests", () => {
   it("Updates gfycat data", () => {
     const newGfycatData: GfycatData = {
       gfyId: "new-gfyId",
-      smallVideoUrl: "new-smallVideoUrl"
+      smallVideoUrl: "new-smallVideoUrl",
+      largeVideoUrl: "new-largeVideoUrl"
     };
 
     const updatedNade = updatedNadeMerge(
