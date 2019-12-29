@@ -83,8 +83,7 @@ export class ImageStorageService implements IImageStorageService {
     try {
       const image = this.bucket.file(fileId);
 
-      const result = await image.delete();
-      console.log("Image deleted", result);
+      await image.delete();
       return true;
     } catch (error) {
       console.error("Failed to delete image", error);
