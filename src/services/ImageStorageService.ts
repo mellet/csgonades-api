@@ -48,12 +48,12 @@ export class ImageStorageService implements IImageStorageService {
 
       await sharp(imgBuffer)
         .resize(400, null)
-        .toFile(`tmp/${thumbnailName}`);
+        .toFile(`../tmp/${thumbnailName}`);
       await sharp(imgBuffer)
         .resize(1000, null)
-        .toFile(`tmp/${largeName}`);
+        .toFile(`../tmp/${largeName}`);
 
-      await this.bucket.upload(`tmp/${thumbnailName}`, {
+      await this.bucket.upload(`../tmp/${thumbnailName}`, {
         public: true,
         gzip: true,
         destination: `${thumbnailName}`,
@@ -64,7 +64,7 @@ export class ImageStorageService implements IImageStorageService {
         }
       });
 
-      await this.bucket.upload(`tmp/${largeName}`, {
+      await this.bucket.upload(`../tmp/${largeName}`, {
         public: true,
         gzip: true,
         destination: `${largeName}`,
