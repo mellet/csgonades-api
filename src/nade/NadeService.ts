@@ -16,14 +16,15 @@ import { GfycatService } from "../services/GfycatService";
 import { IUserService } from "../user/UserService";
 import { UserModel, UserLightModel } from "../user/UserModel";
 import { AppResult } from "../utils/Common";
-import { ErrorGenerator, makeError } from "../utils/ErrorUtil";
+import { makeError } from "../utils/ErrorUtil";
 import { StatsService } from "../stats/StatsService";
+import { NadeFilter } from "./NadeFilter";
 
 export interface INadeService {
   fetchNades(limit?: number): AppResult<NadeModel[]>;
   fetchByID(nadeId: string): AppResult<NadeModel>;
   fetchByIdList(ids: string[]): AppResult<NadeModel[]>;
-  fetchByMap(map: CsgoMap): AppResult<NadeModel[]>;
+  fetchByMap(map: CsgoMap, nadeFilter: NadeFilter): AppResult<NadeModel[]>;
   fetchByUser(steamId: string): AppResult<NadeModel[]>;
   saveFromBody(body: NadeCreateDTO, steamID: string): AppResult<NadeModel>;
   isAllowedEdit(nadeId: string, steamId: string): Promise<boolean>;
@@ -69,8 +70,8 @@ export class NadeService implements INadeService {
     return this.nadeRepo.listByIds(ids);
   }
 
-  fetchByMap(map: CsgoMap): AppResult<NadeModel[]> {
-    return this.nadeRepo.byMap(map);
+  fetchByMap(map: CsgoMap, nadeFilter: NadeFilter): AppResult<NadeModel[]> {
+    return this.nadeRepo.byMap(map, nadeFilter);
   }
 
   fetchByUser(steamId: string): AppResult<NadeModel[]> {

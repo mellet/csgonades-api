@@ -1,12 +1,13 @@
 import { CsgoMap, NadeModel, NadeCreateModel } from "./Nade";
 import { Result } from "neverthrow";
 import { AppResult } from "../utils/Common";
+import { NadeFilter } from "./NadeFilter";
 
 export interface NadeRepo {
   get(limit?: number): AppResult<NadeModel[]>;
   byID(steamID: string): AppResult<NadeModel>;
   listByIds(ids: string[]): AppResult<NadeModel[]>;
-  byMap(map: CsgoMap): AppResult<NadeModel[]>;
+  byMap(map: CsgoMap, nadeFilter: NadeFilter): AppResult<NadeModel[]>;
   byUser(steamId: string): AppResult<NadeModel[]>;
   save(nade: NadeCreateModel): AppResult<NadeModel>;
   update(nadeId: string, updates: Partial<NadeModel>): AppResult<NadeModel>;

@@ -28,7 +28,7 @@ type Technique =
 
 type Tickrate = "64tick" | "128 tick" | "Any";
 
-type NadeType = "notset" | "smoke" | "flash" | "molotov" | "he-grenade";
+type NadeType = "notset" | "smoke" | "flash" | "molotov" | "hegrenade";
 
 export type NadeStats = {
   comments: number;

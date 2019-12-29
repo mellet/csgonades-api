@@ -17,6 +17,7 @@ import { getSessionId } from "../utils/SessionRoute";
 import { nadeModelsToLightDTO, nadeDTOfromModel } from "./NadeConverters";
 import { sanitizeIt } from "../utils/Sanitize";
 import { AppError } from "../utils/Common";
+import { nadeFilterFromRequest } from "./NadeFilter";
 
 type IdParam = {
   id: string;
@@ -66,9 +67,11 @@ export const makeNadeRouter = (
   });
 
   NadeRouter.get<MapNameParam>("/nades/map/:mapname", async (req, res) => {
-    const mapname = sanitizeIt(req.params.mapname);
+    const mapName = sanitizeIt(req.params.mapname);
 
-    const nadesResult = await nadeService.fetchByMap(mapname);
+    const nadeFilter = nadeFilterFromRequest(req);
+
+    const nadesResult = await nadeService.fetchByMap(mapName, nadeFilter);
 
     if (nadesResult.isErr()) {
       const { error } = nadesResult;

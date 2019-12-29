@@ -8,6 +8,7 @@ import {
 } from "../utils/Firebase";
 import { AppResult, removeUndefines } from "../utils/Common";
 import { ErrorGenerator, extractError } from "../utils/ErrorUtil";
+import { NadeFilter } from "./NadeFilter";
 
 export class NadeRepoFirebase implements NadeRepo {
   private db: FirebaseFirestore.Firestore;
@@ -19,7 +20,11 @@ export class NadeRepoFirebase implements NadeRepo {
 
   async get(limit: number = 10): AppResult<NadeModel[]> {
     try {
-      const docRef = this.db.collection(this.COLLECTION).limit(limit);
+      const docRef = this.db
+        .collection(this.COLLECTION)
+        .limit(limit)
+        .where("status", "==", "accepted")
+        .orderBy("createdAt", "desc");
       const querySnap = await docRef.get();
       const nades = extractFirestoreData<NadeModel>(querySnap);
 
@@ -31,7 +36,10 @@ export class NadeRepoFirebase implements NadeRepo {
 
   async listByIds(ids: string[]): AppResult<NadeModel[]> {
     try {
-      const docRef = this.db.collection(this.COLLECTION).where("id", "in", ids);
+      const docRef = this.db
+        .collection(this.COLLECTION)
+        .where("id", "in", ids)
+        .orderBy("createdAt", "desc");
       const querySnap = await docRef.get();
       const nades = extractFirestoreData<NadeModel>(querySnap);
       return nades;
@@ -59,11 +67,33 @@ export class NadeRepoFirebase implements NadeRepo {
     }
   }
 
-  async byMap(mapName: CsgoMap): AppResult<NadeModel[]> {
+  async byMap(
+    mapName: CsgoMap,
+    nadeFilter: NadeFilter
+  ): AppResult<NadeModel[]> {
     try {
-      const docRef = this.db
+      let docRef = this.db
         .collection(this.COLLECTION)
-        .where("map", "==", mapName);
+        .where("map", "==", mapName)
+        .where("status", "==", "accepted")
+        .orderBy("createdAt", "desc");
+
+      if (nadeFilter.flash) {
+        docRef = docRef.where("type", "==", "flash");
+      }
+
+      if (nadeFilter.smoke) {
+        docRef = docRef.where("type", "==", "smoke");
+      }
+
+      if (nadeFilter.molotov) {
+        docRef = docRef.where("type", "==", "molotov");
+      }
+
+      if (nadeFilter.hegrenade) {
+        docRef = docRef.where("type", "==", "hegrenade");
+      }
+
       const querySnap = await docRef.get();
       const nades = extractFirestoreData<NadeModel>(querySnap);
 
