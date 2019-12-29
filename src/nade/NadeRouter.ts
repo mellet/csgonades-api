@@ -107,7 +107,7 @@ export const makeNadeRouter = (
 
     if (nadeResult.isErr()) {
       const { error } = nadeResult;
-      return res.status(error.status).send(error);
+      return res.status(400).send(error);
     }
 
     const nade = nadeDTOfromModel(nadeResult.value);
