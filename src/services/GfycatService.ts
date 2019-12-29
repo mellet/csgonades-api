@@ -1,8 +1,7 @@
 import Gfycat, { GfycatDetailsResponse } from "gfycat-sdk";
 import { CSGNConfig } from "../config/enironment";
-import { extractGfyIdFromIdOrUrl } from "./GfycatHelper";
 import axios from "axios";
-import { AppResult } from "../utils/Common";
+import { AppResult, extractGfyIdFromIdOrUrl } from "../utils/Common";
 import { ok } from "neverthrow";
 import { extractError } from "../utils/ErrorUtil";
 

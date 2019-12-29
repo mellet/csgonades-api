@@ -10,6 +10,12 @@ export const removeUndefines = <T extends Object>(object: T): T => {
   return newObject;
 };
 
+export function extractGfyIdFromIdOrUrl(gfycatIdOrUrl: string): string {
+  const index = gfycatIdOrUrl.lastIndexOf("/");
+  const gfyId = gfycatIdOrUrl.substr(index + 1);
+  return gfyId;
+}
+
 export type AppError = {
   status: number;
   message: string;
