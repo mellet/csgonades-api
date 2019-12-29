@@ -236,5 +236,21 @@ export const makeNadeRouter = (
     return res.status(200).send(gfyData);
   });
 
+  NadeRouter.delete<IdParam>(
+    "/nades/:id",
+    adminOrModeratorRouter,
+    async (req, res) => {
+      const id = sanitizeIt(req.params.id);
+
+      const result = await nadeService.delete(id);
+
+      if (!result) {
+        return res.status(500).send({ error: "Failed to delete nade" });
+      }
+
+      return res.status(204).send();
+    }
+  );
+
   return NadeRouter;
 };

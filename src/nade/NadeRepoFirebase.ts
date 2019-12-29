@@ -132,4 +132,14 @@ export class NadeRepoFirebase implements NadeRepo {
       return err(error);
     }
   }
+
+  async delete(nadeId: string): AppResult<boolean> {
+    try {
+      const nadeRef = this.db.collection(this.COLLECTION).doc(nadeId);
+      await nadeRef.delete();
+      return ok(true);
+    } catch (error) {
+      return err(error);
+    }
+  }
 }

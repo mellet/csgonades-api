@@ -34,6 +34,7 @@ export interface INadeService {
     nadeId: string,
     updatedStatus: NadeStatusDTO
   ): AppResult<NadeModel>;
+  delete(nadeId: string): Promise<boolean>;
 }
 
 export class NadeService implements INadeService {
@@ -117,6 +118,32 @@ export class NadeService implements INadeService {
     this.statsService.incrementNadeCounter();
 
     return nade;
+  }
+
+  async delete(nadeId: string): Promise<boolean> {
+    const nadeResult = await this.nadeRepo.byID(nadeId);
+
+    if (nadeResult.isErr()) {
+      return false;
+    }
+
+    const nade = nadeResult.value;
+
+    const [
+      firestoreDeleteResult,
+      deleteLargeOk,
+      deleteThumbOk
+    ] = await Promise.all([
+      this.nadeRepo.delete(nade.id),
+      this.imageStorageService.deleteImage(nade.images.largeId),
+      this.imageStorageService.deleteImage(nade.images.thumbnailId)
+    ]);
+
+    if (!deleteLargeOk || !deleteThumbOk || firestoreDeleteResult.isErr()) {
+      return false;
+    }
+
+    return true;
   }
 
   async isAllowedEdit(nadeId: string, steamId: string): Promise<boolean> {

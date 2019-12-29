@@ -10,4 +10,5 @@ export interface NadeRepo {
   byUser(steamId: string): AppResult<NadeModel[]>;
   save(nade: NadeCreateModel): AppResult<NadeModel>;
   update(nadeId: string, updates: Partial<NadeModel>): AppResult<NadeModel>;
+  delete(nadeId: string): AppResult<boolean>;
 }
