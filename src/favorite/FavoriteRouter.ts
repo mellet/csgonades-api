@@ -15,8 +15,8 @@ export const makeFavoriteRouter = (
     const result = await favoriteService.getFavoritesForUser(user.steamId);
 
     if (result.isErr()) {
-      console.error(result.error);
-      return res.status(result.error.status).send(result.error);
+      const { status, message } = result.error;
+      return res.status(status).send(message);
     }
 
     const favorites = result.value.map(toFavoriteDTO);

@@ -8,11 +8,7 @@ export const makeStatusRouter = (config: CSGNConfig): Router => {
     res.send({
       status: "OK",
       uptime: format(process.uptime()),
-      node_env: process.env.NODE_ENV,
-      urlConfig: {
-        server: config.server,
-        client: config.client
-      }
+      node_env: process.env.NODE_ENV
     });
   });
 

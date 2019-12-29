@@ -1,6 +1,6 @@
 import { SiteStats } from "./SiteStats";
 import { extractFirestoreDataPoint } from "../utils/Firebase";
-import { ErrorGenerator } from "../utils/ErrorUtil";
+import { extractError } from "../utils/ErrorUtil";
 import { firestore } from "firebase-admin";
 import { AppResult } from "../utils/Common";
 
@@ -17,8 +17,7 @@ export class StatsRepo {
       const result = await this.SITE_STATS_REF.get();
       return extractFirestoreDataPoint(result);
     } catch (error) {
-      console.error(error.message);
-      return ErrorGenerator.UNKNOWN(error.message);
+      return extractError(error);
     }
   }
 
@@ -28,7 +27,7 @@ export class StatsRepo {
         numUsers: firestore.FieldValue.increment(1)
       });
     } catch (error) {
-      console.error(error);
+      return extractError(error);
     }
   }
 
@@ -38,19 +37,23 @@ export class StatsRepo {
         numNades: firestore.FieldValue.increment(1)
       });
     } catch (error) {
-      console.error(error);
+      return extractError(error);
     }
   }
 
   private async initializeStatsDocIfNotExcisiting() {
-    const data = await this.SITE_STATS_REF.get();
+    try {
+      const data = await this.SITE_STATS_REF.get();
 
-    if (!data.exists) {
-      const blankSiteStats: SiteStats = {
-        numNades: 0,
-        numUsers: 0
-      };
-      await this.SITE_STATS_REF.set(blankSiteStats);
+      if (!data.exists) {
+        const blankSiteStats: SiteStats = {
+          numNades: 0,
+          numUsers: 0
+        };
+        await this.SITE_STATS_REF.set(blankSiteStats);
+      }
+    } catch (error) {
+      return extractError(error);
     }
   }
 }

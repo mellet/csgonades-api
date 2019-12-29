@@ -4,6 +4,7 @@ import nanoid from "nanoid";
 import { CSGNConfig } from "../config/enironment";
 import { AppResult, AppError } from "../utils/Common";
 import { err, ok } from "neverthrow";
+import { extractError } from "../utils/ErrorUtil";
 
 export type NadeImages = {
   thumbnailId: string;
@@ -36,7 +37,7 @@ export class ImageStorageService implements IImageStorageService {
       if (mimeType !== "jpeg") {
         const error: AppError = {
           status: 400,
-          message: "Wront image format"
+          message: "Wrong image format"
         };
         return err(error);
       }
@@ -83,7 +84,7 @@ export class ImageStorageService implements IImageStorageService {
 
       return ok(images);
     } catch (error) {
-      return err(error);
+      return extractError(error);
     }
   }
 
@@ -103,9 +104,5 @@ export class ImageStorageService implements IImageStorageService {
     return `https://storage.googleapis.com/${bucketName}/${encodeURIComponent(
       storageName
     )}`;
-  }
-
-  private getFileNameFromUrl(url: string) {
-    url.split("/");
   }
 }

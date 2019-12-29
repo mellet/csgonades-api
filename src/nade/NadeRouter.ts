@@ -16,6 +16,7 @@ import { GfycatService } from "../services/GfycatService";
 import { getSessionId } from "../utils/SessionRoute";
 import { nadeModelsToLightDTO, nadeDTOfromModel } from "./NadeConverters";
 import { sanitizeIt } from "../utils/Sanitize";
+import { AppError } from "../utils/Common";
 
 type IdParam = {
   id: string;

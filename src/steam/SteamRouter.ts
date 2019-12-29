@@ -53,8 +53,7 @@ export const makeSteamRouter = (
       const result = await userService.getOrCreateUser(steamId);
 
       if (result.isErr()) {
-        console.error("Ops");
-        throw result.error;
+        throw new Error(result.error.message);
       }
 
       const user = result.value;
@@ -82,8 +81,8 @@ export const makeSteamRouter = (
       const result = await userService.bySteamID(payload.steamId);
 
       if (result.isErr()) {
-        console.error(result.error);
-        return res.status(500).send(result.error);
+        const { status, message } = result.error;
+        return res.status(status).send(message);
       }
 
       const user = result.value;
@@ -92,6 +91,7 @@ export const makeSteamRouter = (
       const refreshToken = createRefreshToken(config.secrets.server_key, user);
 
       res.cookie("csgonadestoken", refreshToken, makeCookieOptions(config));
+
       return res.status(200).send({ accessToken });
     } catch (error) {
       res.clearCookie("csgonadestoken");

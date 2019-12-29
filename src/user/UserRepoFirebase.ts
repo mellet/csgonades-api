@@ -1,9 +1,13 @@
 import { IUserRepo } from "./UserRepo";
 import { UserModel, UserCreateModel } from "./UserModel";
 import { firestore } from "firebase-admin";
-import { ok, err, Result } from "neverthrow";
-import { extractFirestoreData } from "../utils/Firebase";
-import { AppResult, AppError } from "../utils/Common";
+import { ok, err } from "neverthrow";
+import {
+  extractFirestoreData,
+  extractFirestoreDataPoint
+} from "../utils/Firebase";
+import { AppResult } from "../utils/Common";
+import { extractError, ErrorGenerator } from "../utils/ErrorUtil";
 
 export class UserRepo implements IUserRepo {
   private collection: firestore.CollectionReference;
@@ -19,17 +23,14 @@ export class UserRepo implements IUserRepo {
       const userDocSnap = await userRef.get();
 
       if (!userDocSnap.exists) {
-        const notFoundError: AppError = {
-          status: 404,
-          message: "User not found"
-        };
-        return err(notFoundError);
+        return ErrorGenerator.NOT_FOUND("User");
       }
 
-      const userDoc = userDocSnap.data() as UserModel;
-      return ok(userDoc);
+      const user = extractFirestoreDataPoint<UserModel>(userDocSnap);
+
+      return user;
     } catch (error) {
-      return err(error);
+      return extractError(error);
     }
   }
 
@@ -41,7 +42,7 @@ export class UserRepo implements IUserRepo {
 
       return users;
     } catch (error) {
-      return err(error);
+      return extractError(error);
     }
   }
 
@@ -60,13 +61,11 @@ export class UserRepo implements IUserRepo {
 
       return savedUser;
     } catch (error) {
-      console.error(error);
-      return err(error);
+      return extractError(error);
     }
   }
 
   async updateActivity(user: UserModel): AppResult<boolean> {
-    const now = new Date();
     try {
       await this.collection
         .doc(user.steamId)
@@ -74,7 +73,7 @@ export class UserRepo implements IUserRepo {
 
       return ok(true);
     } catch (error) {
-      return err(error);
+      return extractError(error);
     }
   }
 }

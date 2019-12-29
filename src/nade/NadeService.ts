@@ -1,5 +1,5 @@
 import { NadeRepo } from "./NadeRepo";
-import { err, ok, Result } from "neverthrow";
+import { err } from "neverthrow";
 import {
   NadeCreateDTO,
   makeNadeFromBody,
@@ -9,7 +9,6 @@ import {
   GfycatData,
   NadeStats,
   NadeModel,
-  NadeStatus,
   NadeStatusDTO
 } from "./Nade";
 import { IImageStorageService } from "../services/ImageStorageService";
@@ -17,7 +16,7 @@ import { GfycatService } from "../services/GfycatService";
 import { IUserService } from "../user/UserService";
 import { UserModel, UserLightModel } from "../user/UserModel";
 import { AppResult } from "../utils/Common";
-import { ErrorGenerator } from "../utils/ErrorUtil";
+import { ErrorGenerator, makeError } from "../utils/ErrorUtil";
 import { StatsService } from "../stats/StatsService";
 
 export interface INadeService {
@@ -58,16 +57,12 @@ export class NadeService implements INadeService {
     this.statsService = statsService;
   }
 
-  async fetchNades(limit: number = 10): AppResult<NadeModel[]> {
-    const result = await this.nadeRepo.get(limit);
-
-    return result;
+  fetchNades(limit: number = 10): AppResult<NadeModel[]> {
+    return this.nadeRepo.get(limit);
   }
 
-  async fetchByID(nadeId: string): AppResult<NadeModel> {
-    const result = await this.nadeRepo.byID(nadeId);
-
-    return result;
+  fetchByID(nadeId: string): AppResult<NadeModel> {
+    return this.nadeRepo.byID(nadeId);
   }
 
   fetchByIdList(ids: string[]): AppResult<NadeModel[]> {
@@ -89,10 +84,11 @@ export class NadeService implements INadeService {
     const userResult = await this.userService.bySteamID(steamID);
 
     if (userResult.isErr()) {
-      throw new Error("User not found");
+      return makeError(userResult.error.status, userResult.error.message);
     }
 
     const user = userResult.value;
+
     const userLight: UserLightModel = {
       nickname: user.nickname,
       avatar: user.avatar,
@@ -104,7 +100,10 @@ export class NadeService implements INadeService {
     );
 
     if (gfycatDataResult.isErr()) {
-      return err(gfycatDataResult.error);
+      return makeError(
+        gfycatDataResult.error.status,
+        gfycatDataResult.error.message
+      );
     }
 
     const gfycatData = gfycatDataResult.value;
@@ -114,7 +113,10 @@ export class NadeService implements INadeService {
     );
 
     if (nadeImagesResult.isErr()) {
-      return err(nadeImagesResult.error);
+      return makeError(
+        nadeImagesResult.error.status,
+        nadeImagesResult.error.message
+      );
     }
 
     const nadeImages = nadeImagesResult.value;
@@ -231,9 +233,7 @@ export class NadeService implements INadeService {
     const userResult = await this.userService.getOrCreateUser(newSteamId);
 
     if (userResult.isErr()) {
-      const { error } = userResult;
-      console.error(error);
-      return ErrorGenerator.NOT_FOUND("User");
+      return makeError(userResult.error.status, userResult.error.message);
     }
 
     const user = userResult.value;
@@ -250,11 +250,10 @@ export class NadeService implements INadeService {
     return updateResult;
   }
 
-  async updateNadeStatus(
+  updateNadeStatus(
     nadeId: string,
     updatedStatus: NadeStatusDTO
   ): AppResult<NadeModel> {
-    const result = await this.nadeRepo.update(nadeId, updatedStatus);
-    return result;
+    return this.nadeRepo.update(nadeId, updatedStatus);
   }
 }

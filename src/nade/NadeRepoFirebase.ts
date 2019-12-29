@@ -1,10 +1,13 @@
 import { NadeRepo } from "./NadeRepo";
-import { ok, err, Result } from "neverthrow";
+import { ok } from "neverthrow";
 import { CsgoMap, NadeModel, NadeCreateModel, NadeModelInsert } from "./Nade";
 import { firestore } from "firebase-admin";
-import { extractFirestoreData } from "../utils/Firebase";
-import { AppError, AppResult, removeUndefines } from "../utils/Common";
-import { ErrorGenerator } from "../utils/ErrorUtil";
+import {
+  extractFirestoreData,
+  extractFirestoreDataPoint
+} from "../utils/Firebase";
+import { AppResult, removeUndefines } from "../utils/Common";
+import { ErrorGenerator, extractError } from "../utils/ErrorUtil";
 
 export class NadeRepoFirebase implements NadeRepo {
   private db: FirebaseFirestore.Firestore;
@@ -22,11 +25,7 @@ export class NadeRepoFirebase implements NadeRepo {
 
       return nades;
     } catch (error) {
-      const appError: AppError = {
-        status: 500,
-        message: ""
-      };
-      return err(appError);
+      return extractError(error);
     }
   }
 
@@ -37,7 +36,7 @@ export class NadeRepoFirebase implements NadeRepo {
       const nades = extractFirestoreData<NadeModel>(querySnap);
       return nades;
     } catch (error) {
-      return err(error);
+      return extractError(error);
     }
   }
 
@@ -47,15 +46,16 @@ export class NadeRepoFirebase implements NadeRepo {
         .collection(this.COLLECTION)
         .doc(nadeId)
         .get();
+
       if (!docSnap.exists) {
         return ErrorGenerator.NOT_FOUND("User");
       }
 
-      const nade = docSnap.data() as NadeModel;
+      const nade = extractFirestoreDataPoint<NadeModel>(docSnap);
 
-      return ok(nade);
+      return nade;
     } catch (error) {
-      return err(error);
+      return extractError(error);
     }
   }
 
@@ -69,7 +69,7 @@ export class NadeRepoFirebase implements NadeRepo {
 
       return nades;
     } catch (error) {
-      return err(error);
+      return extractError(error);
     }
   }
 
@@ -80,9 +80,10 @@ export class NadeRepoFirebase implements NadeRepo {
         .where("steamId", "==", steamId);
       const querySnap = await docRef.get();
       const nades = extractFirestoreData<NadeModel>(querySnap);
+
       return nades;
     } catch (error) {
-      return err(error);
+      return extractError(error);
     }
   }
 
@@ -111,7 +112,7 @@ export class NadeRepoFirebase implements NadeRepo {
 
       return savedNade;
     } catch (error) {
-      return err(error);
+      return extractError(error);
     }
   }
 
@@ -129,7 +130,7 @@ export class NadeRepoFirebase implements NadeRepo {
       const result = await this.byID(nadeId);
       return result;
     } catch (error) {
-      return err(error);
+      return extractError(error);
     }
   }
 
@@ -139,7 +140,7 @@ export class NadeRepoFirebase implements NadeRepo {
       await nadeRef.delete();
       return ok(true);
     } catch (error) {
-      return err(error);
+      return extractError(error);
     }
   }
 }

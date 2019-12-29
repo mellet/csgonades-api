@@ -1,9 +1,12 @@
 import { FavoriteCreateModel, FavoriteModel } from "./Favorite";
 import { Result, err, ok } from "neverthrow";
 import { firestore } from "firebase-admin";
-import { extractFirestoreData } from "../utils/Firebase";
+import {
+  extractFirestoreData,
+  extractFirestoreDataPoint
+} from "../utils/Firebase";
 import { AppResult } from "../utils/Common";
-import { ErrorGenerator } from "../utils/ErrorUtil";
+import { ErrorGenerator, extractError } from "../utils/ErrorUtil";
 
 export interface IFavoriteRepo {
   setFavorite(favorite: FavoriteCreateModel): AppResult<FavoriteModel>;
@@ -32,7 +35,7 @@ export class FavoriteRepo implements IFavoriteRepo {
 
       return result;
     } catch (error) {
-      return err(error);
+      return extractError(error);
     }
   }
 
@@ -44,7 +47,7 @@ export class FavoriteRepo implements IFavoriteRepo {
         .delete();
       return ok(true);
     } catch (error) {
-      return err(error);
+      return extractError(error);
     }
   }
 
@@ -58,21 +61,26 @@ export class FavoriteRepo implements IFavoriteRepo {
 
       return favorites;
     } catch (error) {
-      return err(error);
+      return extractError(error);
     }
   }
 
   async getFavorite(favoriteId: string): AppResult<FavoriteModel> {
-    const docSnap = await this.db
-      .collection(this.COLLECTION)
-      .doc(favoriteId)
-      .get();
-    if (!docSnap.exists) {
-      return ErrorGenerator.NOT_FOUND("Favorite");
+    try {
+      const docSnap = await this.db
+        .collection(this.COLLECTION)
+        .doc(favoriteId)
+        .get();
+
+      if (!docSnap.exists) {
+        return ErrorGenerator.NOT_FOUND("Favorite");
+      }
+
+      const nade = extractFirestoreDataPoint<FavoriteModel>(docSnap);
+
+      return nade;
+    } catch (error) {
+      return extractError(error);
     }
-
-    const nade = docSnap.data() as FavoriteModel;
-
-    return ok(nade);
   }
 }

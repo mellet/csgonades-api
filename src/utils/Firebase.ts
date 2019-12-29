@@ -1,7 +1,7 @@
 import { firestore } from "firebase-admin";
 import { ok, err, Result } from "neverthrow";
 import { AppResult, AppError } from "./Common";
-import { ErrorGenerator } from "./ErrorUtil";
+import { ErrorGenerator, extractError } from "./ErrorUtil";
 
 export const extractFirestoreData = async <T>(
   snap: firestore.QuerySnapshot
@@ -26,7 +26,6 @@ export const extractFirestoreDataPoint = async <T>(
     const data = snap.data() as T;
     return ok<T, AppError>(data);
   } catch (error) {
-    console.error(error);
-    return ErrorGenerator.UNKNOWN(error.message);
+    return extractError(error);
   }
 };

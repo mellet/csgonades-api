@@ -3,12 +3,12 @@ import { CSGNConfig } from "../config/enironment";
 import { extractGfyIdFromIdOrUrl } from "./GfycatHelper";
 import axios from "axios";
 import { AppResult } from "../utils/Common";
-import { ok, err } from "neverthrow";
-import { GfycatData } from "../nade/Nade";
+import { ok } from "neverthrow";
+import { extractError } from "../utils/ErrorUtil";
 
 export interface GfycatService {
   getGfycatData(gfyId: string): AppResult<GfycatDetailsResponse>;
-  registerView(gfyId: string, identifier: string): Promise<void>;
+  registerView(gfyId: string, identifier: string): AppResult<boolean>;
 }
 
 export const makeGfycatService = (configContext: CSGNConfig): GfycatService => {
@@ -26,17 +26,21 @@ export const makeGfycatService = (configContext: CSGNConfig): GfycatService => {
       const gfyResponse = await gfycatSdk.getGifDetails({ gfyId });
       return ok(gfyResponse);
     } catch (error) {
-      return err(error);
+      return extractError(error);
     }
   }
 
-  async function registerView(gfyId: string, identifier: string) {
+  async function registerView(
+    gfyId: string,
+    identifier: string
+  ): AppResult<boolean> {
     const url = `https://px.gfycat.com/px.gif?client_id=${config.secrets.gfycat_id}&ver=1.0.0&utc=${identifier}&gfyid=${gfyId}&context=search&flow=half`;
 
     try {
       await axios.get(url);
+      return ok(true);
     } catch (error) {
-      console.warn("GfycatService.registerView", error.message);
+      return extractError(error);
     }
   }
 

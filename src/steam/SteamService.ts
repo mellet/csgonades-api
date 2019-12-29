@@ -2,6 +2,7 @@ import { CSGNConfig } from "../config/enironment";
 import SteamAPI, { SteamPlayerSummary } from "steamapi";
 import { AppResult, AppError } from "../utils/Common";
 import { ok, err } from "neverthrow";
+import { extractError } from "../utils/ErrorUtil";
 
 export interface ISteamService {
   getPlayerBySteamID(steamID: string): AppResult<SteamPlayerSummary>;
@@ -19,11 +20,7 @@ export class SteamService implements ISteamService {
       const steamPlayerSummary = await this.steamApi.getUserSummary(steamID);
       return ok(steamPlayerSummary);
     } catch (error) {
-      const appError: AppError = {
-        status: 500,
-        message: "Steam API looks to be down"
-      };
-      return err(appError);
+      return extractError(error);
     }
   }
 }
