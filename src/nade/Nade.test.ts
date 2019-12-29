@@ -1,5 +1,4 @@
 import {
-  NadeDTO,
   updatedNadeMerge,
   NadeUpdateDTO,
   GfycatData,

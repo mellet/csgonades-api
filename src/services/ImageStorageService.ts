@@ -20,12 +20,15 @@ export interface IImageStorageService {
 
 export class ImageStorageService implements IImageStorageService {
   private bucket: Bucket;
+  private config: CSGNConfig;
 
   constructor(config: CSGNConfig, bucket: Bucket) {
     this.bucket = bucket;
+    this.config = config;
   }
 
   async saveImage(imageBase64: string): AppResult<NadeImages> {
+    const tmpFolderLocation = this.config.isProduction ? "../tmp" : "tmp";
     try {
       const uri = imageBase64.split(";base64,").pop();
       const imgBuffer = Buffer.from(uri, "base64");
@@ -48,12 +51,12 @@ export class ImageStorageService implements IImageStorageService {
 
       await sharp(imgBuffer)
         .resize(400, null)
-        .toFile(`../tmp/${thumbnailName}`);
+        .toFile(`${tmpFolderLocation}/${thumbnailName}`);
       await sharp(imgBuffer)
         .resize(1000, null)
-        .toFile(`../tmp/${largeName}`);
+        .toFile(`${tmpFolderLocation}/${largeName}`);
 
-      await this.bucket.upload(`../tmp/${thumbnailName}`, {
+      await this.bucket.upload(`${tmpFolderLocation}/${thumbnailName}`, {
         public: true,
         gzip: true,
         destination: `${thumbnailName}`,
@@ -64,7 +67,7 @@ export class ImageStorageService implements IImageStorageService {
         }
       });
 
-      await this.bucket.upload(`../tmp/${largeName}`, {
+      await this.bucket.upload(`${tmpFolderLocation}/${largeName}`, {
         public: true,
         gzip: true,
         destination: `${largeName}`,
