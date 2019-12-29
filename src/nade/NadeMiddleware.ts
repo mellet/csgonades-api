@@ -9,15 +9,7 @@ export const validateNade = (
   const nadeBodySchema = joi
     .object({
       gfycatIdOrUrl: joi.string().required(),
-      imageBase64: joi.string().required(),
-      title: joi.string(),
-      description: joi.string(),
-      map: joi.string(),
-      movement: joi.string(),
-      technique: joi.string(),
-      tickrate: joi.string(),
-      type: joi.string(),
-      mapSite: joi.string()
+      imageBase64: joi.string().required()
     })
     .unknown(false);
 

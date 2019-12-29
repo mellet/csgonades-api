@@ -2,7 +2,8 @@ import sharp from "sharp";
 import { Bucket } from "@google-cloud/storage";
 import nanoid from "nanoid";
 import { CSGNConfig } from "../config/enironment";
-import { storage } from "firebase-admin";
+import { AppResult, AppError } from "../utils/Common";
+import { err, ok } from "neverthrow";
 
 export type NadeImages = {
   thumbnailId: string;
@@ -12,7 +13,7 @@ export type NadeImages = {
 };
 
 export interface IImageStorageService {
-  saveImage(imageBase64: string): Promise<NadeImages>;
+  saveImage(imageBase64: string): AppResult<NadeImages>;
   deleteImage(fileId: string): Promise<boolean>;
 }
 
@@ -23,7 +24,7 @@ export class ImageStorageService implements IImageStorageService {
     this.bucket = bucket;
   }
 
-  async saveImage(imageBase64: string): Promise<NadeImages> {
+  async saveImage(imageBase64: string): AppResult<NadeImages> {
     try {
       const uri = imageBase64.split(";base64,").pop();
       const imgBuffer = Buffer.from(uri, "base64");
@@ -33,7 +34,11 @@ export class ImageStorageService implements IImageStorageService {
       );
 
       if (mimeType !== "jpeg") {
-        throw new Error("Only jpeg is supported for images");
+        const error: AppError = {
+          status: 400,
+          message: "Wront image format"
+        };
+        return err(error);
       }
 
       const imageId = nanoid();
@@ -68,14 +73,17 @@ export class ImageStorageService implements IImageStorageService {
           cacheControl: "public, max-age=31536000"
         }
       });
-      return {
+
+      const images: NadeImages = {
         thumbnailId: thumbnailName,
         thumbnailUrl: this.createPublicFileURL(this.bucket.name, thumbnailName),
         largeId: largeName,
         largeUrl: this.createPublicFileURL(this.bucket.name, largeName)
       };
+
+      return ok(images);
     } catch (error) {
-      console.error(error.message);
+      return err(error);
     }
   }
 

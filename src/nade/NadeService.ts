@@ -109,9 +109,15 @@ export class NadeService implements INadeService {
 
     const gfycatData = gfycatDataResult.value;
 
-    const nadeImages = await this.imageStorageService.saveImage(
+    const nadeImagesResult = await this.imageStorageService.saveImage(
       body.imageBase64
     );
+
+    if (nadeImagesResult.isErr()) {
+      return err(nadeImagesResult.error);
+    }
+
+    const nadeImages = nadeImagesResult.value;
 
     const tmpNade = makeNadeFromBody(userLight, gfycatData, nadeImages);
     const nade = await this.nadeRepo.save(tmpNade);
