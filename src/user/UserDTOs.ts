@@ -12,6 +12,9 @@ export type UserDTO = {
   lastActive: Date;
 };
 
-export type UserUpdateDTO = Partial<
-  Omit<UserDTO, "lastActive" | "updatedAt" | "avatar" | "steamID">
->;
+export type UserUpdateDTO = {
+  nickname?: string;
+  bio?: string;
+  email?: string;
+  createdAt?: string;
+};

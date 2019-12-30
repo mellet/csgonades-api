@@ -85,6 +85,7 @@ export const makeUserRouter = (
 
     // Update all nades by user if nickname changed
     if (userUpdateFields.nickname !== user.nickname) {
+      console.log("Propagating nickname change");
       await nadeService.updateNadesWithUser(user.steamID, {
         nickname: user.nickname,
         avatar: user.avatar,

@@ -88,7 +88,7 @@ export class UserRepo implements IUserRepo {
         bio: updateFields.bio,
         createdAt:
           updateFields.createdAt &&
-          firestore.Timestamp.fromDate(updateFields.createdAt),
+          firestore.Timestamp.fromDate(new Date(updateFields.createdAt)),
         email: updateFields.email
       };
       updates = removeUndefines(updates);
