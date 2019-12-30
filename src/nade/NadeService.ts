@@ -39,8 +39,6 @@ export interface INadeService {
 
   forceUserUpdate(nadeId: string, newSteamId: string): AppResult<NadeModel>;
 
-  forceCreatedYear(nadeId: string, year: number): AppResult<NadeModel>;
-
   updateNadeStatus(
     nadeId: string,
     updatedStatus: NadeStatusDTO
@@ -266,10 +264,6 @@ export class NadeService implements INadeService {
     });
 
     return updateResult;
-  }
-
-  forceCreatedYear(nadeId: string, year: number): AppResult<NadeModel> {
-    return this.nadeRepo.forceCreatedYear(nadeId, year);
   }
 
   updateNadeStatus(

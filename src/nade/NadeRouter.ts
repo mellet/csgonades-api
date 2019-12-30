@@ -193,34 +193,6 @@ export const makeNadeRouter = (
     }
   );
 
-  NadeRouter.patch(
-    "/nades/:id/year/:year",
-    adminOrModeratorRouter,
-    async (req, res) => {
-      try {
-        const yearParam = sanitizeIt(req.params.year);
-        const id = sanitizeIt(req.params.id);
-
-        const year = parseInt(yearParam, 10);
-
-        const result = await nadeService.forceCreatedYear(id, year);
-
-        if (result.isErr()) {
-          return res.status(result.error.status).send(result.error);
-        }
-
-        const nade = nadeDTOfromModel(result.value);
-
-        return res.status(202).send(nade);
-      } catch (error) {
-        return res.status(400).send({
-          status: 500,
-          message: error.message
-        });
-      }
-    }
-  );
-
   NadeRouter.patch<IdParam>(
     "/nades/:id/status",
     adminOrModeratorRouter,

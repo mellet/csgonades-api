@@ -175,38 +175,6 @@ export class NadeRepoFirebase implements NadeRepo {
     }
   }
 
-  async forceCreatedYear(nadeId: string, year: number): AppResult<NadeModel> {
-    try {
-      const oldNadeResult = await this.byID(nadeId);
-
-      if (oldNadeResult.isErr()) {
-        return err(oldNadeResult.error);
-      }
-
-      const oldNade = oldNadeResult.value;
-
-      const newDate = oldNade.createdAt.toDate();
-      newDate.setFullYear(year);
-
-      const createdAt = firestore.Timestamp.fromDate(newDate);
-
-      const nadeRef = this.db.collection(this.COLLECTION).doc(nadeId);
-
-      await nadeRef.set(
-        {
-          createdAt: firestore.Timestamp.fromDate(newDate)
-        },
-        { merge: true }
-      );
-
-      const newNadeResult = await this.byID(nadeId);
-
-      return newNadeResult;
-    } catch (error) {
-      return extractError(error);
-    }
-  }
-
   async updateUserOnNades(
     steamId: string,
     user: UserLightModel

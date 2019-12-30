@@ -12,6 +12,5 @@ export interface NadeRepo {
   save(nade: NadeCreateModel): AppResult<NadeModel>;
   update(nadeId: string, updates: Partial<NadeModel>): AppResult<NadeModel>;
   delete(nadeId: string): AppResult<boolean>;
-  forceCreatedYear(nadeId: string, year: number): AppResult<NadeModel>;
   updateUserOnNades(steamId: string, user: UserLightModel): AppResult<boolean>;
 }

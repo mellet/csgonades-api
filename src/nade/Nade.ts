@@ -2,6 +2,7 @@ import { GfycatDetailsResponse } from "gfycat-sdk";
 import { UserLightModel, UserModel } from "../user/UserModel";
 import { removeUndefines } from "../utils/Common";
 import { NadeImages } from "../services/ImageStorageService";
+import { firestore } from "firebase-admin";
 
 export type CsgoMap = "notset" | "dust2" | "mirage" | "nuke" | "inferno";
 
@@ -132,6 +133,7 @@ export type NadeUpdateDTO = {
   tickrate?: Tickrate;
   type?: NadeType;
   mapSite?: MapSite;
+  createdAt?: string;
 };
 
 export type NadeGfycatValidateDTO = {
@@ -167,6 +169,10 @@ export function updatedNadeMerge(
   newGfcatData?: GfycatData,
   newStats?: NadeStats
 ): NadeModel {
+  if (updateFields.createdAt) {
+    console.log("Had new createdAt", updateFields.createdAt);
+  }
+
   const newNade: NadeModel = {
     ...nade,
     title: updateFields.title || nade.title,
@@ -180,7 +186,10 @@ export function updatedNadeMerge(
     stats: newStats || nade.stats,
     user: newUser || nade.user,
     steamId: newUser ? newUser.steamId : nade.steamId,
-    mapSite: updateFields.mapSite || nade.mapSite
+    mapSite: updateFields.mapSite || nade.mapSite,
+    createdAt: updateFields.createdAt
+      ? firestore.Timestamp.fromDate(new Date(updateFields.createdAt))
+      : nade.createdAt
   };
 
   return removeUndefines(newNade);
