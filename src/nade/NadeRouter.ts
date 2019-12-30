@@ -144,6 +144,10 @@ export const makeNadeRouter = (
       description: dirtyNadeBody.description // TODO: Sanitize markdown
     };
 
+    if (nadeBody.createdAt && user.role === "user") {
+      return res.status(403).send({ status: 403, message: "Forbidden" });
+    }
+
     const isAllowedEdit = await nadeService.isAllowedEdit(id, user.steamId);
 
     if (!isAllowedEdit) {
