@@ -101,6 +101,7 @@ export type NadeDTO = {
 
 export type NadeLightDTO = {
   id: string;
+  status: NadeStatus;
   title?: string;
   gfycat: GfycatData;
   images: NadeImages;

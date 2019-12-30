@@ -5,6 +5,7 @@ export const nadeModelsToLightDTO = (nades: NadeModel[]): NadeLightDTO[] => {
   const lightNades = nades.map(nadeModel => {
     const nadeLight: NadeLightDTO = {
       id: nadeModel.id,
+      status: nadeModel.status,
       title: nadeModel.title,
       gfycat: nadeModel.gfycat,
       createdAt: nadeModel.createdAt.toDate(),
