@@ -83,15 +83,11 @@ export const makeUserRouter = (
 
     const user = userModelToDTO(result.value);
 
-    // Update all nades by user if nickname changed
-    if (userUpdateFields.nickname !== user.nickname) {
-      console.log("Propagating nickname change");
-      await nadeService.updateNadesWithUser(user.steamID, {
-        nickname: user.nickname,
-        avatar: user.avatar,
-        steamId: user.steamID
-      });
-    }
+    await nadeService.updateNadesWithUser(user.steamID, {
+      nickname: user.nickname,
+      avatar: user.avatar,
+      steamId: user.steamID
+    });
 
     return res.status(202).send(user);
   });
