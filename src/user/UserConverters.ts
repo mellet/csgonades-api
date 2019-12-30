@@ -21,6 +21,10 @@ export const userModelToDTO = (user: UserModel): UserDTO => {
   return cleaned;
 };
 
+export const userModelsToDTOs = (users: UserModel[]): UserDTO[] => {
+  return users.map(userModelToDTO);
+};
+
 export const desensitizeUser = (
   user: UserDTO,
   byUser: RequestUser | null

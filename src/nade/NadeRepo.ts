@@ -1,7 +1,7 @@
 import { CsgoMap, NadeModel, NadeCreateModel } from "./Nade";
-import { Result } from "neverthrow";
 import { AppResult } from "../utils/Common";
 import { NadeFilter } from "./NadeFilter";
+import { UserLightModel } from "../user/UserModel";
 
 export interface NadeRepo {
   get(limit?: number): AppResult<NadeModel[]>;
@@ -12,4 +12,6 @@ export interface NadeRepo {
   save(nade: NadeCreateModel): AppResult<NadeModel>;
   update(nadeId: string, updates: Partial<NadeModel>): AppResult<NadeModel>;
   delete(nadeId: string): AppResult<boolean>;
+  forceCreatedYear(nadeId: string, year: number): AppResult<NadeModel>;
+  updateUserOnNades(steamId: string, user: UserLightModel): AppResult<boolean>;
 }

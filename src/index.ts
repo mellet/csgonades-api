@@ -74,7 +74,7 @@ export const AppServer = (config: CSGNConfig) => {
   const statusRouter = makeStatusRouter(config);
   const nadeRouter = makeNadeRouter(config, nadeService, gfycatService);
   const steamRouter = makeSteamRouter(userService, passport, config);
-  const userRouter = makeUserRouter(config, userRepo);
+  const userRouter = makeUserRouter(config, userService, nadeService);
   const favoriteRouter = makeFavoriteRouter(favoriteService);
 
   app.use(nadeRouter);

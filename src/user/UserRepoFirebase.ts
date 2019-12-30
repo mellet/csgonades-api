@@ -1,13 +1,14 @@
 import { IUserRepo } from "./UserRepo";
 import { UserModel, UserCreateModel } from "./UserModel";
 import { firestore } from "firebase-admin";
-import { ok, err } from "neverthrow";
+import { ok } from "neverthrow";
 import {
   extractFirestoreData,
   extractFirestoreDataPoint
 } from "../utils/Firebase";
-import { AppResult } from "../utils/Common";
+import { AppResult, removeUndefines } from "../utils/Common";
 import { extractError, ErrorGenerator } from "../utils/ErrorUtil";
+import { UserUpdateDTO } from "./UserDTOs";
 
 export class UserRepo implements IUserRepo {
   private collection: firestore.CollectionReference;
@@ -72,6 +73,31 @@ export class UserRepo implements IUserRepo {
         .update({ lastActive: firestore.FieldValue.serverTimestamp });
 
       return ok(true);
+    } catch (error) {
+      return extractError(error);
+    }
+  }
+
+  async updateUser(
+    steamId: string,
+    updateFields: UserUpdateDTO
+  ): AppResult<UserModel> {
+    try {
+      let updates: Partial<UserModel> = {
+        nickname: updateFields.nickname,
+        bio: updateFields.bio,
+        createdAt:
+          updateFields.createdAt &&
+          firestore.Timestamp.fromDate(updateFields.createdAt),
+        email: updateFields.email
+      };
+      updates = removeUndefines(updates);
+
+      await this.collection.doc(steamId).set(updates, { merge: true });
+
+      const res = this.bySteamID(steamId);
+
+      return res;
     } catch (error) {
       return extractError(error);
     }

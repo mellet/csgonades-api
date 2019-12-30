@@ -29,7 +29,7 @@ export const extractError = (error: any): Result<any, AppError> => {
   }
 
   const appError: AppError = {
-    status: status || 500,
+    status: status,
     message: message
   };
 

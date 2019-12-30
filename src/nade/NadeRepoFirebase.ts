@@ -1,5 +1,5 @@
 import { NadeRepo } from "./NadeRepo";
-import { ok } from "neverthrow";
+import { ok, err } from "neverthrow";
 import { CsgoMap, NadeModel, NadeCreateModel, NadeModelInsert } from "./Nade";
 import { firestore } from "firebase-admin";
 import {
@@ -9,6 +9,7 @@ import {
 import { AppResult, removeUndefines } from "../utils/Common";
 import { ErrorGenerator, extractError } from "../utils/ErrorUtil";
 import { NadeFilter } from "./NadeFilter";
+import { UserLightModel } from "../user/UserModel";
 
 export class NadeRepoFirebase implements NadeRepo {
   private db: FirebaseFirestore.Firestore;
@@ -168,6 +169,63 @@ export class NadeRepoFirebase implements NadeRepo {
     try {
       const nadeRef = this.db.collection(this.COLLECTION).doc(nadeId);
       await nadeRef.delete();
+      return ok(true);
+    } catch (error) {
+      return extractError(error);
+    }
+  }
+
+  async forceCreatedYear(nadeId: string, year: number): AppResult<NadeModel> {
+    try {
+      const oldNadeResult = await this.byID(nadeId);
+
+      if (oldNadeResult.isErr()) {
+        return err(oldNadeResult.error);
+      }
+
+      const oldNade = oldNadeResult.value;
+
+      const newDate = oldNade.createdAt.toDate();
+      newDate.setFullYear(year);
+
+      const createdAt = firestore.Timestamp.fromDate(newDate);
+
+      const nadeRef = this.db.collection(this.COLLECTION).doc(nadeId);
+
+      await nadeRef.set(
+        {
+          createdAt: firestore.Timestamp.fromDate(newDate)
+        },
+        { merge: true }
+      );
+
+      const newNadeResult = await this.byID(nadeId);
+
+      return newNadeResult;
+    } catch (error) {
+      return extractError(error);
+    }
+  }
+
+  async updateUserOnNades(
+    steamId: string,
+    user: UserLightModel
+  ): AppResult<boolean> {
+    try {
+      const nadeDocs = await this.db
+        .collection(this.COLLECTION)
+        .where("steamId", "==", steamId)
+        .get();
+      let batch = this.db.batch();
+
+      nadeDocs.forEach(docSnap => {
+        const docRef = this.db.collection(this.COLLECTION).doc(docSnap.id);
+        let update: Partial<NadeModel> = { user };
+        batch.set(docRef, update, { merge: true });
+      });
+
+      await batch.commit();
+
       return ok(true);
     } catch (error) {
       return extractError(error);

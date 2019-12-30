@@ -22,19 +22,36 @@ import { NadeFilter } from "./NadeFilter";
 
 export interface INadeService {
   fetchNades(limit?: number): AppResult<NadeModel[]>;
+
   fetchByID(nadeId: string): AppResult<NadeModel>;
+
   fetchByIdList(ids: string[]): AppResult<NadeModel[]>;
+
   fetchByMap(map: CsgoMap, nadeFilter: NadeFilter): AppResult<NadeModel[]>;
+
   fetchByUser(steamId: string): AppResult<NadeModel[]>;
+
   saveFromBody(body: NadeCreateDTO, steamID: string): AppResult<NadeModel>;
+
   isAllowedEdit(nadeId: string, steamId: string): Promise<boolean>;
+
   update(nadeId: string, updateFields: NadeUpdateDTO): AppResult<NadeModel>;
+
   forceUserUpdate(nadeId: string, newSteamId: string): AppResult<NadeModel>;
+
+  forceCreatedYear(nadeId: string, year: number): AppResult<NadeModel>;
+
   updateNadeStatus(
     nadeId: string,
     updatedStatus: NadeStatusDTO
   ): AppResult<NadeModel>;
+
   delete(nadeId: string): Promise<boolean>;
+
+  updateNadesWithUser(
+    steamId: string,
+    user: UserLightModel
+  ): AppResult<boolean>;
 }
 
 export class NadeService implements INadeService {
@@ -251,10 +268,21 @@ export class NadeService implements INadeService {
     return updateResult;
   }
 
+  forceCreatedYear(nadeId: string, year: number): AppResult<NadeModel> {
+    return this.nadeRepo.forceCreatedYear(nadeId, year);
+  }
+
   updateNadeStatus(
     nadeId: string,
     updatedStatus: NadeStatusDTO
   ): AppResult<NadeModel> {
     return this.nadeRepo.update(nadeId, updatedStatus);
+  }
+
+  updateNadesWithUser(
+    steamId: string,
+    user: UserLightModel
+  ): AppResult<boolean> {
+    return this.nadeRepo.updateUserOnNades(steamId, user);
   }
 }

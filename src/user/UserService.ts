@@ -3,11 +3,19 @@ import { ISteamService } from "../steam/SteamService";
 import { UserModel, UserCreateModel } from "./UserModel";
 import { AppResult } from "../utils/Common";
 import { StatsService } from "../stats/StatsService";
+import { UserUpdateDTO } from "./UserDTOs";
 
 export interface IUserService {
+  all(): AppResult<UserModel[]>;
+
   bySteamID(steamId: string): AppResult<UserModel>;
 
   getOrCreateUser(steamId: string): AppResult<UserModel>;
+
+  updateUser(
+    steamId: string,
+    updateFields: UserUpdateDTO
+  ): AppResult<UserModel>;
 }
 
 export class UserService implements IUserService {
@@ -25,10 +33,12 @@ export class UserService implements IUserService {
     this.statsService = statsService;
   }
 
-  async bySteamID(steamId: string): AppResult<UserModel> {
-    const user = await this.userRepo.bySteamID(steamId);
+  all(): AppResult<UserModel[]> {
+    return this.userRepo.all();
+  }
 
-    return user;
+  bySteamID(steamId: string): AppResult<UserModel> {
+    return this.userRepo.bySteamID(steamId);
   }
 
   async getOrCreateUser(steamId: string): AppResult<UserModel> {
@@ -53,5 +63,13 @@ export class UserService implements IUserService {
     }
 
     return user;
+  }
+
+  updateUser(
+    steamId: string,
+    updateFields: UserUpdateDTO
+  ): AppResult<UserModel> {
+    return this.userRepo.updateUser(steamId, updateFields);
+    // Update all nades of user
   }
 }
