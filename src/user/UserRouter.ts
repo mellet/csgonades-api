@@ -70,6 +70,11 @@ export const makeUserRouter = (
     const requestUser = userFromRequest(req); // TODO: Check privileges for role and createdAt
     const userUpdateFields = req.body as UserUpdateDTO; // TODO: validate, sanitize
 
+    // Disallow normal users to edit others than themself
+    if (requestUser.role === "user" && requestUser.steamId !== steamId) {
+      return res.status(403).send({ status: 403, message: "Forbidden" });
+    }
+
     const result = await userService.updateUser(steamId, userUpdateFields);
 
     if (result.isErr()) {
