@@ -124,7 +124,7 @@ function makeCookieOptions(config: CSGNConfig): CookieOptions {
   return {
     httpOnly: true,
     secure: config.isProduction,
-    maxAge: oneDay,
+    maxAge: oneDay * 30,
     signed: true,
     path: "/"
   };
