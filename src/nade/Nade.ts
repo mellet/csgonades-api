@@ -169,10 +169,6 @@ export function updatedNadeMerge(
   newGfcatData?: GfycatData,
   newStats?: NadeStats
 ): NadeModel {
-  if (updateFields.createdAt) {
-    console.log("Had new createdAt", updateFields.createdAt);
-  }
-
   const newNade: NadeModel = {
     ...nade,
     title: updateFields.title || nade.title,
