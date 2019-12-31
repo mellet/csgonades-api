@@ -41,6 +41,16 @@ export class StatsRepo {
     }
   }
 
+  async decrementNadeCounter() {
+    try {
+      this.SITE_STATS_REF.update({
+        numNades: firestore.FieldValue.increment(-1)
+      });
+    } catch (error) {
+      return extractError(error);
+    }
+  }
+
   private async initializeStatsDocIfNotExcisiting() {
     try {
       const data = await this.SITE_STATS_REF.get();

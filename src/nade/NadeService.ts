@@ -139,7 +139,8 @@ export class NadeService implements INadeService {
 
     const tmpNade = makeNadeFromBody(userLight, gfycatData, nadeImages);
     const nade = await this.nadeRepo.save(tmpNade);
-    this.statsService.incrementNadeCounter();
+
+    await this.statsService.incrementNadeCounter();
 
     return nade;
   }
@@ -166,6 +167,8 @@ export class NadeService implements INadeService {
     if (!deleteLargeOk || !deleteThumbOk || firestoreDeleteResult.isErr()) {
       return false;
     }
+
+    await this.statsService.decrementNadeCounter();
 
     return true;
   }

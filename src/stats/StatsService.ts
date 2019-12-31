@@ -9,16 +9,19 @@ export class StatsService {
     this.statsRepo = statsRepo;
   }
 
-  async getStats(): AppResult<SiteStats> {
-    const result = this.statsRepo.getStats();
-    return result;
+  getStats(): AppResult<SiteStats> {
+    return this.statsRepo.getStats();
   }
 
-  async incrementUserCounter() {
-    this.statsRepo.incrementUserCounter();
+  incrementUserCounter() {
+    return this.statsRepo.incrementUserCounter();
   }
 
-  async incrementNadeCounter() {
-    this.statsRepo.incrementNadeCounter();
+  incrementNadeCounter() {
+    return this.statsRepo.incrementNadeCounter();
+  }
+
+  decrementNadeCounter() {
+    return this.statsRepo.decrementNadeCounter();
   }
 }
