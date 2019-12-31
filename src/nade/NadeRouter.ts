@@ -122,6 +122,16 @@ export const makeNadeRouter = (
   NadeRouter.post("/nades/list", async (req, res) => {
     const nadeList = req.body.nadeIds as string[];
 
+    if (!nadeList) {
+      return res
+        .status(400)
+        .send({ status: 400, message: "Missing nade ids in body" });
+    }
+
+    if (nadeList.length === 0) {
+      return res.status(200).send([]);
+    }
+
     const nadeResult = await nadeService.fetchByIdList(nadeList);
 
     if (nadeResult.isErr()) {
