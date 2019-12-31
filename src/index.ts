@@ -23,6 +23,7 @@ import { FavoriteService } from "./favorite/FavoriteService";
 import { FavoriteRepo } from "./favorite/FavoriteRepo";
 import { StatsRepo } from "./stats/StatsRepo";
 import { StatsService } from "./stats/StatsService";
+import { makeStatsRouter } from "./stats/StatsRouter";
 
 export const AppServer = (config: CSGNConfig) => {
   const app = express();
@@ -76,12 +77,14 @@ export const AppServer = (config: CSGNConfig) => {
   const steamRouter = makeSteamRouter(userService, passport, config);
   const userRouter = makeUserRouter(config, userService, nadeService);
   const favoriteRouter = makeFavoriteRouter(favoriteService);
+  const statsRouter = makeStatsRouter(statsService);
 
   app.use(nadeRouter);
   app.use(steamRouter);
   app.use(userRouter);
   app.use(statusRouter);
   app.use(favoriteRouter);
+  app.use(statsRouter);
 
   app.get("/", (_, res) => {
     res.send("");

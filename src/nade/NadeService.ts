@@ -73,7 +73,7 @@ export class NadeService implements INadeService {
     this.statsService = statsService;
   }
 
-  fetchNades(limit: number = 10): AppResult<NadeModel[]> {
+  fetchNades(limit: number = 8): AppResult<NadeModel[]> {
     return this.nadeRepo.get(limit);
   }
 
