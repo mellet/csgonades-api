@@ -1,4 +1,4 @@
-import { CsgoMap, NadeModel, NadeCreateModel } from "./Nade";
+import { CsgoMap, NadeModel, NadeCreateModel, NadeStats } from "./Nade";
 import { AppResult } from "../utils/Common";
 import { NadeFilter } from "./NadeFilter";
 import { UserLightModel } from "../user/UserModel";
@@ -13,4 +13,5 @@ export interface NadeRepo {
   update(nadeId: string, updates: Partial<NadeModel>): AppResult<NadeModel>;
   delete(nadeId: string): AppResult<boolean>;
   updateUserOnNades(steamId: string, user: UserLightModel): AppResult<boolean>;
+  updateStats(nadeId: string, stats: Partial<NadeStats>): AppResult<NadeModel>;
 }

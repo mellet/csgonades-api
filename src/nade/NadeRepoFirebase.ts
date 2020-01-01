@@ -1,6 +1,12 @@
 import { NadeRepo } from "./NadeRepo";
 import { ok, err } from "neverthrow";
-import { CsgoMap, NadeModel, NadeCreateModel, NadeModelInsert } from "./Nade";
+import {
+  CsgoMap,
+  NadeModel,
+  NadeCreateModel,
+  NadeModelInsert,
+  NadeStats
+} from "./Nade";
 import { firestore } from "firebase-admin";
 import {
   extractFirestoreData,
@@ -197,6 +203,38 @@ export class NadeRepoFirebase implements NadeRepo {
       return ok(true);
     } catch (error) {
       return extractError(error);
+    }
+  }
+
+  async updateStats(
+    nadeId: string,
+    stats: Partial<NadeStats>
+  ): AppResult<NadeModel> {
+    try {
+      const nade = await this.byID(nadeId);
+
+      if (nade.isErr()) {
+        console.error("Could not find nade to update stats for");
+        return;
+      }
+
+      const newStats: NadeStats = {
+        ...nade.value.stats,
+        ...stats
+      };
+
+      const updates: Partial<NadeModel> = {
+        stats: newStats,
+        lastGfycatUpdate: firestore.Timestamp.fromDate(new Date())
+      };
+
+      const nadeRef = this.db.collection(this.COLLECTION).doc(nadeId);
+
+      await nadeRef.update(updates);
+
+      return this.byID(nadeId);
+    } catch (error) {
+      console.error(error);
     }
   }
 }

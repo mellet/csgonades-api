@@ -50,6 +50,8 @@ export interface INadeService {
     steamId: string,
     user: UserLightModel
   ): AppResult<boolean>;
+
+  updateStats(nadeId: string, stats: Partial<NadeStats>);
 }
 
 export class NadeService implements INadeService {
@@ -77,8 +79,35 @@ export class NadeService implements INadeService {
     return this.nadeRepo.get(limit);
   }
 
-  fetchByID(nadeId: string): AppResult<NadeModel> {
-    return this.nadeRepo.byID(nadeId);
+  async fetchByID(nadeId: string): AppResult<NadeModel> {
+    const nadeResult = await this.nadeRepo.byID(nadeId);
+
+    if (nadeResult.isErr()) {
+      return nadeResult;
+    }
+
+    const nadeModel = nadeResult.value;
+
+    if (this.shouldUpdateStats(nadeModel)) {
+      const gfycatResult = await this.gfycatService.getGfycatData(
+        nadeModel.gfycat.gfyId
+      );
+
+      if (gfycatResult.isErr()) {
+        return nadeResult;
+      }
+
+      const gfyData = gfycatResult.value;
+
+      const nadeStats: Partial<NadeStats> = {
+        views: gfyData.gfyItem.views
+      };
+
+      const upadtedNadeResult = this.nadeRepo.updateStats(nadeId, nadeStats);
+      return upadtedNadeResult;
+    } else {
+      return nadeResult;
+    }
   }
 
   fetchByIdList(ids: string[]): AppResult<NadeModel[]> {
@@ -281,5 +310,22 @@ export class NadeService implements INadeService {
     user: UserLightModel
   ): AppResult<boolean> {
     return this.nadeRepo.updateUserOnNades(steamId, user);
+  }
+
+  async updateStats(nadeId: string, stats: Partial<NadeStats>) {
+    await this.nadeRepo.updateStats(nadeId, stats);
+  }
+
+  private shouldUpdateStats(nade: NadeModel) {
+    if (!nade.lastGfycatUpdate) {
+      return true;
+    }
+
+    const lastUpdated = nade.lastGfycatUpdate.toMillis();
+    const now = Date.now();
+    const oneDay = 24 * 60 * 60 * 1000;
+    const isMoreThanADayAgo = now - lastUpdated > oneDay;
+
+    return isMoreThanADayAgo;
   }
 }
