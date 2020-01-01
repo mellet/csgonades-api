@@ -24,6 +24,8 @@ import { FavoriteRepo } from "./favorite/FavoriteRepo";
 import { StatsRepo } from "./stats/StatsRepo";
 import { StatsService } from "./stats/StatsService";
 import { makeStatsRouter } from "./stats/StatsRouter";
+import { makeContactRouter } from "./contact/ContactRouter";
+import { ContactRepo } from "./contact/ContactRepo";
 
 export const AppServer = (config: CSGNConfig) => {
   const app = express();
@@ -55,6 +57,7 @@ export const AppServer = (config: CSGNConfig) => {
   const nadeRepo = new NadeRepoFirebase(database);
   const favoriteRepo = new FavoriteRepo(database);
   const statsRepo = new StatsRepo(database);
+  const contactRepo = new ContactRepo(database);
 
   // Services
   const gfycatService = makeGfycatService(config);
@@ -78,6 +81,7 @@ export const AppServer = (config: CSGNConfig) => {
   const userRouter = makeUserRouter(config, userService, nadeService);
   const favoriteRouter = makeFavoriteRouter(favoriteService);
   const statsRouter = makeStatsRouter(statsService);
+  const contactRouter = makeContactRouter(contactRepo);
 
   app.use(nadeRouter);
   app.use(steamRouter);
@@ -85,6 +89,7 @@ export const AppServer = (config: CSGNConfig) => {
   app.use(statusRouter);
   app.use(favoriteRouter);
   app.use(statsRouter);
+  app.use(contactRouter);
 
   app.get("/", (_, res) => {
     res.send("");
