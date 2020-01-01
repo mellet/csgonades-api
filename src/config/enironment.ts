@@ -63,7 +63,7 @@ export const makeConfig = (): CSGNConfig => {
     },
     client: {
       baseUrl: isProduction
-        ? "http://beta.csgonades.com"
+        ? "http://www.csgonades.com"
         : "http://localhost:3000"
     },
     firebase: {

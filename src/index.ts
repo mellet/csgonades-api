@@ -40,7 +40,7 @@ export const AppServer = (config: CSGNConfig) => {
     cors({
       origin: [
         "http://localhost:3000",
-        "http://beta.csgonades.com",
+        "http://www.csgonades.com",
         "https://www.csgonades.com"
       ],
       credentials: true
