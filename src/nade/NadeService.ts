@@ -81,8 +81,8 @@ export class NadeService implements INadeService {
     this.cache = cache;
   }
 
-  async fetchNades(limit: number = 8): AppResult<NadeModel[]> {
-    const cacheKey = `fetchNades-${limit}`;
+  async fetchNades(limit?: number): AppResult<NadeModel[]> {
+    const cacheKey = limit ? `fetchNades-${limit}` : `fetchNades-all`;
     const cachedNades = this.cache.get<NadeModel[]>(cacheKey);
 
     if (cachedNades) {

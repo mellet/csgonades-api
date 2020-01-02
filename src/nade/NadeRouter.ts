@@ -38,8 +38,21 @@ export const makeNadeRouter = (
 ): Router => {
   const NadeRouter = Router();
 
-  NadeRouter.get("/nades", async (_, res) => {
-    const nadesResult = await nadeService.fetchNades();
+  NadeRouter.get("/nades", async (req, res) => {
+    const limitParam = req?.query?.limit;
+    let limit: number | undefined = undefined;
+
+    if (!limitParam) {
+      limit = 8;
+    } else if (limitParam === "all") {
+      limit = undefined;
+    } else {
+      limit = Number(limit);
+    }
+
+    console.log("Fetching nades", limit, limitParam);
+
+    const nadesResult = await nadeService.fetchNades(limit);
 
     if (nadesResult.isErr()) {
       const { error } = nadesResult;

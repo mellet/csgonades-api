@@ -16,7 +16,6 @@ import { AppResult, removeUndefines } from "../utils/Common";
 import { ErrorGenerator, extractError } from "../utils/ErrorUtil";
 import { NadeFilter } from "./NadeFilter";
 import { UserLightModel } from "../user/UserModel";
-import NodeCache = require("node-cache");
 
 export class NadeRepoFirebase implements NadeRepo {
   private collection: firestore.CollectionReference;
@@ -27,12 +26,16 @@ export class NadeRepoFirebase implements NadeRepo {
     this.collection = db.collection("nades");
   }
 
-  async get(limit: number = 10): AppResult<NadeModel[]> {
+  async get(limit?: number): AppResult<NadeModel[]> {
     try {
-      const docRef = this.collection
-        .limit(limit)
+      let docRef = this.collection
         .where("status", "==", "accepted")
         .orderBy("createdAt", "desc");
+
+      if (limit) {
+        docRef = docRef.limit(limit);
+      }
+
       const querySnap = await docRef.get();
       const nades = await extractFirestoreData<NadeModel>(querySnap);
 
