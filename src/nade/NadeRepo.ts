@@ -7,6 +7,7 @@ export interface NadeRepo {
   get(limit?: number): AppResult<NadeModel[]>;
   byID(steamID: string): AppResult<NadeModel>;
   listByIds(ids: string[]): AppResult<NadeModel[]>;
+  getPending(): AppResult<NadeModel[]>;
   byMap(map: CsgoMap, nadeFilter: NadeFilter): AppResult<NadeModel[]>;
   byUser(steamId: string): AppResult<NadeModel[]>;
   save(nade: NadeCreateModel): AppResult<NadeModel>;

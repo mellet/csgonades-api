@@ -28,6 +28,7 @@ export interface INadeService {
   fetchByID(nadeId: string): AppResult<NadeModel>;
 
   fetchByIdList(ids: string[]): AppResult<NadeModel[]>;
+  fetchPending(): AppResult<NadeModel[]>;
 
   fetchByMap(map: CsgoMap, nadeFilter: NadeFilter): AppResult<NadeModel[]>;
 
@@ -95,6 +96,10 @@ export class NadeService implements INadeService {
     }
 
     return nades;
+  }
+
+  fetchPending(): AppResult<NadeModel[]> {
+    return this.nadeRepo.getPending();
   }
 
   async fetchByID(nadeId: string): AppResult<NadeModel> {

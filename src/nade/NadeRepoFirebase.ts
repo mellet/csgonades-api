@@ -19,17 +19,17 @@ import { UserLightModel } from "../user/UserModel";
 import NodeCache = require("node-cache");
 
 export class NadeRepoFirebase implements NadeRepo {
+  private collection: firestore.CollectionReference;
   private db: FirebaseFirestore.Firestore;
-  private COLLECTION = "nades";
 
   constructor(db: FirebaseFirestore.Firestore) {
     this.db = db;
+    this.collection = db.collection("nades");
   }
 
   async get(limit: number = 10): AppResult<NadeModel[]> {
     try {
-      const docRef = this.db
-        .collection(this.COLLECTION)
+      const docRef = this.collection
         .limit(limit)
         .where("status", "==", "accepted")
         .orderBy("createdAt", "desc");
@@ -42,10 +42,22 @@ export class NadeRepoFirebase implements NadeRepo {
     }
   }
 
+  async getPending(): AppResult<NadeModel[]> {
+    try {
+      const nadesRef = this.collection
+        .where("status", "==", "pending")
+        .orderBy("createdAt", "desc");
+      const querySnap = await nadesRef.get();
+      const nades = await extractFirestoreData<NadeModel>(querySnap);
+      return nades;
+    } catch (error) {
+      return extractError(error);
+    }
+  }
+
   async listByIds(ids: string[]): AppResult<NadeModel[]> {
     try {
-      const docRef = this.db
-        .collection(this.COLLECTION)
+      const docRef = this.collection
         .where("id", "in", ids)
         .orderBy("createdAt", "desc");
       const querySnap = await docRef.get();
@@ -56,12 +68,9 @@ export class NadeRepoFirebase implements NadeRepo {
     }
   }
 
-  async byID(nadeId: string, useCache: boolean = true): AppResult<NadeModel> {
+  async byID(nadeId: string): AppResult<NadeModel> {
     try {
-      const docSnap = await this.db
-        .collection(this.COLLECTION)
-        .doc(nadeId)
-        .get();
+      const docSnap = await this.collection.doc(nadeId).get();
 
       if (!docSnap.exists) {
         return ErrorGenerator.NOT_FOUND("User");
@@ -80,8 +89,7 @@ export class NadeRepoFirebase implements NadeRepo {
     nadeFilter: NadeFilter
   ): AppResult<NadeModel[]> {
     try {
-      let docRef = this.db
-        .collection(this.COLLECTION)
+      let docRef = this.collection
         .where("map", "==", mapName)
         .where("status", "==", "accepted")
         .orderBy("createdAt", "desc");
@@ -113,9 +121,7 @@ export class NadeRepoFirebase implements NadeRepo {
 
   async byUser(steamId: string): AppResult<NadeModel[]> {
     try {
-      const docRef = this.db
-        .collection(this.COLLECTION)
-        .where("steamId", "==", steamId);
+      const docRef = this.collection.where("steamId", "==", steamId);
       const querySnap = await docRef.get();
       const nades = extractFirestoreData<NadeModel>(querySnap);
 
@@ -141,12 +147,10 @@ export class NadeRepoFirebase implements NadeRepo {
 
       const cleanNade = removeUndefines(saveNade);
 
-      const nadeDocRef = await this.db
-        .collection(this.COLLECTION)
-        .add(cleanNade);
+      const nadeDocRef = await this.collection.add(cleanNade);
       await nadeDocRef.update({ id: nadeDocRef.id });
 
-      const savedNade = await this.byID(nadeDocRef.id, false);
+      const savedNade = await this.byID(nadeDocRef.id);
 
       return savedNade;
     } catch (error) {
@@ -160,12 +164,9 @@ export class NadeRepoFirebase implements NadeRepo {
   ): AppResult<NadeModel> {
     try {
       const cleanUpdates = removeUndefines(updates);
-      await this.db
-        .collection(this.COLLECTION)
-        .doc(nadeId)
-        .set(cleanUpdates, { merge: true });
+      await this.collection.doc(nadeId).set(cleanUpdates, { merge: true });
 
-      const result = await this.byID(nadeId, false);
+      const result = await this.byID(nadeId);
       return result;
     } catch (error) {
       return extractError(error);
@@ -174,7 +175,7 @@ export class NadeRepoFirebase implements NadeRepo {
 
   async delete(nadeId: string): AppResult<boolean> {
     try {
-      const nadeRef = this.db.collection(this.COLLECTION).doc(nadeId);
+      const nadeRef = this.collection.doc(nadeId);
       await nadeRef.delete();
       return ok(true);
     } catch (error) {
@@ -187,14 +188,13 @@ export class NadeRepoFirebase implements NadeRepo {
     user: UserLightModel
   ): AppResult<boolean> {
     try {
-      const nadeDocs = await this.db
-        .collection(this.COLLECTION)
+      const nadeDocs = await this.collection
         .where("steamId", "==", steamId)
         .get();
       let batch = this.db.batch();
 
       nadeDocs.forEach(docSnap => {
-        const docRef = this.db.collection(this.COLLECTION).doc(docSnap.id);
+        const docRef = this.collection.doc(docSnap.id);
         let update: Partial<NadeModel> = { user };
         batch.set(docRef, update, { merge: true });
       });
@@ -212,7 +212,7 @@ export class NadeRepoFirebase implements NadeRepo {
     stats: Partial<NadeStats>
   ): AppResult<NadeModel> {
     try {
-      const nade = await this.byID(nadeId, false);
+      const nade = await this.byID(nadeId);
 
       if (nade.isErr()) {
         console.error("Could not find nade to update stats for");
@@ -229,11 +229,11 @@ export class NadeRepoFirebase implements NadeRepo {
         lastGfycatUpdate: firestore.Timestamp.fromDate(new Date())
       };
 
-      const nadeRef = this.db.collection(this.COLLECTION).doc(nadeId);
+      const nadeRef = this.collection.doc(nadeId);
 
       await nadeRef.update(updates);
 
-      return this.byID(nadeId, false);
+      return this.byID(nadeId);
     } catch (error) {
       console.error(error);
     }

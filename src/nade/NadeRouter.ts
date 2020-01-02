@@ -51,6 +51,19 @@ export const makeNadeRouter = (
     return res.status(200).send(nades);
   });
 
+  NadeRouter.get("/nades/pending", adminOrModeratorRouter, async (req, res) => {
+    const nadesResult = await nadeService.fetchPending();
+
+    if (nadesResult.isErr()) {
+      const { error } = nadesResult;
+      return res.status(error.status).send(error);
+    }
+
+    const nades = nadeModelsToLightDTO(nadesResult.value);
+
+    return res.status(200).send(nades);
+  });
+
   NadeRouter.get<IdParam>("/nades/:id", async (req, res) => {
     const id = sanitizeIt(req.params.id);
 
