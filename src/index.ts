@@ -29,6 +29,8 @@ import { ContactRepo } from "./contact/ContactRepo";
 import { CachingService } from "./services/CachingService";
 import * as Sentry from "@sentry/node";
 import { RewriteFrames } from "@sentry/integrations";
+import { ArticleRepo } from "./article/ArticleRepo";
+import { ArticleController } from "./article/ArticleController";
 
 declare global {
   namespace NodeJS {
@@ -80,6 +82,7 @@ export const AppServer = (config: CSGNConfig) => {
   const favoriteRepo = new FavoriteRepo(database);
   const statsRepo = new StatsRepo(database);
   const contactRepo = new ContactRepo(database);
+  const articleRepo = new ArticleRepo();
 
   // Services
   const cacheService = new CachingService();
@@ -107,6 +110,8 @@ export const AppServer = (config: CSGNConfig) => {
   const statsRouter = makeStatsRouter(statsService);
   const contactRouter = makeContactRouter(contactRepo);
 
+  const articleRouter = new ArticleController(articleRepo).getRouter();
+
   app.use(nadeRouter);
   app.use(steamRouter);
   app.use(userRouter);
@@ -114,6 +119,7 @@ export const AppServer = (config: CSGNConfig) => {
   app.use(favoriteRouter);
   app.use(statsRouter);
   app.use(contactRouter);
+  app.use(articleRouter);
 
   app.get("/", (_, res) => {
     res.send("");

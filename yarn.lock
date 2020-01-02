@@ -5747,6 +5747,11 @@ tr46@^1.0.1:
   dependencies:
     punycode "^2.1.0"
 
+ts-custom-error@^3.1.1:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/ts-custom-error/-/ts-custom-error-3.1.1.tgz#d30c7415461dac93dc2cc9e9eb2dae92e6423901"
+  integrity sha512-f/syoy+pTE4z82qaiRuthEeZtCGNKzlfs0Zc8jpQFcz/CYMaFSwFSdfFt1sSFnPlDLOEm7RCROdIxZ44N8UlwA==
+
 ts-jest@^24.2.0:
   version "24.2.0"
   resolved "https://registry.yarnpkg.com/ts-jest/-/ts-jest-24.2.0.tgz#7abca28c2b4b0a1fdd715cd667d65d047ea4e768"
@@ -5817,6 +5822,11 @@ typedarray@^0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
+
+typesaurus@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/typesaurus/-/typesaurus-5.0.0.tgz#3a2402d07338ec6f4678f9dec756620024676b3d"
+  integrity sha512-cDYyrEylmR0iRjtQGemYPjBlyzxVQWnqUiCVYceIkA4BDAh20utPIZHCb9ludL7EgJN5Q9b8zsJ5pwSq94gWHA==
 
 typescript@^3.7.4:
   version "3.7.4"
