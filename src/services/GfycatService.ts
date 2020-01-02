@@ -4,6 +4,7 @@ import axios from "axios";
 import { AppResult, extractGfyIdFromIdOrUrl } from "../utils/Common";
 import { ok } from "neverthrow";
 import { extractError } from "../utils/ErrorUtil";
+import * as Sentry from "@sentry/node";
 
 export interface GfycatService {
   getGfycatData(gfyId: string): AppResult<GfycatDetailsResponse>;
@@ -25,6 +26,7 @@ export const makeGfycatService = (configContext: CSGNConfig): GfycatService => {
       const gfyResponse = await gfycatSdk.getGifDetails({ gfyId });
       return ok(gfyResponse);
     } catch (error) {
+      Sentry.captureException(error);
       return extractError(error);
     }
   }
@@ -39,6 +41,7 @@ export const makeGfycatService = (configContext: CSGNConfig): GfycatService => {
       await axios.get(url);
       return ok(true);
     } catch (error) {
+      Sentry.captureException(error);
       return extractError(error);
     }
   }

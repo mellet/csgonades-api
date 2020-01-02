@@ -5,6 +5,7 @@ import { CSGNConfig } from "../config/enironment";
 import { AppResult, AppError } from "../utils/Common";
 import { err, ok } from "neverthrow";
 import { extractError } from "../utils/ErrorUtil";
+import * as Sentry from "@sentry/node";
 
 export type NadeImages = {
   thumbnailId: string;
@@ -87,6 +88,7 @@ export class ImageStorageService implements IImageStorageService {
 
       return ok(images);
     } catch (error) {
+      Sentry.captureException(error);
       return extractError(error);
     }
   }
@@ -98,7 +100,7 @@ export class ImageStorageService implements IImageStorageService {
       await image.delete();
       return true;
     } catch (error) {
-      console.error("Failed to delete image", error);
+      Sentry.captureException(error);
       return false;
     }
   }

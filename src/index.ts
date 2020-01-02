@@ -28,10 +28,28 @@ import { makeContactRouter } from "./contact/ContactRouter";
 import { ContactRepo } from "./contact/ContactRepo";
 import { CachingService } from "./services/CachingService";
 import * as Sentry from "@sentry/node";
+import { RewriteFrames } from "@sentry/integrations";
+
+declare global {
+  namespace NodeJS {
+    interface Global {
+      __rootdir__: string;
+    }
+  }
+}
+
+global.__rootdir__ = __dirname || process.cwd();
 
 export const AppServer = (config: CSGNConfig) => {
   const app = express();
-  Sentry.init({ dsn: config.secrets.sentry_dsn });
+  Sentry.init({
+    dsn: config.secrets.sentry_dsn,
+    integrations: [
+      new RewriteFrames({
+        root: global.__rootdir__
+      })
+    ]
+  });
 
   // Express dependencies
   app.use(Sentry.Handlers.requestHandler());
