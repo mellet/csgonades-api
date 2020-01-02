@@ -20,23 +20,13 @@ import NodeCache = require("node-cache");
 
 export class NadeRepoFirebase implements NadeRepo {
   private db: FirebaseFirestore.Firestore;
-  private cache: NodeCache;
   private COLLECTION = "nades";
 
-  constructor(db: FirebaseFirestore.Firestore, cache: NodeCache) {
+  constructor(db: FirebaseFirestore.Firestore) {
     this.db = db;
-    this.cache = cache;
   }
 
   async get(limit: number = 10): AppResult<NadeModel[]> {
-    const cacheTimer = 60 * 10; // 10 minutes
-    const cacheKey = "recentNades";
-
-    const cachedNades = this.cache.get<NadeModel[]>(cacheKey);
-    if (cachedNades) {
-      return ok(cachedNades);
-    }
-
     try {
       const docRef = this.db
         .collection(this.COLLECTION)
@@ -45,11 +35,6 @@ export class NadeRepoFirebase implements NadeRepo {
         .orderBy("createdAt", "desc");
       const querySnap = await docRef.get();
       const nades = await extractFirestoreData<NadeModel>(querySnap);
-
-      if (nades.isOk()) {
-        console.log("Caching recent nades");
-        this.cache.set(cacheKey, nades.value, cacheTimer);
-      }
 
       return nades;
     } catch (error) {
@@ -72,14 +57,6 @@ export class NadeRepoFirebase implements NadeRepo {
   }
 
   async byID(nadeId: string, useCache: boolean = true): AppResult<NadeModel> {
-    const cacheTimer = 60 * 10; // 10 minutes
-    const cacheKey = `nade-${nadeId}`;
-    const cachedNade = this.cache.get<NadeModel>(cacheKey);
-
-    if (useCache && cachedNade) {
-      return ok(cachedNade);
-    }
-
     try {
       const docSnap = await this.db
         .collection(this.COLLECTION)
@@ -92,11 +69,6 @@ export class NadeRepoFirebase implements NadeRepo {
 
       const nade = await extractFirestoreDataPoint<NadeModel>(docSnap);
 
-      if (nade.isOk()) {
-        console.log("Caching nade", nadeId);
-        this.cache.set<NadeModel>(cacheKey, nade.value, cacheTimer);
-      }
-
       return nade;
     } catch (error) {
       return extractError(error);
@@ -108,14 +80,6 @@ export class NadeRepoFirebase implements NadeRepo {
     nadeFilter: NadeFilter
   ): AppResult<NadeModel[]> {
     try {
-      const cacheTimer = 60 * 10; // 10 minutes
-      const cachkeKey = `nades-${mapName}-${JSON.stringify(nadeFilter)}`;
-      const cachedNade = this.cache.get<NadeModel[]>(cachkeKey);
-
-      if (cachedNade) {
-        return ok(cachedNade);
-      }
-
       let docRef = this.db
         .collection(this.COLLECTION)
         .where("map", "==", mapName)
@@ -140,11 +104,6 @@ export class NadeRepoFirebase implements NadeRepo {
 
       const querySnap = await docRef.get();
       const nades = await extractFirestoreData<NadeModel>(querySnap);
-
-      if (nades.isOk()) {
-        console.log("Caching nades", cachkeKey);
-        this.cache.set<NadeModel[]>(cachkeKey, nades.value, cacheTimer);
-      }
 
       return nades;
     } catch (error) {

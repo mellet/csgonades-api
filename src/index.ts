@@ -27,6 +27,7 @@ import { makeStatsRouter } from "./stats/StatsRouter";
 import { makeContactRouter } from "./contact/ContactRouter";
 import { ContactRepo } from "./contact/ContactRepo";
 import NodeCache from "node-cache";
+import { CachingService } from "./services/CachingService";
 
 export const AppServer = (config: CSGNConfig) => {
   const app = express();
@@ -52,16 +53,16 @@ export const AppServer = (config: CSGNConfig) => {
 
   // Storage
   const { database, bucket } = makePersistedStorage(config);
-  const cache = new NodeCache();
 
   // Repos
   const userRepo = new UserRepo(database);
-  const nadeRepo = new NadeRepoFirebase(database, cache);
+  const nadeRepo = new NadeRepoFirebase(database);
   const favoriteRepo = new FavoriteRepo(database);
   const statsRepo = new StatsRepo(database);
   const contactRepo = new ContactRepo(database);
 
   // Services
+  const cacheService = new CachingService();
   const gfycatService = makeGfycatService(config);
   const steamService = new SteamService(config);
   const statsService = new StatsService(statsRepo);
@@ -72,12 +73,13 @@ export const AppServer = (config: CSGNConfig) => {
     userService,
     imageStorageService,
     gfycatService,
-    statsService
+    statsService,
+    cacheService
   );
   const favoriteService = new FavoriteService(favoriteRepo);
 
   // Routers
-  const statusRouter = makeStatusRouter(config);
+  const statusRouter = makeStatusRouter(config, cacheService);
   const nadeRouter = makeNadeRouter(config, nadeService, gfycatService);
   const steamRouter = makeSteamRouter(userService, passport, config);
   const userRouter = makeUserRouter(config, userService, nadeService);

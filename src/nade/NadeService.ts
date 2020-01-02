@@ -1,5 +1,5 @@
 import { NadeRepo } from "./NadeRepo";
-import { err } from "neverthrow";
+import { err, ok } from "neverthrow";
 import {
   NadeCreateDTO,
   makeNadeFromBody,
@@ -19,6 +19,8 @@ import { AppResult } from "../utils/Common";
 import { makeError } from "../utils/ErrorUtil";
 import { StatsService } from "../stats/StatsService";
 import { NadeFilter } from "./NadeFilter";
+import NodeCache = require("node-cache");
+import { CachingService } from "../services/CachingService";
 
 export interface INadeService {
   fetchNades(limit?: number): AppResult<NadeModel[]>;
@@ -60,26 +62,49 @@ export class NadeService implements INadeService {
   private imageStorageService: IImageStorageService;
   private gfycatService: GfycatService;
   private statsService: StatsService;
+  private cache: CachingService;
 
   constructor(
     nadeRepo: NadeRepo,
     userService: IUserService,
     imageStorageService: IImageStorageService,
     gfycatService: GfycatService,
-    statsService: StatsService
+    statsService: StatsService,
+    cache: CachingService
   ) {
     this.nadeRepo = nadeRepo;
     this.userService = userService;
     this.imageStorageService = imageStorageService;
     this.gfycatService = gfycatService;
     this.statsService = statsService;
+    this.cache = cache;
   }
 
-  fetchNades(limit: number = 8): AppResult<NadeModel[]> {
-    return this.nadeRepo.get(limit);
+  async fetchNades(limit: number = 8): AppResult<NadeModel[]> {
+    const cacheKey = `fetchNades-${limit}`;
+    const cachedNades = this.cache.get<NadeModel[]>(cacheKey);
+
+    if (cachedNades) {
+      return ok(cachedNades);
+    }
+
+    const nades = await this.nadeRepo.get(limit);
+
+    if (nades.isOk()) {
+      this.cache.set(cacheKey, nades.value);
+    }
+
+    return nades;
   }
 
   async fetchByID(nadeId: string): AppResult<NadeModel> {
+    const cacheKey = `nade-${nadeId}`;
+    const cachedNade = this.cache.get<NadeModel>(cacheKey);
+
+    if (cachedNade) {
+      return ok(cachedNade);
+    }
+
     const nadeResult = await this.nadeRepo.byID(nadeId);
 
     if (nadeResult.isErr()) {
@@ -103,9 +128,20 @@ export class NadeService implements INadeService {
         views: gfyData.gfyItem.views
       };
 
-      const upadtedNadeResult = this.nadeRepo.updateStats(nadeId, nadeStats);
-      return upadtedNadeResult;
+      const updatedNadeResult = await this.nadeRepo.updateStats(
+        nadeId,
+        nadeStats
+      );
+
+      if (updatedNadeResult.isOk()) {
+        this.cache.set(cacheKey, updatedNadeResult.value);
+      }
+
+      return updatedNadeResult;
     } else {
+      if (nadeResult.isOk()) {
+        this.cache.set(cacheKey, nadeResult.value);
+      }
       return nadeResult;
     }
   }
@@ -114,8 +150,24 @@ export class NadeService implements INadeService {
     return this.nadeRepo.listByIds(ids);
   }
 
-  fetchByMap(map: CsgoMap, nadeFilter: NadeFilter): AppResult<NadeModel[]> {
-    return this.nadeRepo.byMap(map, nadeFilter);
+  async fetchByMap(
+    map: CsgoMap,
+    nadeFilter: NadeFilter
+  ): AppResult<NadeModel[]> {
+    const cacheKey = `map-${map}-${JSON.stringify(nadeFilter)}`;
+    const cachedNades = this.cache.get<NadeModel[]>(cacheKey);
+
+    if (cachedNades) {
+      return ok(cachedNades);
+    }
+
+    const result = await this.nadeRepo.byMap(map, nadeFilter);
+
+    if (result.isOk()) {
+      this.cache.set(cacheKey, result.value);
+    }
+
+    return result;
   }
 
   fetchByUser(steamId: string): AppResult<NadeModel[]> {
@@ -171,6 +223,9 @@ export class NadeService implements INadeService {
 
     await this.statsService.incrementNadeCounter();
 
+    // Clear cache on new nade
+    this.cache.flushAll();
+
     return nade;
   }
 
@@ -199,11 +254,14 @@ export class NadeService implements INadeService {
 
     await this.statsService.decrementNadeCounter();
 
+    // Clear cache on nade delete
+    this.cache.flushAll();
+
     return true;
   }
 
   async isAllowedEdit(nadeId: string, steamId: string): Promise<boolean> {
-    const nadeResult = await this.nadeRepo.byID(nadeId);
+    const nadeResult = await this.fetchByID(nadeId);
     const userResult = await this.userService.bySteamID(steamId);
 
     if (userResult.isErr() || nadeResult.isErr()) {
@@ -271,6 +329,10 @@ export class NadeService implements INadeService {
     );
 
     const updatedNade = await this.nadeRepo.update(mergedNade.id, mergedNade);
+
+    // Clear cache on update
+    this.cache.flushAll();
+
     return updatedNade;
   }
 
@@ -295,6 +357,9 @@ export class NadeService implements INadeService {
       }
     });
 
+    // Clear cache on update
+    this.cache.flushAll();
+
     return updateResult;
   }
 
@@ -302,6 +367,9 @@ export class NadeService implements INadeService {
     nadeId: string,
     updatedStatus: NadeStatusDTO
   ): AppResult<NadeModel> {
+    // Clear cache on update
+    this.cache.flushAll();
+
     return this.nadeRepo.update(nadeId, updatedStatus);
   }
 
@@ -309,6 +377,9 @@ export class NadeService implements INadeService {
     steamId: string,
     user: UserLightModel
   ): AppResult<boolean> {
+    // Clear cache on update
+    this.cache.flushAll();
+
     return this.nadeRepo.updateUserOnNades(steamId, user);
   }
 
