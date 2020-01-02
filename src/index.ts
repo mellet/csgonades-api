@@ -26,6 +26,7 @@ import { StatsService } from "./stats/StatsService";
 import { makeStatsRouter } from "./stats/StatsRouter";
 import { makeContactRouter } from "./contact/ContactRouter";
 import { ContactRepo } from "./contact/ContactRepo";
+import NodeCache from "node-cache";
 
 export const AppServer = (config: CSGNConfig) => {
   const app = express();
@@ -51,10 +52,11 @@ export const AppServer = (config: CSGNConfig) => {
 
   // Storage
   const { database, bucket } = makePersistedStorage(config);
+  const cache = new NodeCache();
 
   // Repos
   const userRepo = new UserRepo(database);
-  const nadeRepo = new NadeRepoFirebase(database);
+  const nadeRepo = new NadeRepoFirebase(database, cache);
   const favoriteRepo = new FavoriteRepo(database);
   const statsRepo = new StatsRepo(database);
   const contactRepo = new ContactRepo(database);

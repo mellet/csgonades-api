@@ -28,6 +28,7 @@
     "jsonwebtoken": "^8.5.1",
     "nanoid": "^2.1.8",
     "neverthrow": "^2.1.1",
+    "node-cache": "^5.1.0",
     "passport": "^0.4.1",
     "passport-steam": "^1.0.12",
     "rimraf": "^3.0.0",
