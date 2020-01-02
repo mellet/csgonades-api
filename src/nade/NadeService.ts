@@ -83,7 +83,8 @@ export class NadeService implements INadeService {
 
   async fetchNades(limit?: number): AppResult<NadeModel[]> {
     const cacheKey = limit ? `fetchNades-${limit}` : `fetchNades-all`;
-    const cachedNades = this.cache.get<NadeModel[]>(cacheKey);
+
+    const cachedNades = this.cache.getAllNades(cacheKey);
 
     if (cachedNades) {
       return ok(cachedNades);
@@ -92,7 +93,7 @@ export class NadeService implements INadeService {
     const nades = await this.nadeRepo.get(limit);
 
     if (nades.isOk()) {
-      this.cache.set(cacheKey, nades.value);
+      this.cache.setAllNades(cacheKey, nades.value);
     }
 
     return nades;
@@ -103,8 +104,7 @@ export class NadeService implements INadeService {
   }
 
   async fetchByID(nadeId: string): AppResult<NadeModel> {
-    const cacheKey = `nade-${nadeId}`;
-    const cachedNade = this.cache.get<NadeModel>(cacheKey);
+    const cachedNade = this.cache.getNade(nadeId);
 
     if (cachedNade) {
       return ok(cachedNade);
@@ -139,13 +139,13 @@ export class NadeService implements INadeService {
       );
 
       if (updatedNadeResult.isOk()) {
-        this.cache.set(cacheKey, updatedNadeResult.value);
+        this.cache.setNade(nadeId, updatedNadeResult.value);
       }
 
       return updatedNadeResult;
     } else {
       if (nadeResult.isOk()) {
-        this.cache.set(cacheKey, nadeResult.value);
+        this.cache.setNade(nadeId, nadeResult.value);
       }
       return nadeResult;
     }
@@ -159,8 +159,7 @@ export class NadeService implements INadeService {
     map: CsgoMap,
     nadeFilter: NadeFilter
   ): AppResult<NadeModel[]> {
-    const cacheKey = `map-${map}-${JSON.stringify(nadeFilter)}`;
-    const cachedNades = this.cache.get<NadeModel[]>(cacheKey);
+    const cachedNades = this.cache.getByMap(map, nadeFilter);
 
     if (cachedNades) {
       return ok(cachedNades);
@@ -169,7 +168,7 @@ export class NadeService implements INadeService {
     const result = await this.nadeRepo.byMap(map, nadeFilter);
 
     if (result.isOk()) {
-      this.cache.set(cacheKey, result.value);
+      this.cache.setByMap(map, result.value, nadeFilter);
     }
 
     return result;
@@ -226,10 +225,9 @@ export class NadeService implements INadeService {
     const tmpNade = makeNadeFromBody(userLight, gfycatData, nadeImages);
     const nade = await this.nadeRepo.save(tmpNade);
 
-    await this.statsService.incrementNadeCounter();
-
-    // Clear cache on new nade
-    this.cache.flushAll();
+    if (nade.isOk()) {
+      await this.statsService.incrementNadeCounter();
+    }
 
     return nade;
   }
@@ -259,8 +257,8 @@ export class NadeService implements INadeService {
 
     await this.statsService.decrementNadeCounter();
 
-    // Clear cache on nade delete
-    this.cache.flushAll();
+    // Clear cache where map was the nades map
+    this.cache.delCacheWithMap(nade.map);
 
     return true;
   }
@@ -335,8 +333,11 @@ export class NadeService implements INadeService {
 
     const updatedNade = await this.nadeRepo.update(mergedNade.id, mergedNade);
 
-    // Clear cache on update
-    this.cache.flushAll();
+    if (updatedNade.isOk()) {
+      // Clear cache on update
+      this.cache.delCacheWithMap(updatedNade.value.map);
+      this.cache.delNade(updatedNade.value.id);
+    }
 
     return updatedNade;
   }
@@ -363,33 +364,49 @@ export class NadeService implements INadeService {
     });
 
     // Clear cache on update
-    this.cache.flushAll();
+    if (updateResult.isOk()) {
+      this.cache.delCacheWithMap(updateResult.value.map);
+      this.cache.delNade(updateResult.value.id);
+    }
 
     return updateResult;
   }
 
-  updateNadeStatus(
+  async updateNadeStatus(
     nadeId: string,
     updatedStatus: NadeStatusDTO
   ): AppResult<NadeModel> {
-    // Clear cache on update
-    this.cache.flushAll();
+    const result = await this.nadeRepo.update(nadeId, updatedStatus);
 
-    return this.nadeRepo.update(nadeId, updatedStatus);
+    // Clear cache on update
+    if (result.isOk()) {
+      this.cache.delCacheWithMap(result.value.map);
+      this.cache.delNade(nadeId);
+    }
+
+    return result;
   }
 
   updateNadesWithUser(
     steamId: string,
     user: UserLightModel
   ): AppResult<boolean> {
+    const result = this.nadeRepo.updateUserOnNades(steamId, user);
+
     // Clear cache on update
     this.cache.flushAll();
 
-    return this.nadeRepo.updateUserOnNades(steamId, user);
+    return result;
   }
 
   async updateStats(nadeId: string, stats: Partial<NadeStats>) {
-    await this.nadeRepo.updateStats(nadeId, stats);
+    const result = await this.nadeRepo.updateStats(nadeId, stats);
+
+    // Clear cache on update
+    if (result.isOk()) {
+      this.cache.delCacheWithMap(result.value.map);
+      this.cache.delNade(nadeId);
+    }
   }
 
   private shouldUpdateStats(nade: NadeModel) {

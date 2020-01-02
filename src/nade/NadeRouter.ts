@@ -16,7 +16,6 @@ import { GfycatService } from "../services/GfycatService";
 import { getSessionId } from "../utils/SessionRoute";
 import { nadeModelsToLightDTO, nadeDTOfromModel } from "./NadeConverters";
 import { sanitizeIt } from "../utils/Sanitize";
-import { AppError } from "../utils/Common";
 import { nadeFilterFromRequest } from "./NadeFilter";
 
 type IdParam = {
@@ -49,8 +48,6 @@ export const makeNadeRouter = (
     } else {
       limit = Number(limit);
     }
-
-    console.log("Fetching nades", limit, limitParam);
 
     const nadesResult = await nadeService.fetchNades(limit);
 
