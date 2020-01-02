@@ -77,7 +77,6 @@ export class NadeRepoFirebase implements NadeRepo {
     const cachedNade = this.cache.get<NadeModel>(cacheKey);
 
     if (useCache && cachedNade) {
-      console.log("Had cached nade", nadeId);
       return ok(cachedNade);
     }
 
@@ -114,7 +113,6 @@ export class NadeRepoFirebase implements NadeRepo {
       const cachedNade = this.cache.get<NadeModel[]>(cachkeKey);
 
       if (cachedNade) {
-        console.log("Had cached nades for map", cachkeKey);
         return ok(cachedNade);
       }
 
