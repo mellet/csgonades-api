@@ -26,13 +26,15 @@ import { StatsService } from "./stats/StatsService";
 import { makeStatsRouter } from "./stats/StatsRouter";
 import { makeContactRouter } from "./contact/ContactRouter";
 import { ContactRepo } from "./contact/ContactRepo";
-import NodeCache from "node-cache";
 import { CachingService } from "./services/CachingService";
+import * as Sentry from "@sentry/node";
 
 export const AppServer = (config: CSGNConfig) => {
   const app = express();
+  Sentry.init({ dsn: config.secrets.sentry_dsn });
 
   // Express dependencies
+  app.use(Sentry.Handlers.requestHandler());
   app.use(express.json({ limit: "3mb" }));
   app.use(express.urlencoded({ extended: true }));
   app.use(passport.initialize());
@@ -101,6 +103,8 @@ export const AppServer = (config: CSGNConfig) => {
 
   // Called by client to set up session
   app.post("/initSession", sessionRoute);
+
+  app.use(Sentry.Handlers.errorHandler());
 
   return app;
 };

@@ -1,4 +1,4 @@
-import joi, { BooleanSchema } from "joi";
+import joi from "joi";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -12,7 +12,8 @@ const envVarSchema = joi
     FIREBASE_CLIENT_ID: joi.string().required(),
     FIREBASE_PRIVATE_KEY: joi.string().required(),
     GFYCAT_ID: joi.string().required(),
-    GFYCAT_SECRET: joi.string().required()
+    GFYCAT_SECRET: joi.string().required(),
+    SENTRY_DSN: joi.string().required()
   })
   .unknown()
   .required();
@@ -24,6 +25,7 @@ export type CSGNConfig = {
     server_key: string;
     gfycat_id: string;
     gfycat_secret: string;
+    sentry_dsn: string;
   };
   server: {
     baseUrl: string;
@@ -53,7 +55,8 @@ export const makeConfig = (): CSGNConfig => {
       steam_api_key: process.env.STEAM_API_KEY,
       server_key: process.env.SERVER_SECRET,
       gfycat_id: process.env.GFYCAT_ID,
-      gfycat_secret: process.env.GFYCAT_SECRET
+      gfycat_secret: process.env.GFYCAT_SECRET,
+      sentry_dsn: process.env.SENTRY_DSN
     },
     server: {
       port: Number(process.env.PORT),
