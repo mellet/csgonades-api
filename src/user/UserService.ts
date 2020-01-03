@@ -23,8 +23,13 @@ export class UserService {
 
   byId = (steamId: string) => this.userRepo.byId(steamId);
 
-  byIdAnon = async (steamId: string): Promise<UserModelAnon> => {
+  byIdAnon = async (steamId: string): Promise<UserModelAnon | null> => {
     const user = await this.userRepo.byId(steamId);
+
+    if (!user) {
+      return null;
+    }
+
     delete user["email"];
     return user;
   };

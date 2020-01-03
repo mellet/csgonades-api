@@ -1,5 +1,3 @@
-import { firestore } from "firebase-admin";
-
 export type Role = "administrator" | "moderator" | "user";
 
 export type UserModel = {

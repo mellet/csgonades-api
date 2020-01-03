@@ -35,6 +35,11 @@ export class FavoriteService {
 
     const favorite = await this.favoriteRepo.unSet(favoriteId);
 
+    if (!favorite) {
+      // TODO: Throw sensible error
+      return;
+    }
+
     await this.nadeService.decrementFavoriteCount(favorite.nadeId);
 
     return;
@@ -45,6 +50,11 @@ export class FavoriteService {
     favoriteId: string
   ): Promise<boolean> => {
     const favorite = await this.favoriteRepo.byId(favoriteId);
+
+    if (!favorite) {
+      // TODO: Throw sensible error
+      return false;
+    }
 
     if (favorite.userId === steamId) {
       return true;

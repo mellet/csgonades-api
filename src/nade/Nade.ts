@@ -144,7 +144,9 @@ export function updatedNadeMerge(
     steamId: newUser && newUser.steamId,
     mapSite: updateFields.mapSite,
     viewCount: views,
-    createdAt: updateFields.createdAt && new Date(updateFields.createdAt)
+    createdAt: updateFields.createdAt
+      ? new Date(updateFields.createdAt)
+      : undefined
   };
 
   return removeUndefines(newNade);

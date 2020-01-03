@@ -1,14 +1,15 @@
 import { RequestUser } from "./AuthUtils";
 import { sanitizeIt } from "./Sanitize";
 
-export const userFromRequest = (
-  request: Express.Request
-): RequestUser | undefined => {
-  if (!request.user) {
-    return;
-  }
-
+export const userFromRequest = (request: Express.Request): RequestUser => {
   const user = sanitizeIt(request.user) as RequestUser;
+  return user;
+};
 
+export const maybeUserFromRequest = (request: Express.Request) => {
+  if (!request.user) {
+    return null;
+  }
+  const user = sanitizeIt(request.user) as RequestUser;
   return user;
 };

@@ -11,6 +11,7 @@ import {
 import { UserModel } from "./UserModel";
 import { UserLightDTO, UserCreateDTO, UserUpdateDTO } from "./UserDTOs";
 import { removeUndefines } from "../utils/Common";
+import { ModelUpdate } from "typesaurus/update";
 
 export class UserRepo {
   private collection: Collection<UserModel>;
@@ -36,7 +37,7 @@ export class UserRepo {
     return users;
   };
 
-  byId = async (steamId: string): Promise<UserModel> => {
+  byId = async (steamId: string): Promise<UserModel | null> => {
     const userDoc = await get(this.collection, steamId);
 
     if (!userDoc) {
@@ -62,12 +63,14 @@ export class UserRepo {
   update = async (
     steamId: string,
     updateFields: UserUpdateDTO
-  ): Promise<UserModel> => {
-    let updateModel: Partial<UserModel> = {
+  ): Promise<UserModel | null> => {
+    let updateModel: ModelUpdate<UserModel> = {
       nickname: updateFields.nickname,
       email: updateFields.email,
       bio: updateFields.bio,
-      createdAt: updateFields.createdAt && new Date(updateFields.createdAt)
+      createdAt: updateFields.createdAt
+        ? new Date(updateFields.createdAt)
+        : undefined
     };
 
     updateModel = removeUndefines(updateModel);

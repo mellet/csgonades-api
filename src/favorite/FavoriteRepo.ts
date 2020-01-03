@@ -29,15 +29,20 @@ export class FavoriteRepo {
     return this.docToDto(favDoc);
   };
 
-  unSet = async (favoriteId: string): Promise<FavoriteDTO> => {
+  unSet = async (favoriteId: string): Promise<FavoriteDTO | null> => {
     const favorite = this.byId(favoriteId);
     await remove(this.collection, favoriteId);
 
     return favorite;
   };
 
-  byId = async (favoriteId: string): Promise<FavoriteDTO> => {
+  byId = async (favoriteId: string): Promise<FavoriteDTO | null> => {
     const doc = await get(this.collection, favoriteId);
+
+    if (!doc) {
+      return null;
+    }
+
     return this.docToDto(doc);
   };
 

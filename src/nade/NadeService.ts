@@ -80,7 +80,9 @@ export class NadeService {
 
       const updatedNade = await this.nadeRepo.update(nadeId, updatedNadeViews);
 
-      this.cache.setNade(nadeId, updatedNade);
+      if (updatedNade) {
+        this.cache.setNade(nadeId, updatedNade);
+      }
 
       return updatedNade;
     }
@@ -117,8 +119,16 @@ export class NadeService {
     return this.nadeRepo.byUser(steamId);
   };
 
-  save = async (body: NadeCreateDTO, steamID: string): Promise<NadeDTO> => {
+  save = async (
+    body: NadeCreateDTO,
+    steamID: string
+  ): Promise<NadeDTO | null> => {
     const user = await this.userService.byId(steamID);
+
+    if (!user) {
+      // TODO: Throw sensible error
+      return null;
+    }
 
     const userLight: UserLightModel = {
       nickname: user.nickname,
@@ -145,6 +155,11 @@ export class NadeService {
   delete = async (nadeId: string) => {
     const nade = await this.nadeRepo.byId(nadeId);
 
+    if (!nade) {
+      // TODO: Throw sensible error
+      return null;
+    }
+
     await Promise.all([
       this.nadeRepo.delete(nade.id),
       this.imageStorageService.deleteImage(nade.images.largeId),
@@ -157,7 +172,10 @@ export class NadeService {
     this.cache.delCacheWithMap(nade.map);
   };
 
-  async update(nadeId: string, updateFields: NadeUpdateDTO): Promise<NadeDTO> {
+  async update(
+    nadeId: string,
+    updateFields: NadeUpdateDTO
+  ): Promise<NadeDTO | null> {
     let newGfyData: GfycatData | undefined;
     let newUser: UserModel | undefined;
     let viewCount: number | undefined;
@@ -185,8 +203,10 @@ export class NadeService {
 
     const updatedNade = await this.nadeRepo.update(nadeId, mergedNade);
 
-    this.cache.delCacheWithMap(updatedNade.map);
-    this.cache.delNade(updatedNade.id);
+    if (updatedNade) {
+      this.cache.delCacheWithMap(updatedNade.map);
+      this.cache.delNade(updatedNade.id);
+    }
 
     return updatedNade;
   }
@@ -194,8 +214,13 @@ export class NadeService {
   async updateNadeStatus(
     nadeId: string,
     updatedStatus: NadeStatusDTO
-  ): Promise<NadeDTO> {
+  ): Promise<NadeDTO | null> {
     const nade = await this.nadeRepo.update(nadeId, updatedStatus);
+
+    if (!nade) {
+      // TODO: Throw sensible error
+      return null;
+    }
 
     this.cache.delCacheWithMap(nade.map);
     this.cache.delNade(nade.id);
@@ -242,6 +267,11 @@ export class NadeService {
   isAllowedEdit = async (nadeId: string, steamId: string): Promise<boolean> => {
     const nade = await this.byId(nadeId);
     const user = await this.userService.byId(steamId);
+
+    if (!user || !nade) {
+      // TODO: Throw sensible error
+      return false;
+    }
 
     if (user.role === "administrator" || user.role === "moderator") {
       return true;

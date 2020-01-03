@@ -12,7 +12,8 @@ import {
   getMany,
   where,
   remove,
-  batch
+  batch,
+  Query
 } from "typesaurus";
 import {
   NadeModel,
@@ -33,10 +34,15 @@ export class NadeRepo {
   }
 
   getAll = async (nadeLimit: number = 0): Promise<NadeLightDTO[]> => {
-    const nadesDocs = await query(this.collection, [
-      order("createdAt", "desc"),
-      nadeLimit && limit(nadeLimit)
-    ]);
+    const queryBuilder: Query<NadeModel, keyof NadeModel>[] = [
+      order("createdAt", "desc")
+    ];
+
+    if (nadeLimit) {
+      queryBuilder.push(limit(nadeLimit));
+    }
+
+    const nadesDocs = await query(this.collection, queryBuilder);
 
     const nades = nadesDocs.map(this.toNadeDtoLight);
 
@@ -53,7 +59,7 @@ export class NadeRepo {
     return pendingNades;
   };
 
-  byId = async (nadeId: string): Promise<NadeDTO> => {
+  byId = async (nadeId: string): Promise<NadeDTO | null> => {
     const nadeDoc = await get(this.collection, nadeId);
 
     if (!nadeDoc) {
@@ -70,15 +76,26 @@ export class NadeRepo {
     csgoMap: CsgoMap,
     nadeFilter?: NadeFilter
   ): Promise<NadeLightDTO[]> => {
-    const nadeDocs = await query(this.collection, [
+    const queryBuilder: Query<NadeModel, keyof NadeModel>[] = [
       where("status", "==", "accepted"),
       where("map", "==", csgoMap),
-      nadeFilter?.flash && where("type", "==", "flash"),
-      nadeFilter?.smoke && where("type", "==", "smoke"),
-      nadeFilter?.molotov && where("type", "==", "molotov"),
-      nadeFilter?.hegrenade && where("type", "==", "hegrenade"),
       order("createdAt", "desc")
-    ]);
+    ];
+
+    if (nadeFilter?.flash) {
+      queryBuilder.push(where("type", "==", "flash"));
+    }
+    if (nadeFilter?.hegrenade) {
+      queryBuilder.push(where("type", "==", "hegrenade"));
+    }
+    if (nadeFilter?.smoke) {
+      queryBuilder.push(where("type", "==", "smoke"));
+    }
+    if (nadeFilter?.molotov) {
+      queryBuilder.push(where("type", "==", "molotov"));
+    }
+
+    const nadeDocs = await query(this.collection, queryBuilder);
 
     const nades = nadeDocs.map(this.toNadeDtoLight);
     return nades;
@@ -118,7 +135,7 @@ export class NadeRepo {
   update = async (
     nadeId: string,
     updates: Partial<NadeDTO>
-  ): Promise<NadeDTO> => {
+  ): Promise<NadeDTO | null> => {
     let modelUpdates: Partial<NadeModel> = {
       ...updates
     };

@@ -23,6 +23,10 @@ export class StatsRepo {
   getStats = async () => {
     const stats = await get(this.collection, this.siteDocId);
 
+    if (!stats) {
+      return null;
+    }
+
     return stats.data;
   };
 

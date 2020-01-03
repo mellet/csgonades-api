@@ -15,7 +15,8 @@ import {
   query,
   limit,
   order,
-  Doc
+  Doc,
+  Query
 } from "typesaurus";
 import { removeUndefines } from "../utils/Common";
 import { ErrorFactory } from "../utils/ErrorUtil";
@@ -41,10 +42,15 @@ export class ArticleRepo {
   };
 
   getAll = async (articleLimit: number = 0): Promise<ArticleLightDTO[]> => {
-    const res = await query(this.collection, [
-      order("createdAt", "desc"),
-      articleLimit && limit(articleLimit)
-    ]);
+    const queryBuilder: Query<ArticleModelDoc, keyof ArticleModelDoc>[] = [
+      order("createdAt", "desc")
+    ];
+
+    if (articleLimit) {
+      queryBuilder.push(limit(articleLimit));
+    }
+
+    const res = await query(this.collection, queryBuilder);
 
     function articleConvert(doc: Doc<ArticleModelDoc>): ArticleLightDTO {
       return {

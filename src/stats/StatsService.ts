@@ -8,7 +8,7 @@ export class StatsService {
     this.statsRepo = statsRepo;
   }
 
-  getStats(): Promise<SiteStats> {
+  getStats(): Promise<SiteStats | null> {
     return this.statsRepo.getStats();
   }
 

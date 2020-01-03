@@ -15,7 +15,6 @@ export const makeUserRouter = (
   UserRouter.get("/users/self", authenticateRoute, async (req, res) => {
     try {
       const requestUser = userFromRequest(req);
-
       const user = await userService.byId(requestUser.steamId);
 
       return res.status(200).send(user);
@@ -69,6 +68,13 @@ export const makeUserRouter = (
       checkUserUpdatePrivileges(requestUser, steamId);
 
       const user = await userService.update(steamId, userUpdateFields);
+
+      if (!user) {
+        return res.status(400).send({
+          status: 400,
+          message: "No user found"
+        });
+      }
 
       await nadeService.updateNadesWithUser(user.steamId, {
         nickname: user.nickname,
