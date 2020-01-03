@@ -48,13 +48,15 @@ export interface NadeModel {
   status: NadeStatus;
   description?: string;
   map?: CsgoMap;
-  stats: NadeStats;
+  stats?: NadeStats;
   movement?: Movement;
   technique?: Technique;
   tickrate?: Tickrate;
   type?: NadeType;
   statusInfo?: StatusInfo;
   mapSite?: MapSite;
+  viewCount: number;
+  favoriteCount: number;
 }
 
 export interface NadeDTO extends NadeModel {
@@ -78,7 +80,8 @@ export type NadeCreateModel = {
   images: NadeImages;
   steamId: string;
   user: UserLightModel;
-  stats: NadeStats;
+  viewCount: number;
+  favoriteCount: number;
 };
 
 export type NadeLightDTO = {
@@ -87,11 +90,12 @@ export type NadeLightDTO = {
   title?: string;
   gfycat: GfycatData;
   images: NadeImages;
-  stats: NadeStats;
   type?: NadeType;
   mapSite?: MapSite;
   tickrate?: Tickrate;
   createdAt: Date;
+  viewCount: number;
+  favoriteCount: number;
 };
 
 export type NadeCreateDTO = {
@@ -127,11 +131,6 @@ export const makeNadeFromBody = (
   images: NadeImages
 ): NadeCreateModel => {
   return {
-    stats: {
-      views: gfycatData.gfyItem.views || 0,
-      comments: 0,
-      favorited: 0
-    },
     gfycat: {
       gfyId: gfycatData.gfyItem.gfyId,
       smallVideoUrl: gfycatData.gfyItem.mobileUrl,
@@ -139,7 +138,9 @@ export const makeNadeFromBody = (
     },
     images,
     user,
-    steamId: user.steamId
+    steamId: user.steamId,
+    viewCount: gfycatData.gfyItem.views,
+    favoriteCount: 0
   };
 };
 

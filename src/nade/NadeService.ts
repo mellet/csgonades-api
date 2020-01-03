@@ -8,7 +8,8 @@ import {
   NadeStats,
   NadeStatusDTO,
   NadeDTO,
-  NadeLightDTO
+  NadeLightDTO,
+  NadeModel
 } from "./Nade";
 import { IImageStorageService } from "../services/ImageStorageService";
 import { GfycatService } from "../services/GfycatService";
@@ -73,8 +74,13 @@ export class NadeService {
 
     if (this.shouldUpdateStats(nade)) {
       const gfycat = await this.gfycatService.getGfycatData(nade.gfycat.gfyId);
-      const nadeStats: Partial<NadeStats> = { views: gfycat.gfyItem.views };
-      const updatedNade = await this.nadeRepo.updateStats(nadeId, nadeStats);
+
+      const updatedNadeViews: Partial<NadeModel> = {
+        viewCount: gfycat.gfyItem.views
+      };
+
+      const updatedNade = await this.nadeRepo.update(nadeId, updatedNadeViews);
+
       this.cache.setNade(nadeId, updatedNade);
 
       return updatedNade;
@@ -211,18 +217,6 @@ export class NadeService {
     this.cache.flushAll();
 
     return;
-  }
-
-  async updateStats(
-    nadeId: string,
-    stats: Partial<NadeStats>
-  ): Promise<NadeDTO> {
-    const nade = await this.nadeRepo.updateStats(nadeId, stats);
-
-    this.cache.delCacheWithMap(nade.map);
-    this.cache.delNade(nadeId);
-
-    return nade;
   }
 
   private shouldUpdateStats(nade: NadeDTO) {

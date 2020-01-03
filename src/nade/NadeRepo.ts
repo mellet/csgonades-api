@@ -120,6 +120,15 @@ export class NadeRepo {
       ...updates
     };
 
+    // If viewcount is updated,
+    // set new time so we don't update again for a while
+    if (updates.viewCount) {
+      modelUpdates = {
+        ...modelUpdates,
+        lastGfycatUpdate: value("serverDate")
+      };
+    }
+
     modelUpdates = removeUndefines(modelUpdates);
 
     await update(this.collection, nadeId, modelUpdates);
@@ -150,36 +159,19 @@ export class NadeRepo {
     await commit();
   };
 
-  updateStats = async (
-    nadeId: string,
-    stats: Partial<NadeStats>
-  ): Promise<NadeDTO> => {
-    const oldNade = await this.byId(nadeId);
-
-    const newStats: NadeStats = {
-      ...oldNade.stats,
-      ...stats
-    };
-
-    await update(this.collection, nadeId, {
-      stats: newStats,
-      lastGfycatUpdate: value("serverDate")
-    });
-
-    return this.byId(nadeId);
-  };
-
-  private toNadeDtoLight(doc: Doc<NadeModel>): NadeLightDTO {
+  private toNadeDtoLight = (doc: Doc<NadeModel>): NadeLightDTO => {
+    this.tryFixCounter(doc);
     const {
       tickrate,
       createdAt,
       images,
       gfycat,
-      stats,
       status,
       type,
       title,
-      mapSite
+      mapSite,
+      viewCount,
+      favoriteCount
     } = doc.data;
     return {
       id: doc.ref.id,
@@ -187,18 +179,34 @@ export class NadeRepo {
       createdAt,
       images,
       gfycat,
-      stats,
       status,
       type,
       mapSite,
-      title
+      title,
+      viewCount,
+      favoriteCount
     };
-  }
+  };
 
-  private toNadeDTO(doc: Doc<NadeModel>): NadeDTO {
+  private toNadeDTO = (doc: Doc<NadeModel>): NadeDTO => {
+    this.tryFixCounter(doc);
     return {
       ...doc.data,
       id: doc.ref.id
     };
-  }
+  };
+
+  private tryFixCounter = (doc: Doc<NadeModel>) => {
+    if (!doc.data.viewCount && doc.data.stats) {
+      update(this.collection, doc.ref.id, {
+        viewCount: doc.data.stats.views
+      });
+    }
+
+    if (!doc.data.favoriteCount) {
+      update(this.collection, doc.ref.id, {
+        favoriteCount: 0
+      });
+    }
+  };
 }
