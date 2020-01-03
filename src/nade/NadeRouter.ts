@@ -77,7 +77,10 @@ export const makeNadeRouter = (
       const nade = await nadeService.byId(id);
 
       if (!nade) {
-        return res.status(404).send();
+        return res.status(404).send({
+          status: 404,
+          message: "Nade not found."
+        });
       }
 
       return res.status(200).send(nade);
