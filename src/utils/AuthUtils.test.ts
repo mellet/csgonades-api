@@ -1,6 +1,5 @@
 import { createRefreshToken, payloadFromToken } from "./AuthUtils";
 import { UserModel } from "../user/UserModel";
-import { firestore } from "firebase-admin";
 
 describe("Auth Utils", () => {
   it("Creates a valid refresh token", () => {

@@ -240,6 +240,12 @@ export const makeNadeRouter = (
         validateGfycat.gfycatIdOrUrl
       );
 
+      if (!gfyDataResponse) {
+        return res.status(500).send({
+          message: "Gfycat seems to be down."
+        });
+      }
+
       const { gfyItem } = gfyDataResponse;
 
       const gfyData: GfycatData = {

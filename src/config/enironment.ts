@@ -52,11 +52,11 @@ export const makeConfig = (): CSGNConfig => {
   return {
     isProduction,
     secrets: {
-      steam_api_key: process.env.STEAM_API_KEY,
-      server_key: process.env.SERVER_SECRET,
-      gfycat_id: process.env.GFYCAT_ID,
-      gfycat_secret: process.env.GFYCAT_SECRET,
-      sentry_dsn: process.env.SENTRY_DSN
+      steam_api_key: process.env.STEAM_API_KEY || "",
+      server_key: process.env.SERVER_SECRET || "",
+      gfycat_id: process.env.GFYCAT_ID || "",
+      gfycat_secret: process.env.GFYCAT_SECRET || "",
+      sentry_dsn: process.env.SENTRY_DSN || ""
     },
     server: {
       port: Number(process.env.PORT),
@@ -70,9 +70,11 @@ export const makeConfig = (): CSGNConfig => {
         : "http://localhost:3000"
     },
     firebase: {
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      projectId: process.env.FIREBASE_CLIENT_ID,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n")
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL || "",
+      projectId: process.env.FIREBASE_CLIENT_ID || "",
+      privateKey: process.env.FIREBASE_PRIVATE_KEY
+        ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n")
+        : ""
     }
   };
 };

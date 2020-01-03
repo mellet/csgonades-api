@@ -5,7 +5,7 @@ import { extractGfyIdFromIdOrUrl } from "../utils/Common";
 import * as Sentry from "@sentry/node";
 
 export interface GfycatService {
-  getGfycatData(gfyId: string): Promise<GfycatDetailsResponse>;
+  getGfycatData(gfyId: string): Promise<GfycatDetailsResponse | null>;
   registerView(gfyId: string, identifier: string): Promise<boolean>;
 }
 
@@ -18,13 +18,14 @@ export const makeGfycatService = (configContext: CSGNConfig): GfycatService => {
 
   async function getGfycatData(
     gfyIdOrUrl: string
-  ): Promise<GfycatDetailsResponse> {
+  ): Promise<GfycatDetailsResponse | null> {
     try {
       const gfyId = extractGfyIdFromIdOrUrl(gfyIdOrUrl);
       const gfyResponse = await gfycatSdk.getGifDetails({ gfyId });
       return gfyResponse;
     } catch (error) {
       Sentry.captureException(error);
+      return null;
     }
   }
 
@@ -39,6 +40,7 @@ export const makeGfycatService = (configContext: CSGNConfig): GfycatService => {
       return true;
     } catch (error) {
       Sentry.captureException(error);
+      return false;
     }
   }
 

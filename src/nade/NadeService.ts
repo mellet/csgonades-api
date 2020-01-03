@@ -74,6 +74,11 @@ export class NadeService {
     if (nade && this.shouldUpdateStats(nade)) {
       const gfycat = await this.gfycatService.getGfycatData(nade.gfycat.gfyId);
 
+      if (!gfycat) {
+        // TODO: Throw sensible error
+        return null;
+      }
+
       const updatedNadeViews: Partial<NadeModel> = {
         viewCount: gfycat.gfyItem.views
       };
@@ -140,6 +145,11 @@ export class NadeService {
       body.gfycatIdOrUrl
     );
 
+    if (!gfycatData) {
+      // TODO: Throw sensible error
+      return null;
+    }
+
     const nadeImages = await this.imageStorageService.saveImage(
       body.imageBase64
     );
@@ -184,6 +194,11 @@ export class NadeService {
       const gfycatData = await this.gfycatService.getGfycatData(
         updateFields.gfycatIdOrUrl
       );
+
+      if (!gfycatData) {
+        // TODO: Throw sensible error
+        return null;
+      }
 
       newGfyData = {
         gfyId: gfycatData.gfyItem.gfyId,

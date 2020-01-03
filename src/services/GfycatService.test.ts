@@ -16,7 +16,8 @@ describe("Gfycat service", () => {
       "https://gfycat.com/idioticadventurousarabianoryx"
     );
 
-    expect(result.statusCode).toBe(200);
-    expect(result.gfyItem.gfyId).toBe("idioticadventurousarabianoryx");
+    expect(result).not.toBe(null);
+    expect(result?.statusCode).toBe(200);
+    expect(result?.gfyItem.gfyId).toBe("idioticadventurousarabianoryx");
   });
 });

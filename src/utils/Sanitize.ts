@@ -11,6 +11,7 @@ function sanitizeObj(dirty: any): any {
 function sanitizeArray(dirty: any): any {
   let clean = [];
   dirty.forEach(d => {
+    // @ts-ignore
     clean.push(sanitizeIt(d));
   });
   return clean;
