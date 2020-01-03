@@ -14,7 +14,7 @@ export class CachingService {
     this.cache.set(key, nades);
   }
 
-  getAllNades(key: string): NadeLightDTO[] {
+  getAllNades(key: string): NadeLightDTO[] | undefined {
     return this.cache.get(key);
   }
 
@@ -43,7 +43,7 @@ export class CachingService {
     this.cache.set(cacheKey, nade);
   }
 
-  getNade(nadeId: string): NadeDTO {
+  getNade(nadeId: string): NadeDTO | undefined {
     const cacheKey = `nade-${nadeId}`;
     return this.cache.get(cacheKey);
   }
