@@ -67,6 +67,7 @@ export const makeSteamRouter = (
   router.get("/auth/refresh", async (req, res) => {
     try {
       const csgonadestoken = req.signedCookies.csgonadestoken as string;
+
       const payload = payloadFromToken(
         config.secrets.server_key,
         csgonadestoken

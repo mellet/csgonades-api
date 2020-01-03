@@ -1,6 +1,5 @@
 import { ISteamService } from "../steam/SteamService";
-import { UserModel, UserCreateModel, UserModelAnon } from "./UserModel";
-import { AppResult } from "../utils/Common";
+import { UserModel, UserModelAnon } from "./UserModel";
 import { StatsService } from "../stats/StatsService";
 import { UserUpdateDTO, UserCreateDTO } from "./UserDTOs";
 import { UserRepo } from "./UserRepo";
