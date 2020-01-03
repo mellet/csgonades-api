@@ -160,7 +160,6 @@ export class NadeRepo {
   };
 
   private toNadeDtoLight = (doc: Doc<NadeModel>): NadeLightDTO => {
-    this.tryFixCounter(doc);
     const {
       tickrate,
       createdAt,
@@ -189,24 +188,9 @@ export class NadeRepo {
   };
 
   private toNadeDTO = (doc: Doc<NadeModel>): NadeDTO => {
-    this.tryFixCounter(doc);
     return {
       ...doc.data,
       id: doc.ref.id
     };
-  };
-
-  private tryFixCounter = (doc: Doc<NadeModel>) => {
-    if (!doc.data.viewCount && doc.data.stats) {
-      update(this.collection, doc.ref.id, {
-        viewCount: doc.data.stats.views
-      });
-    }
-
-    if (!doc.data.favoriteCount) {
-      update(this.collection, doc.ref.id, {
-        favoriteCount: 0
-      });
-    }
   };
 }

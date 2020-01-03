@@ -157,11 +157,9 @@ export class NadeService {
   };
 
   async update(nadeId: string, updateFields: NadeUpdateDTO): Promise<NadeDTO> {
-    const oldNade = await this.nadeRepo.byId(nadeId);
-
-    let newGfyData: GfycatData;
-    let newUser: UserModel;
-    let newStats: NadeStats;
+    let newGfyData: GfycatData | undefined;
+    let newUser: UserModel | undefined;
+    let viewCount: number | undefined;
 
     if (updateFields.gfycatIdOrUrl) {
       const gfycatData = await this.gfycatService.getGfycatData(
@@ -174,17 +172,14 @@ export class NadeService {
         largeVideoUrl: gfycatData.gfyItem.mp4Url
       };
 
-      newStats = {
-        ...oldNade.stats,
-        views: gfycatData.gfyItem.views
-      };
+      viewCount = gfycatData.gfyItem.views;
     }
 
     const mergedNade = updatedNadeMerge(
       updateFields,
+      viewCount,
       newUser,
-      newGfyData,
-      newStats
+      newGfyData
     );
 
     const updatedNade = await this.nadeRepo.update(nadeId, mergedNade);

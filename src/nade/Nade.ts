@@ -48,7 +48,6 @@ export interface NadeModel {
   status: NadeStatus;
   description?: string;
   map?: CsgoMap;
-  stats?: NadeStats;
   movement?: Movement;
   technique?: Technique;
   tickrate?: Tickrate;
@@ -146,9 +145,9 @@ export const makeNadeFromBody = (
 
 export function updatedNadeMerge(
   updateFields: NadeUpdateDTO,
+  views?: number,
   newUser?: UserModel,
-  newGfcatData?: GfycatData,
-  newStats?: NadeStats
+  newGfcatData?: GfycatData
 ): Partial<NadeModel> {
   const newNade: Partial<NadeModel> = {
     title: updateFields.title,
@@ -159,10 +158,10 @@ export function updatedNadeMerge(
     tickrate: updateFields.tickrate,
     type: updateFields.type,
     gfycat: newGfcatData,
-    stats: newStats,
     user: newUser,
     steamId: newUser && newUser.steamId,
     mapSite: updateFields.mapSite,
+    viewCount: views,
     createdAt: updateFields.createdAt && new Date(updateFields.createdAt)
   };
 
