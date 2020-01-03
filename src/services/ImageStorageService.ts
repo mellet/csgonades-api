@@ -2,9 +2,6 @@ import sharp from "sharp";
 import { Bucket } from "@google-cloud/storage";
 import nanoid from "nanoid";
 import { CSGNConfig } from "../config/enironment";
-import { AppResult, AppError } from "../utils/Common";
-import { err, ok } from "neverthrow";
-import { extractError } from "../utils/ErrorUtil";
 import * as Sentry from "@sentry/node";
 
 export type NadeImages = {
@@ -15,8 +12,8 @@ export type NadeImages = {
 };
 
 export interface IImageStorageService {
-  saveImage(imageBase64: string): AppResult<NadeImages>;
-  deleteImage(fileId: string): Promise<boolean>;
+  saveImage(imageBase64: string): Promise<NadeImages>;
+  deleteImage(fileId: string): Promise<void>;
 }
 
 export class ImageStorageService implements IImageStorageService {
@@ -28,7 +25,7 @@ export class ImageStorageService implements IImageStorageService {
     this.config = config;
   }
 
-  async saveImage(imageBase64: string): AppResult<NadeImages> {
+  async saveImage(imageBase64: string): Promise<NadeImages> {
     const tmpFolderLocation = this.config.isProduction ? "../tmp" : "tmp";
     try {
       const uri = imageBase64.split(";base64,").pop();
@@ -39,11 +36,7 @@ export class ImageStorageService implements IImageStorageService {
       );
 
       if (mimeType !== "jpeg") {
-        const error: AppError = {
-          status: 400,
-          message: "Wrong image format"
-        };
-        return err(error);
+        throw new Error("Wrong image format");
       }
 
       const imageId = nanoid();
@@ -86,10 +79,10 @@ export class ImageStorageService implements IImageStorageService {
         largeUrl: this.createPublicFileURL(this.bucket.name, largeName)
       };
 
-      return ok(images);
+      return images;
     } catch (error) {
       Sentry.captureException(error);
-      return extractError(error);
+      throw error;
     }
   }
 
@@ -98,10 +91,9 @@ export class ImageStorageService implements IImageStorageService {
       const image = this.bucket.file(fileId);
 
       await image.delete();
-      return true;
     } catch (error) {
       Sentry.captureException(error);
-      return false;
+      throw error;
     }
   }
 

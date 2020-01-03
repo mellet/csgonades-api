@@ -8,15 +8,15 @@ import {
   NadeGfycatValidateDTO,
   GfycatData
 } from "./Nade";
-import { INadeService } from "./NadeService";
 import { CSGNConfig } from "../config/enironment";
 import { authenticateRoute, adminOrModeratorRouter } from "../utils/AuthUtils";
 import { userFromRequest } from "../utils/RouterUtils";
 import { GfycatService } from "../services/GfycatService";
 import { getSessionId } from "../utils/SessionRoute";
-import { nadeModelsToLightDTO, nadeDTOfromModel } from "./NadeConverters";
 import { sanitizeIt } from "../utils/Sanitize";
 import { nadeFilterFromRequest } from "./NadeFilter";
+import { NadeService } from "./NadeService";
+import { errorCatchConverter } from "../utils/ErrorUtil";
 
 type IdParam = {
   id: string;
@@ -32,267 +32,236 @@ type SteamIdParam = {
 
 export const makeNadeRouter = (
   config: CSGNConfig,
-  nadeService: INadeService,
+  nadeService: NadeService,
   gfycatService: GfycatService
 ): Router => {
   const NadeRouter = Router();
 
   NadeRouter.get("/nades", async (req, res) => {
-    const limitParam = req?.query?.limit;
-    let limit: number | undefined = undefined;
+    try {
+      const limitParam = req?.query?.limit;
+      let limit: number | undefined = undefined;
 
-    if (!limitParam) {
-      limit = 8;
-    } else if (limitParam === "all") {
-      limit = undefined;
-    } else {
-      limit = Number(limit);
+      if (!limitParam) {
+        limit = 8;
+      } else if (limitParam === "all") {
+        limit = undefined;
+      } else {
+        limit = Number(limit);
+      }
+
+      const nades = await nadeService.fetchNades(limit);
+
+      return res.status(200).send(nades);
+    } catch (error) {
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
     }
-
-    const nadesResult = await nadeService.fetchNades(limit);
-
-    if (nadesResult.isErr()) {
-      const { error } = nadesResult;
-      return res.status(error.status).send(error);
-    }
-
-    const nades = nadeModelsToLightDTO(nadesResult.value);
-
-    return res.status(200).send(nades);
   });
 
   NadeRouter.get("/nades/pending", adminOrModeratorRouter, async (req, res) => {
-    const nadesResult = await nadeService.fetchPending();
+    try {
+      const pendingNades = await nadeService.pending();
 
-    if (nadesResult.isErr()) {
-      const { error } = nadesResult;
-      return res.status(error.status).send(error);
+      return res.status(200).send(pendingNades);
+    } catch (error) {
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
     }
-
-    const nades = nadeModelsToLightDTO(nadesResult.value);
-
-    return res.status(200).send(nades);
   });
 
   NadeRouter.get<IdParam>("/nades/:id", async (req, res) => {
-    const id = sanitizeIt(req.params.id);
+    try {
+      const id = sanitizeIt(req.params.id);
 
-    const nadeResult = await nadeService.fetchByID(id);
+      const nade = await nadeService.byId(id);
 
-    if (nadeResult.isErr()) {
-      const { error } = nadeResult;
-      return res.status(error.status).send(error);
+      return res.status(200).send(nade);
+    } catch (error) {
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
     }
-
-    const nade = nadeDTOfromModel(nadeResult.value);
-
-    return res.status(200).send(nade);
   });
 
   NadeRouter.get<MapNameParam>("/nades/map/:mapname", async (req, res) => {
-    const mapName = sanitizeIt(req.params.mapname);
+    try {
+      const mapName = sanitizeIt(req.params.mapname);
+      const nadeFilter = nadeFilterFromRequest(req);
+      const nades = await nadeService.byMap(mapName, nadeFilter);
 
-    const nadeFilter = nadeFilterFromRequest(req);
-
-    const nadesResult = await nadeService.fetchByMap(mapName, nadeFilter);
-
-    if (nadesResult.isErr()) {
-      const { error } = nadesResult;
-      return res.status(error.status).send(error);
+      return res.status(200).send(nades);
+    } catch (error) {
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
     }
-
-    const nades = nadeModelsToLightDTO(nadesResult.value);
-
-    return res.status(200).send(nades);
   });
 
   NadeRouter.get<SteamIdParam>("/nades/user/:steamId", async (req, res) => {
-    const steamId = sanitizeIt(req.params.steamId);
+    try {
+      const steamId = sanitizeIt(req.params.steamId);
+      const nades = await nadeService.byUser(steamId);
 
-    const nadeResult = await nadeService.fetchByUser(steamId);
-
-    if (nadeResult.isErr()) {
-      return res.status(500).send(nadeResult.error);
+      return res.status(200).send(nades);
+    } catch (error) {
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
     }
-
-    const nades = nadeModelsToLightDTO(nadeResult.value);
-
-    return res.status(200).send(nades);
   });
 
   const postNadeMiddleware = [authenticateRoute, validateNade];
 
   NadeRouter.post("/nades", ...postNadeMiddleware, async (req, res) => {
-    const user = userFromRequest(req);
-    const dirtyNadeBody = req.body as NadeCreateDTO;
-    const nadeBody: NadeCreateDTO = {
-      gfycatIdOrUrl: sanitizeIt(dirtyNadeBody.gfycatIdOrUrl),
-      imageBase64: dirtyNadeBody.imageBase64
-    };
+    try {
+      const user = userFromRequest(req);
+      const dirtyNadeBody = req.body as NadeCreateDTO;
+      const nadeBody: NadeCreateDTO = {
+        gfycatIdOrUrl: sanitizeIt(dirtyNadeBody.gfycatIdOrUrl),
+        imageBase64: dirtyNadeBody.imageBase64
+      };
 
-    const nadeResult = await nadeService.saveFromBody(nadeBody, user.steamId);
+      const nade = await nadeService.save(nadeBody, user.steamId);
 
-    if (nadeResult.isErr()) {
-      const { error } = nadeResult;
-      return res.status(400).send(error);
+      return res.status(201).send(nade);
+    } catch (error) {
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
     }
-
-    const nade = nadeDTOfromModel(nadeResult.value);
-
-    return res.status(201).send(nade);
   });
 
   NadeRouter.post("/nades/list", async (req, res) => {
-    const nadeList = req.body.nadeIds as string[];
+    try {
+      const nadeList = req.body.nadeIds as string[];
 
-    if (!nadeList) {
-      return res
-        .status(400)
-        .send({ status: 400, message: "Missing nade ids in body" });
+      if (!nadeList) {
+        return res
+          .status(400)
+          .send({ status: 400, message: "Missing nade ids in body" });
+      }
+
+      if (nadeList.length === 0) {
+        return res.status(200).send([]);
+      }
+
+      const nades = await nadeService.list(nadeList);
+
+      return res.status(200).send(nades);
+    } catch (error) {
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
     }
-
-    if (nadeList.length === 0) {
-      return res.status(200).send([]);
-    }
-
-    const nadeResult = await nadeService.fetchByIdList(nadeList);
-
-    if (nadeResult.isErr()) {
-      const { error } = nadeResult;
-      return res.status(404).send(error);
-    }
-
-    const nades = nadeModelsToLightDTO(nadeResult.value);
-
-    return res.status(200).send(nades);
   });
 
   NadeRouter.put<IdParam>("/nades/:id", authenticateRoute, async (req, res) => {
-    const id = sanitizeIt(req.params.id);
-    const user = userFromRequest(req);
+    try {
+      const id = sanitizeIt(req.params.id);
+      const user = userFromRequest(req);
 
-    const dirtyNadeBody = req.body as NadeUpdateDTO; // TODO: Validate NadeUpdateBody
-    const nadeBody: NadeUpdateDTO = {
-      ...sanitizeIt(dirtyNadeBody),
-      description: dirtyNadeBody.description // TODO: Sanitize markdown
-    };
+      const dirtyNadeBody = req.body as NadeUpdateDTO; // TODO: Validate NadeUpdateBody
+      const nadeBody: NadeUpdateDTO = {
+        ...sanitizeIt(dirtyNadeBody),
+        description: dirtyNadeBody.description // TODO: Sanitize markdown
+      };
 
-    if (nadeBody.createdAt && user.role === "user") {
-      return res.status(403).send({ status: 403, message: "Forbidden" });
-    }
-
-    const isAllowedEdit = await nadeService.isAllowedEdit(id, user.steamId);
-
-    if (!isAllowedEdit) {
-      return res.status(401).send({ error: "Not allowed to edit this nade" });
-    }
-
-    const updatedNadeResult = await nadeService.update(id, nadeBody);
-
-    if (updatedNadeResult.isErr()) {
-      const { error } = updatedNadeResult;
-      return res.status(error.status).send(error);
-    }
-
-    const nade = nadeDTOfromModel(updatedNadeResult.value);
-
-    return res.status(202).send(nade);
-  });
-
-  NadeRouter.post<IdParam>("/nades/:id/countView", (req, res) => {
-    const id = sanitizeIt(req.params.id);
-    const identifier = getSessionId(req);
-
-    if (identifier) {
-      gfycatService.registerView(id, identifier);
-      return res.status(202).send();
-    } else {
-      return res.status(406).send();
-    }
-  });
-
-  NadeRouter.patch<{ nadeId: string; steamId: string }>(
-    "/nades/:nadeId/setuser/:steamId",
-    adminOrModeratorRouter,
-    async (req, res) => {
-      const nadeId = sanitizeIt(req.params.nadeId);
-      const steamId = sanitizeIt(req.params.steamId);
-
-      const successResult = await nadeService.forceUserUpdate(nadeId, steamId);
-      if (successResult.isErr()) {
-        const { error } = successResult;
-        return res.status(error.status).send(error);
+      if (nadeBody.createdAt && user.role === "user") {
+        return res.status(403).send({ status: 403, message: "Forbidden" });
       }
 
-      const nade = nadeDTOfromModel(successResult.value);
+      const isAllowedEdit = await nadeService.isAllowedEdit(id, user.steamId);
 
-      return res.status(201).send(nade);
+      if (!isAllowedEdit) {
+        return res.status(401).send({ error: "Not allowed to edit this nade" });
+      }
+
+      const nade = await nadeService.update(id, nadeBody);
+
+      return res.status(202).send(nade);
+    } catch (error) {
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
     }
-  );
+  });
+
+  NadeRouter.post<IdParam>("/nades/:id/countView", async (req, res) => {
+    try {
+      const id = sanitizeIt(req.params.id);
+      const identifier = getSessionId(req);
+
+      if (identifier) {
+        await gfycatService.registerView(id, identifier);
+        return res.status(202).send();
+      } else {
+        return res.status(406).send();
+      }
+    } catch (error) {
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
+    }
+  });
 
   NadeRouter.patch<IdParam>(
     "/nades/:id/status",
     adminOrModeratorRouter,
     async (req, res) => {
-      const id = sanitizeIt(req.params.id);
-      const user = userFromRequest(req);
-      const dirtyStatusUpdate = req.body as NadeStatusDTO; // TODO: Validate NadeStatusDTO
-      const statusUpdate = sanitizeIt(dirtyStatusUpdate);
+      try {
+        const id = sanitizeIt(req.params.id);
+        const user = userFromRequest(req);
+        const dirtyStatusUpdate = req.body as NadeStatusDTO; // TODO: Validate NadeStatusDTO
+        const statusUpdate = sanitizeIt(dirtyStatusUpdate);
 
-      if (user.role !== "moderator" && user.role !== "administrator") {
-        return res.status(403).send({
-          error:
-            "Only administrator or administrator are allowed to update nade status."
-        });
+        if (user.role !== "moderator" && user.role !== "administrator") {
+          return res.status(403).send({
+            error:
+              "Only administrator or administrator are allowed to update nade status."
+          });
+        }
+
+        const nade = await nadeService.updateNadeStatus(id, statusUpdate);
+
+        return res.status(202).send(nade);
+      } catch (error) {
+        const err = errorCatchConverter(error);
+        return res.status(err.code).send(err);
       }
-
-      const result = await nadeService.updateNadeStatus(id, statusUpdate);
-
-      if (result.isErr()) {
-        return res.status(result.error.status).send(result.error);
-      }
-
-      const nade = nadeDTOfromModel(result.value);
-
-      return res.status(202).send(nade);
     }
   );
 
   NadeRouter.post("/nades/validateGfycat", async (req, res) => {
-    const validateGfycat = req.body as NadeGfycatValidateDTO;
+    try {
+      const validateGfycat = req.body as NadeGfycatValidateDTO;
 
-    const result = await gfycatService.getGfycatData(
-      validateGfycat.gfycatIdOrUrl
-    );
+      const gfyDataResponse = await gfycatService.getGfycatData(
+        validateGfycat.gfycatIdOrUrl
+      );
 
-    if (result.isErr()) {
-      return res.status(500).send(result.error);
+      const { gfyItem } = gfyDataResponse;
+
+      const gfyData: GfycatData = {
+        gfyId: gfyItem.gfyId,
+        smallVideoUrl: gfyItem.mobileUrl,
+        largeVideoUrl: gfyItem.mp4Url
+      };
+
+      return res.status(200).send(gfyData);
+    } catch (error) {
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
     }
-
-    const { gfyItem } = result.value;
-
-    const gfyData: GfycatData = {
-      gfyId: gfyItem.gfyId,
-      smallVideoUrl: gfyItem.mobileUrl,
-      largeVideoUrl: gfyItem.mp4Url
-    };
-
-    return res.status(200).send(gfyData);
   });
 
   NadeRouter.delete<IdParam>(
     "/nades/:id",
     adminOrModeratorRouter,
     async (req, res) => {
-      const id = sanitizeIt(req.params.id);
+      try {
+        const id = sanitizeIt(req.params.id);
 
-      const result = await nadeService.delete(id);
+        await nadeService.delete(id);
 
-      if (!result) {
-        return res.status(500).send({ error: "Failed to delete nade" });
+        return res.status(204).send();
+      } catch (error) {
+        const err = errorCatchConverter(error);
+        return res.status(err.code).send(err);
       }
-
-      return res.status(204).send();
     }
   );
 

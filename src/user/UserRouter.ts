@@ -1,96 +1,93 @@
 import { Router } from "express";
-import { CSGNConfig } from "../config/enironment";
-import { authenticateRoute } from "../utils/AuthUtils";
+import { authenticateRoute, RequestUser } from "../utils/AuthUtils";
 import { userFromRequest } from "../utils/RouterUtils";
-import {
-  userModelToDTO,
-  desensitizeUser,
-  userModelsToDTOs
-} from "./UserConverters";
-import { sanitizeIt } from "../utils/Sanitize";
-import { UserUpdateDTO } from "./UserDTOs";
-import { IUserService } from "./UserService";
 import { NadeService } from "../nade/NadeService";
+import { UserService } from "./UserService";
+import { errorCatchConverter, ErrorFactory } from "../utils/ErrorUtil";
+import { validateUserUpdateDTO, validateSteamId } from "./UserValidators";
 
 export const makeUserRouter = (
-  config: CSGNConfig,
-  userService: IUserService,
+  userService: UserService,
   nadeService: NadeService
 ): Router => {
   const UserRouter = Router();
 
   UserRouter.get("/users/self", authenticateRoute, async (req, res) => {
-    const requestUser = userFromRequest(req);
+    try {
+      const requestUser = userFromRequest(req);
 
-    const result = await userService.bySteamID(requestUser.steamId);
+      const user = await userService.byId(requestUser.steamId);
 
-    if (result.isErr()) {
-      const { error } = result;
-      return res.status(500).send(error);
+      return res.status(200).send(user);
+    } catch (error) {
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
     }
-
-    const userDto = userModelToDTO(result.value);
-
-    return res.status(200).send(userDto);
   });
 
-  UserRouter.get("/users/:id", async (req, res) => {
-    const id = sanitizeIt(req.params.id);
-    const requestUser = userFromRequest(req);
+  UserRouter.get("/users/:steamId", async (req, res) => {
+    try {
+      const steamId = validateSteamId(req);
+      const requestUser = userFromRequest(req);
 
-    const result = await userService.bySteamID(id);
+      const isAdminOrMod =
+        requestUser?.role === "administrator" ||
+        requestUser?.role === "moderator";
+      const isRequestingSelf = requestUser?.steamId === steamId;
 
-    if (result.isErr()) {
-      const { error } = result;
-      return res.status(500).send(error);
+      if (isAdminOrMod || isRequestingSelf) {
+        const result = await userService.byId(steamId);
+
+        return res.status(200).send(result);
+      }
+
+      const result = await userService.byIdAnon(steamId);
+      return res.status(200).send(result);
+    } catch (error) {
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
     }
-
-    const userModel = result.value;
-    const userDto = userModelToDTO(userModel);
-    const responseUser = desensitizeUser(userDto, requestUser);
-
-    return res.status(200).send(responseUser);
   });
 
   UserRouter.get("/users", async (_, res) => {
-    const result = await userService.all();
+    try {
+      const users = await userService.all();
 
-    if (result.isErr()) {
-      const { error } = result;
-      return res.status(500).send(error);
+      return res.status(200).send(users);
+    } catch (error) {
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
     }
-
-    const users = userModelsToDTOs(result.value);
-
-    return res.status(200).send(users);
   });
 
   UserRouter.patch("/users/:steamId", authenticateRoute, async (req, res) => {
-    const steamId = sanitizeIt(req.params.steamId);
-    const requestUser = userFromRequest(req); // TODO: Check privileges for role and createdAt
-    const userUpdateFields = req.body as UserUpdateDTO; // TODO: validate, sanitize
+    try {
+      const steamId = validateSteamId(req);
+      const requestUser = userFromRequest(req); // TODO: Check privileges for role and createdAt
+      const userUpdateFields = validateUserUpdateDTO(req);
 
-    // Disallow normal users to edit others than themself
-    if (requestUser.role === "user" && requestUser.steamId !== steamId) {
-      return res.status(403).send({ status: 403, message: "Forbidden" });
+      checkUserUpdatePrivileges(requestUser, steamId);
+
+      const user = await userService.update(steamId, userUpdateFields);
+
+      await nadeService.updateNadesWithUser(user.steamId, {
+        nickname: user.nickname,
+        avatar: user.avatar,
+        steamId: user.steamId
+      });
+
+      return res.status(202).send(user);
+    } catch (error) {
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
     }
-
-    const result = await userService.updateUser(steamId, userUpdateFields);
-
-    if (result.isErr()) {
-      return res.status(500).send(result.error);
-    }
-
-    const user = userModelToDTO(result.value);
-
-    await nadeService.updateNadesWithUser(user.steamID, {
-      nickname: user.nickname,
-      avatar: user.avatar,
-      steamId: user.steamID
-    });
-
-    return res.status(202).send(user);
   });
 
   return UserRouter;
 };
+
+function checkUserUpdatePrivileges(requestUser: RequestUser, steamId: string) {
+  if (requestUser.role === "user" && requestUser.steamId !== steamId) {
+    throw ErrorFactory.Forbidden("You can't update this user");
+  }
+}

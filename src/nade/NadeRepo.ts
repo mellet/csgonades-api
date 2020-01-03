@@ -1,18 +1,204 @@
-import { CsgoMap, NadeModel, NadeCreateModel, NadeStats } from "./Nade";
-import { AppResult } from "../utils/Common";
+import {
+  collection,
+  add,
+  Collection,
+  value,
+  update,
+  get,
+  query,
+  limit,
+  order,
+  Doc,
+  getMany,
+  where,
+  remove,
+  batch
+} from "typesaurus";
+import {
+  NadeModel,
+  NadeDTO,
+  NadeLightDTO,
+  CsgoMap,
+  NadeStats,
+  NadeCreateModel
+} from "./Nade";
 import { NadeFilter } from "./NadeFilter";
+import { removeUndefines } from "../utils/Common";
 import { UserLightModel } from "../user/UserModel";
 
-export interface NadeRepo {
-  get(limit?: number): AppResult<NadeModel[]>;
-  byID(steamID: string): AppResult<NadeModel>;
-  listByIds(ids: string[]): AppResult<NadeModel[]>;
-  getPending(): AppResult<NadeModel[]>;
-  byMap(map: CsgoMap, nadeFilter: NadeFilter): AppResult<NadeModel[]>;
-  byUser(steamId: string): AppResult<NadeModel[]>;
-  save(nade: NadeCreateModel): AppResult<NadeModel>;
-  update(nadeId: string, updates: Partial<NadeModel>): AppResult<NadeModel>;
-  delete(nadeId: string): AppResult<boolean>;
-  updateUserOnNades(steamId: string, user: UserLightModel): AppResult<boolean>;
-  updateStats(nadeId: string, stats: Partial<NadeStats>): AppResult<NadeModel>;
+export class NadeRepo {
+  private collection: Collection<NadeModel>;
+
+  constructor() {
+    this.collection = collection("nades");
+  }
+
+  getAll = async (nadeLimit: number = 0): Promise<NadeLightDTO[]> => {
+    const nadesDocs = await query(this.collection, [
+      order("createdAt", "desc"),
+      nadeLimit && limit(nadeLimit)
+    ]);
+
+    const nades = nadesDocs.map(this.toNadeDtoLight);
+
+    return nades;
+  };
+
+  pending = async (): Promise<NadeLightDTO[]> => {
+    const pendingDocs = await query(this.collection, [
+      where("status", "==", "pending"),
+      order("createdAt", "desc")
+    ]);
+
+    const pendingNades = pendingDocs.map(this.toNadeDtoLight);
+    return pendingNades;
+  };
+
+  byId = async (nadeId: string): Promise<NadeDTO> => {
+    const nadeDoc = await get(this.collection, nadeId);
+
+    return {
+      ...nadeDoc.data,
+      id: nadeDoc.ref.id
+    };
+  };
+
+  byMap = async (
+    csgoMap: CsgoMap,
+    nadeFilter?: NadeFilter
+  ): Promise<NadeLightDTO[]> => {
+    const nadeDocs = await query(this.collection, [
+      where("status", "==", "accepted"),
+      where("map", "==", csgoMap),
+      nadeFilter?.flash && where("type", "==", "flash"),
+      nadeFilter?.smoke && where("type", "==", "smoke"),
+      nadeFilter?.molotov && where("type", "==", "molotov"),
+      nadeFilter?.hegrenade && where("type", "==", "hegrenade"),
+      order("createdAt", "desc")
+    ]);
+
+    const nades = nadeDocs.map(this.toNadeDtoLight);
+    return nades;
+  };
+
+  byUser = async (steamId: string): Promise<NadeLightDTO[]> => {
+    const nadeDocs = await query(this.collection, [
+      where("steamId", "==", steamId),
+      order("createdAt", "desc")
+    ]);
+
+    const nades = nadeDocs.map(this.toNadeDtoLight);
+    return nades;
+  };
+
+  list = async (ids: string[]): Promise<NadeLightDTO[]> => {
+    const nadeDocs = await getMany(this.collection, ids);
+    const nades = nadeDocs.map(this.toNadeDtoLight);
+
+    return nades;
+  };
+
+  save = async (nadeCreate: NadeCreateModel): Promise<NadeDTO> => {
+    const nadeModel: NadeModel = {
+      ...nadeCreate,
+      createdAt: value("serverDate"),
+      updatedAt: value("serverDate"),
+      lastGfycatUpdate: value("serverDate"),
+      status: "pending"
+    };
+
+    const nade = await add(this.collection, nadeModel);
+
+    return this.toNadeDTO(nade);
+  };
+
+  update = async (
+    nadeId: string,
+    updates: Partial<NadeDTO>
+  ): Promise<NadeDTO> => {
+    let modelUpdates: Partial<NadeModel> = {
+      ...updates
+    };
+
+    modelUpdates = removeUndefines(modelUpdates);
+
+    await update(this.collection, nadeId, modelUpdates);
+
+    const nade = await this.byId(nadeId);
+
+    return nade;
+  };
+
+  delete = async (nadeId: string) => {
+    await remove(this.collection, nadeId);
+  };
+
+  updateUserOnNades = async (steamId: string, user: UserLightModel) => {
+    const nadeDocsByUser = await query(this.collection, [
+      where("steamId", "==", steamId)
+    ]);
+
+    const { update, commit } = batch();
+
+    nadeDocsByUser.forEach(doc => {
+      update(this.collection, doc.ref.id, {
+        steamId: user.steamId,
+        user
+      });
+    });
+
+    await commit();
+  };
+
+  updateStats = async (
+    nadeId: string,
+    stats: Partial<NadeStats>
+  ): Promise<NadeDTO> => {
+    const oldNade = await this.byId(nadeId);
+
+    const newStats: NadeStats = {
+      ...oldNade.stats,
+      ...stats
+    };
+
+    await update(this.collection, nadeId, {
+      stats: newStats,
+      lastGfycatUpdate: value("serverDate")
+    });
+
+    return this.byId(nadeId);
+  };
+
+  private toNadeDtoLight(doc: Doc<NadeModel>): NadeLightDTO {
+    const {
+      tickrate,
+      createdAt,
+      images,
+      gfycat,
+      stats,
+      status,
+      type,
+      title,
+      mapSite
+    } = doc.data;
+    return {
+      id: doc.ref.id,
+      tickrate,
+      createdAt,
+      images,
+      gfycat,
+      stats,
+      status,
+      type,
+      mapSite,
+      title
+    };
+  }
+
+  private toNadeDTO(doc: Doc<NadeModel>): NadeDTO {
+    return {
+      ...doc.data,
+      id: doc.ref.id
+    };
+  }
 }

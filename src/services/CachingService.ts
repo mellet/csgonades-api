@@ -1,5 +1,5 @@
 import NodeCache from "node-cache";
-import { CsgoMap, NadeModel } from "../nade/Nade";
+import { CsgoMap, NadeDTO, NadeLightDTO } from "../nade/Nade";
 import { NadeFilter } from "../nade/NadeFilter";
 
 export class CachingService {
@@ -10,22 +10,22 @@ export class CachingService {
     this.cache = new NodeCache({ stdTTL: this.defaultTTL });
   }
 
-  setAllNades(key: string, nades: NadeModel[]) {
+  setAllNades(key: string, nades: NadeLightDTO[]) {
     this.cache.set(key, nades);
   }
 
-  getAllNades(key: string): NadeModel[] {
+  getAllNades(key: string): NadeLightDTO[] {
     return this.cache.get(key);
   }
 
-  setByMap(map: CsgoMap, nades: NadeModel[], filter?: NadeFilter) {
+  setByMap(map: CsgoMap, nades: NadeLightDTO[], filter?: NadeFilter) {
     const cacheKey = `map-${map}-${JSON.stringify(filter)}`;
     this.cache.set(cacheKey, nades);
   }
 
   getByMap(map: CsgoMap, filter?: NadeFilter) {
     const cacheKey = `map-${map}-${JSON.stringify(filter)}`;
-    return this.cache.get<NadeModel[]>(cacheKey);
+    return this.cache.get<NadeLightDTO[]>(cacheKey);
   }
 
   delCacheWithMap(map?: CsgoMap) {
@@ -38,12 +38,12 @@ export class CachingService {
     this.cache.del(staleKeys);
   }
 
-  setNade(nadeId: string, nade: NadeModel) {
+  setNade(nadeId: string, nade: NadeDTO) {
     const cacheKey = `nade-${nadeId}`;
     this.cache.set(cacheKey, nade);
   }
 
-  getNade(nadeId: string): NadeModel {
+  getNade(nadeId: string): NadeDTO {
     const cacheKey = `nade-${nadeId}`;
     return this.cache.get(cacheKey);
   }

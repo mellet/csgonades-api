@@ -1,30 +1,17 @@
-import { IUserRepo } from "./UserRepo";
 import { ISteamService } from "../steam/SteamService";
-import { UserModel, UserCreateModel } from "./UserModel";
+import { UserModel, UserCreateModel, UserModelAnon } from "./UserModel";
 import { AppResult } from "../utils/Common";
 import { StatsService } from "../stats/StatsService";
-import { UserUpdateDTO } from "./UserDTOs";
+import { UserUpdateDTO, UserCreateDTO } from "./UserDTOs";
+import { UserRepo } from "./UserRepo";
 
-export interface IUserService {
-  all(): AppResult<UserModel[]>;
-
-  bySteamID(steamId: string): AppResult<UserModel>;
-
-  getOrCreateUser(steamId: string): AppResult<UserModel>;
-
-  updateUser(
-    steamId: string,
-    updateFields: UserUpdateDTO
-  ): AppResult<UserModel>;
-}
-
-export class UserService implements IUserService {
-  private userRepo: IUserRepo;
+export class UserService {
+  private userRepo: UserRepo;
   private steamService: ISteamService;
   private statsService: StatsService;
 
   constructor(
-    userRepo: IUserRepo,
+    userRepo: UserRepo,
     steamService: ISteamService,
     statsService: StatsService
   ) {
@@ -33,43 +20,40 @@ export class UserService implements IUserService {
     this.statsService = statsService;
   }
 
-  all(): AppResult<UserModel[]> {
-    return this.userRepo.all();
-  }
+  all = (limit?: number) => this.userRepo.all(limit);
 
-  bySteamID(steamId: string): AppResult<UserModel> {
-    return this.userRepo.bySteamID(steamId);
-  }
+  byId = (steamId: string) => this.userRepo.byId(steamId);
 
-  async getOrCreateUser(steamId: string): AppResult<UserModel> {
-    let user = await this.userRepo.bySteamID(steamId);
+  byIdAnon = async (steamId: string): Promise<UserModelAnon> => {
+    const user = await this.userRepo.byId(steamId);
+    delete user["email"];
+    return user;
+  };
 
-    if (user.isErr()) {
-      const playerResult = await this.steamService.getPlayerBySteamID(steamId);
+  getOrCreate = async (steamId: string): Promise<UserModel> => {
+    const user = await this.userRepo.byId(steamId);
 
-      if (playerResult.isOk()) {
-        const player = playerResult.value;
+    if (!user) {
+      const player = await this.steamService.getPlayerBySteamID(steamId);
 
-        const newUser: UserCreateModel = {
-          steamId: player.steamID,
-          nickname: player.nickname,
-          avatar: player.avatar.medium,
-          role: "user"
-        };
+      const newUser: UserCreateDTO = {
+        steamId: player.steamID,
+        nickname: player.nickname,
+        avatar: player.avatar.medium,
+        role: "user"
+      };
 
-        user = await this.userRepo.createUser(newUser);
-        this.statsService.incrementUserCounter();
-      }
+      const user = await this.userRepo.create(newUser);
+
+      await this.statsService.incrementUserCounter();
+
+      return user;
     }
 
     return user;
-  }
+  };
 
-  updateUser(
-    steamId: string,
-    updateFields: UserUpdateDTO
-  ): AppResult<UserModel> {
-    return this.userRepo.updateUser(steamId, updateFields);
-    // Update all nades of user
-  }
+  update = (steamId: string, update: UserUpdateDTO) => {
+    return this.userRepo.update(steamId, update);
+  };
 }

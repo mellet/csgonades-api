@@ -24,24 +24,18 @@ export class ErrorFactory {
   static BadRequest(message: string) {
     return new ErrorBadRequest(400, message);
   }
+
+  static Forbidden(message: string) {
+    return new ErrorBadRequest(403, message);
+  }
 }
 
 export const errorCatchConverter = (error: any) => {
+  console.error(error);
   return {
     code: error.code || 500,
     message: error.message || "Unknown error"
   };
-};
-
-export const makeError = (
-  status: number,
-  message: string
-): Result<any, AppError> => {
-  const error: AppError = {
-    status,
-    message
-  };
-  return err(error);
 };
 
 export const extractError = (error: any): Result<any, AppError> => {

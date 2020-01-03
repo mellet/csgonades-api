@@ -9,9 +9,20 @@ export type UserModel = {
   role: Role;
   email?: string;
   bio?: string;
-  createdAt: firestore.Timestamp;
-  updatedAt: firestore.Timestamp;
-  lastActive: firestore.Timestamp;
+  createdAt: Date;
+  updatedAt: Date;
+  lastActive: Date;
+};
+
+export type UserModelAnon = {
+  nickname: string;
+  steamId: string;
+  avatar: string;
+  role: Role;
+  bio?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  lastActive: Date;
 };
 
 export type UserLightModel = {

@@ -6,10 +6,8 @@ import {
   NadeModel
 } from "./Nade";
 import { UserModel } from "../user/UserModel";
-import { firestore } from "firebase-admin";
 
 const dummyNade: NadeModel = {
-  id: "123",
   title: "Old title",
   description: "Old description",
   map: "dust2",
@@ -17,9 +15,9 @@ const dummyNade: NadeModel = {
   technique: "mouseleft",
   tickrate: "Any",
   type: "smoke",
-  updatedAt: firestore.Timestamp.fromDate(new Date()),
-  createdAt: firestore.Timestamp.fromDate(new Date()),
-  lastGfycatUpdate: firestore.Timestamp.fromDate(new Date()),
+  updatedAt: new Date(),
+  createdAt: new Date(),
+  lastGfycatUpdate: new Date(),
   gfycat: {
     gfyId: "old-gfyId",
     smallVideoUrl: "old-smallUrl",
@@ -49,7 +47,7 @@ const dummyNade: NadeModel = {
 
 describe("Nade tests", () => {
   it("Empty case", () => {
-    const updatedNade = updatedNadeMerge({}, dummyNade);
+    const updatedNade = updatedNadeMerge({});
 
     // All field should be unchanged
     expect(updatedNade.title).toEqual(dummyNade.title);
@@ -61,7 +59,6 @@ describe("Nade tests", () => {
     expect(updatedNade.statusInfo).toEqual(dummyNade.statusInfo);
     expect(updatedNade.technique).toEqual(dummyNade.technique);
     expect(updatedNade.type).toEqual(dummyNade.type);
-    expect(updatedNade.id).toEqual(dummyNade.id);
     expect(updatedNade.gfycat).toEqual(dummyNade.gfycat);
     expect(updatedNade.stats).toEqual(dummyNade.stats);
     expect(updatedNade.steamId).toEqual(dummyNade.steamId);
@@ -81,7 +78,7 @@ describe("Nade tests", () => {
       movement: "running"
     };
 
-    const updatedNade = updatedNadeMerge(updatedField, dummyNade);
+    const updatedNade = updatedNadeMerge(updatedField);
 
     // Fields that should have changed
     expect(updatedNade.title).toEqual(updatedField.title);
@@ -93,7 +90,6 @@ describe("Nade tests", () => {
     expect(updatedNade.type).toEqual(updatedField.type);
 
     // Check unchanged field
-    expect(updatedNade.id).toEqual(dummyNade.id);
     expect(updatedNade.gfycat).toEqual(dummyNade.gfycat);
     expect(updatedNade.stats).toEqual(dummyNade.stats);
     expect(updatedNade.steamId).toEqual(dummyNade.steamId);
@@ -109,12 +105,12 @@ describe("Nade tests", () => {
       email: "new-Email",
       avatar: "avatarUrl",
       bio: "newBio",
-      createdAt: firestore.Timestamp.fromDate(new Date()),
-      updatedAt: firestore.Timestamp.fromDate(new Date()),
-      lastActive: firestore.Timestamp.fromDate(new Date())
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastActive: new Date()
     };
 
-    const updatedNade = updatedNadeMerge({}, dummyNade, newUser);
+    const updatedNade = updatedNadeMerge({}, newUser);
 
     expect(updatedNade.user).toEqual(newUser);
     expect(updatedNade.steamId).toEqual(newUser.steamId);
@@ -127,12 +123,7 @@ describe("Nade tests", () => {
       largeVideoUrl: "new-largeVideoUrl"
     };
 
-    const updatedNade = updatedNadeMerge(
-      {},
-      dummyNade,
-      undefined,
-      newGfycatData
-    );
+    const updatedNade = updatedNadeMerge({}, undefined, newGfycatData);
 
     expect(updatedNade.gfycat).toEqual(newGfycatData);
   });
@@ -144,13 +135,7 @@ describe("Nade tests", () => {
       views: 100
     };
 
-    const updatedNade = updatedNadeMerge(
-      {},
-      dummyNade,
-      undefined,
-      undefined,
-      newStats
-    );
+    const updatedNade = updatedNadeMerge({}, undefined, undefined, newStats);
 
     expect(updatedNade.stats).toEqual(newStats);
   });

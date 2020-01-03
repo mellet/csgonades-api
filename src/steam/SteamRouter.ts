@@ -7,12 +7,12 @@ import {
   createAccessToken,
   payloadFromToken
 } from "../utils/AuthUtils";
-import { IUserService } from "../user/UserService";
 import { UserModel } from "../user/UserModel";
 import { sanitizeIt } from "../utils/Sanitize";
+import { UserService } from "../user/UserService";
 
 export const makeSteamRouter = (
-  userService: IUserService,
+  userService: UserService,
   passport: PassportStatic,
   config: CSGNConfig
 ): Router => {
@@ -50,13 +50,7 @@ export const makeSteamRouter = (
       const dirtySteamId = req.user as string;
       let steamId = sanitizeIt(dirtySteamId);
 
-      const result = await userService.getOrCreateUser(steamId);
-
-      if (result.isErr()) {
-        throw new Error(result.error.message);
-      }
-
-      const user = result.value;
+      const user = await userService.getOrCreate(steamId);
 
       let isFirstSignIn = checkIsFirstSignIn(user);
 
@@ -78,17 +72,13 @@ export const makeSteamRouter = (
         csgonadestoken
       );
 
-      const result = await userService.bySteamID(payload.steamId);
+      const result = await userService.byId(payload.steamId);
 
-      if (result.isErr()) {
-        const { status, message } = result.error;
-        return res.status(status).send(message);
-      }
-
-      const user = result.value;
-
-      const accessToken = createAccessToken(config.secrets.server_key, user);
-      const refreshToken = createRefreshToken(config.secrets.server_key, user);
+      const accessToken = createAccessToken(config.secrets.server_key, result);
+      const refreshToken = createRefreshToken(
+        config.secrets.server_key,
+        result
+      );
 
       res.cookie("csgonadestoken", refreshToken, makeCookieOptions(config));
 
@@ -110,7 +100,7 @@ export const makeSteamRouter = (
 function checkIsFirstSignIn(user: UserModel): boolean {
   const ONE_MINUTE = 60 * 1000;
   const now = Date.now();
-  const createdAt = user.createdAt.toDate().getTime() / 1000;
+  const createdAt = user.createdAt.getTime() / 1000;
 
   if (now - createdAt < ONE_MINUTE) {
     return true;

@@ -1,18 +1,81 @@
-import { UserModel, UserCreateModel } from "./UserModel";
-import { AppResult } from "../utils/Common";
-import { UserUpdateDTO } from "./UserDTOs";
+import {
+  collection,
+  Collection,
+  value,
+  update,
+  get,
+  query,
+  order,
+  set
+} from "typesaurus";
+import { UserModel } from "./UserModel";
+import { UserLightDTO, UserCreateDTO, UserUpdateDTO } from "./UserDTOs";
+import { removeUndefines } from "../utils/Common";
 
-export interface IUserRepo {
-  all(limit?: number): AppResult<UserModel[]>;
+export class UserRepo {
+  private collection: Collection<UserModel>;
 
-  bySteamID(steamID: string): AppResult<UserModel>;
+  constructor() {
+    this.collection = collection<UserModel>("users");
+  }
 
-  createUser(user: UserCreateModel): AppResult<UserModel>;
+  all = async (limit: number = 0): Promise<UserLightDTO[]> => {
+    const usersDocs = await query(this.collection, [
+      order("createdAt", "desc")
+    ]);
 
-  updateActivity(user: UserModel): AppResult<boolean>;
+    const users = usersDocs.map(
+      (userDoc): UserLightDTO => ({
+        steamId: userDoc.data.steamId,
+        nickname: userDoc.data.nickname,
+        avatar: userDoc.data.avatar,
+        createdAt: userDoc.data.createdAt
+      })
+    );
 
-  updateUser(
+    return users;
+  };
+
+  byId = async (steamId: string): Promise<UserModel> => {
+    const userDoc = await get(this.collection, steamId);
+
+    return userDoc.data;
+  };
+
+  create = async (userCreate: UserCreateDTO): Promise<UserModel> => {
+    const userModel: UserModel = {
+      ...userCreate,
+      createdAt: value("serverDate"),
+      updatedAt: value("serverDate"),
+      lastActive: value("serverDate")
+    };
+
+    const user = await set(this.collection, userCreate.steamId, userModel);
+
+    return user.data;
+  };
+
+  update = async (
     steamId: string,
     updateFields: UserUpdateDTO
-  ): AppResult<UserModel>;
+  ): Promise<UserModel> => {
+    let updateModel: Partial<UserModel> = {
+      nickname: updateFields.nickname,
+      email: updateFields.email,
+      bio: updateFields.bio,
+      createdAt: updateFields.createdAt && new Date(updateFields.createdAt)
+    };
+
+    updateModel = removeUndefines(updateModel);
+
+    await update(this.collection, steamId, updateModel);
+
+    return this.byId(steamId);
+  };
+
+  updateActivity = async (steamId: string) => {
+    await update(this.collection, steamId, {
+      lastActive: value("serverDate")
+    });
+  };
 }

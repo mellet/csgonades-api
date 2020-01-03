@@ -4,7 +4,7 @@ import { firestore } from "firebase-admin";
 
 describe("Auth Utils", () => {
   it("Creates a valid refresh token", () => {
-    const now = firestore.Timestamp.fromDate(new Date());
+    const now = new Date();
     const user: UserModel = {
       steamId: "123",
       nickname: "nickname",

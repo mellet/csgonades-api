@@ -1,5 +1,3 @@
-import { NadeRepo } from "./NadeRepo";
-import { err, ok } from "neverthrow";
 import {
   NadeCreateDTO,
   makeNadeFromBody,
@@ -8,58 +6,23 @@ import {
   updatedNadeMerge,
   GfycatData,
   NadeStats,
-  NadeModel,
-  NadeStatusDTO
+  NadeStatusDTO,
+  NadeDTO,
+  NadeLightDTO
 } from "./Nade";
 import { IImageStorageService } from "../services/ImageStorageService";
 import { GfycatService } from "../services/GfycatService";
-import { IUserService } from "../user/UserService";
 import { UserModel, UserLightModel } from "../user/UserModel";
-import { AppResult } from "../utils/Common";
-import { makeError } from "../utils/ErrorUtil";
 import { StatsService } from "../stats/StatsService";
 import { NadeFilter } from "./NadeFilter";
-import NodeCache = require("node-cache");
 import { CachingService } from "../services/CachingService";
+import { UserService } from "../user/UserService";
+import { NadeRepo } from "./NadeRepo";
+import moment from "moment";
 
-export interface INadeService {
-  fetchNades(limit?: number): AppResult<NadeModel[]>;
-
-  fetchByID(nadeId: string): AppResult<NadeModel>;
-
-  fetchByIdList(ids: string[]): AppResult<NadeModel[]>;
-  fetchPending(): AppResult<NadeModel[]>;
-
-  fetchByMap(map: CsgoMap, nadeFilter: NadeFilter): AppResult<NadeModel[]>;
-
-  fetchByUser(steamId: string): AppResult<NadeModel[]>;
-
-  saveFromBody(body: NadeCreateDTO, steamID: string): AppResult<NadeModel>;
-
-  isAllowedEdit(nadeId: string, steamId: string): Promise<boolean>;
-
-  update(nadeId: string, updateFields: NadeUpdateDTO): AppResult<NadeModel>;
-
-  forceUserUpdate(nadeId: string, newSteamId: string): AppResult<NadeModel>;
-
-  updateNadeStatus(
-    nadeId: string,
-    updatedStatus: NadeStatusDTO
-  ): AppResult<NadeModel>;
-
-  delete(nadeId: string): Promise<boolean>;
-
-  updateNadesWithUser(
-    steamId: string,
-    user: UserLightModel
-  ): AppResult<boolean>;
-
-  updateStats(nadeId: string, stats: Partial<NadeStats>);
-}
-
-export class NadeService implements INadeService {
+export class NadeService {
   private nadeRepo: NadeRepo;
-  private userService: IUserService;
+  private userService: UserService;
   private imageStorageService: IImageStorageService;
   private gfycatService: GfycatService;
   private statsService: StatsService;
@@ -67,7 +30,7 @@ export class NadeService implements INadeService {
 
   constructor(
     nadeRepo: NadeRepo,
-    userService: IUserService,
+    userService: UserService,
     imageStorageService: IImageStorageService,
     gfycatService: GfycatService,
     statsService: StatsService,
@@ -81,114 +44,74 @@ export class NadeService implements INadeService {
     this.cache = cache;
   }
 
-  async fetchNades(limit?: number): AppResult<NadeModel[]> {
+  async fetchNades(limit?: number): Promise<NadeLightDTO[]> {
     const cacheKey = limit ? `fetchNades-${limit}` : `fetchNades-all`;
 
     const cachedNades = this.cache.getAllNades(cacheKey);
 
     if (cachedNades) {
-      return ok(cachedNades);
+      return cachedNades;
     }
 
-    const nades = await this.nadeRepo.get(limit);
-
-    if (nades.isOk()) {
-      this.cache.setAllNades(cacheKey, nades.value);
-    }
+    const nades = await this.nadeRepo.getAll(limit);
 
     return nades;
   }
 
-  fetchPending(): AppResult<NadeModel[]> {
-    return this.nadeRepo.getPending();
+  pending(): Promise<NadeLightDTO[]> {
+    return this.nadeRepo.pending();
   }
 
-  async fetchByID(nadeId: string): AppResult<NadeModel> {
+  byId = async (nadeId: string) => {
     const cachedNade = this.cache.getNade(nadeId);
 
     if (cachedNade) {
-      return ok(cachedNade);
+      return cachedNade;
     }
 
-    const nadeResult = await this.nadeRepo.byID(nadeId);
+    const nade = await this.nadeRepo.byId(nadeId);
 
-    if (nadeResult.isErr()) {
-      return nadeResult;
+    if (this.shouldUpdateStats(nade)) {
+      const gfycat = await this.gfycatService.getGfycatData(nade.gfycat.gfyId);
+      const nadeStats: Partial<NadeStats> = { views: gfycat.gfyItem.views };
+      const updatedNade = await this.nadeRepo.updateStats(nadeId, nadeStats);
+      this.cache.setNade(nadeId, updatedNade);
+
+      return updatedNade;
     }
 
-    const nadeModel = nadeResult.value;
+    this.cache.setNade(nadeId, nade);
 
-    if (this.shouldUpdateStats(nadeModel)) {
-      const gfycatResult = await this.gfycatService.getGfycatData(
-        nadeModel.gfycat.gfyId
-      );
+    return nade;
+  };
 
-      if (gfycatResult.isErr()) {
-        return nadeResult;
-      }
+  list = (ids: string[]): Promise<NadeLightDTO[]> => {
+    return this.nadeRepo.list(ids);
+  };
 
-      const gfyData = gfycatResult.value;
-
-      const nadeStats: Partial<NadeStats> = {
-        views: gfyData.gfyItem.views
-      };
-
-      const updatedNadeResult = await this.nadeRepo.updateStats(
-        nadeId,
-        nadeStats
-      );
-
-      if (updatedNadeResult.isOk()) {
-        this.cache.setNade(nadeId, updatedNadeResult.value);
-      }
-
-      return updatedNadeResult;
-    } else {
-      if (nadeResult.isOk()) {
-        this.cache.setNade(nadeId, nadeResult.value);
-      }
-      return nadeResult;
-    }
-  }
-
-  fetchByIdList(ids: string[]): AppResult<NadeModel[]> {
-    return this.nadeRepo.listByIds(ids);
-  }
-
-  async fetchByMap(
+  byMap = async (
     map: CsgoMap,
     nadeFilter: NadeFilter
-  ): AppResult<NadeModel[]> {
+  ): Promise<NadeLightDTO[]> => {
     const cachedNades = this.cache.getByMap(map, nadeFilter);
 
     if (cachedNades) {
-      return ok(cachedNades);
+      return cachedNades;
     }
 
-    const result = await this.nadeRepo.byMap(map, nadeFilter);
+    const nades = await this.nadeRepo.byMap(map, nadeFilter);
 
-    if (result.isOk()) {
-      this.cache.setByMap(map, result.value, nadeFilter);
-    }
+    this.cache.setByMap(map, nades, nadeFilter);
 
-    return result;
-  }
+    return nades;
+  };
 
-  fetchByUser(steamId: string): AppResult<NadeModel[]> {
+  byUser = (steamId: string): Promise<NadeLightDTO[]> => {
     return this.nadeRepo.byUser(steamId);
-  }
+  };
 
-  async saveFromBody(
-    body: NadeCreateDTO,
-    steamID: string
-  ): AppResult<NadeModel> {
-    const userResult = await this.userService.bySteamID(steamID);
-
-    if (userResult.isErr()) {
-      return makeError(userResult.error.status, userResult.error.message);
-    }
-
-    const user = userResult.value;
+  save = async (body: NadeCreateDTO, steamID: string): Promise<NadeDTO> => {
+    const user = await this.userService.byId(steamID);
 
     const userLight: UserLightModel = {
       nickname: user.nickname,
@@ -196,83 +119,131 @@ export class NadeService implements INadeService {
       steamId: user.steamId
     };
 
-    const gfycatDataResult = await this.gfycatService.getGfycatData(
+    const gfycatData = await this.gfycatService.getGfycatData(
       body.gfycatIdOrUrl
     );
 
-    if (gfycatDataResult.isErr()) {
-      return makeError(
-        gfycatDataResult.error.status,
-        gfycatDataResult.error.message
-      );
-    }
-
-    const gfycatData = gfycatDataResult.value;
-
-    const nadeImagesResult = await this.imageStorageService.saveImage(
+    const nadeImages = await this.imageStorageService.saveImage(
       body.imageBase64
     );
-
-    if (nadeImagesResult.isErr()) {
-      return makeError(
-        nadeImagesResult.error.status,
-        nadeImagesResult.error.message
-      );
-    }
-
-    const nadeImages = nadeImagesResult.value;
 
     const tmpNade = makeNadeFromBody(userLight, gfycatData, nadeImages);
     const nade = await this.nadeRepo.save(tmpNade);
 
-    if (nade.isOk()) {
-      await this.statsService.incrementNadeCounter();
-    }
+    await this.statsService.incrementNadeCounter();
 
     return nade;
-  }
+  };
 
-  async delete(nadeId: string): Promise<boolean> {
-    const nadeResult = await this.nadeRepo.byID(nadeId);
+  delete = async (nadeId: string) => {
+    const nade = await this.nadeRepo.byId(nadeId);
 
-    if (nadeResult.isErr()) {
-      return false;
-    }
-
-    const nade = nadeResult.value;
-
-    const [
-      firestoreDeleteResult,
-      deleteLargeOk,
-      deleteThumbOk
-    ] = await Promise.all([
+    await Promise.all([
       this.nadeRepo.delete(nade.id),
       this.imageStorageService.deleteImage(nade.images.largeId),
       this.imageStorageService.deleteImage(nade.images.thumbnailId)
     ]);
 
-    if (!deleteLargeOk || !deleteThumbOk || firestoreDeleteResult.isErr()) {
-      return false;
-    }
-
     await this.statsService.decrementNadeCounter();
 
     // Clear cache where map was the nades map
     this.cache.delCacheWithMap(nade.map);
+  };
 
-    return true;
-  }
+  async update(nadeId: string, updateFields: NadeUpdateDTO): Promise<NadeDTO> {
+    const oldNade = await this.nadeRepo.byId(nadeId);
 
-  async isAllowedEdit(nadeId: string, steamId: string): Promise<boolean> {
-    const nadeResult = await this.fetchByID(nadeId);
-    const userResult = await this.userService.bySteamID(steamId);
+    let newGfyData: GfycatData;
+    let newUser: UserModel;
+    let newStats: NadeStats;
 
-    if (userResult.isErr() || nadeResult.isErr()) {
-      return false;
+    if (updateFields.gfycatIdOrUrl) {
+      const gfycatData = await this.gfycatService.getGfycatData(
+        updateFields.gfycatIdOrUrl
+      );
+
+      newGfyData = {
+        gfyId: gfycatData.gfyItem.gfyId,
+        smallVideoUrl: gfycatData.gfyItem.mobileUrl,
+        largeVideoUrl: gfycatData.gfyItem.mp4Url
+      };
+
+      newStats = {
+        ...oldNade.stats,
+        views: gfycatData.gfyItem.views
+      };
     }
 
-    const nade = nadeResult.value;
-    const user = userResult.value;
+    const mergedNade = updatedNadeMerge(
+      updateFields,
+      newUser,
+      newGfyData,
+      newStats
+    );
+
+    const updatedNade = await this.nadeRepo.update(nadeId, mergedNade);
+
+    this.cache.delCacheWithMap(updatedNade.map);
+    this.cache.delNade(updatedNade.id);
+
+    return updatedNade;
+  }
+
+  async updateNadeStatus(
+    nadeId: string,
+    updatedStatus: NadeStatusDTO
+  ): Promise<NadeDTO> {
+    const nade = await this.nadeRepo.update(nadeId, updatedStatus);
+
+    this.cache.delCacheWithMap(nade.map);
+    this.cache.delNade(nade.id);
+
+    return nade;
+  }
+
+  async updateNadesWithUser(
+    steamId: string,
+    user: UserLightModel
+  ): Promise<void> {
+    await this.nadeRepo.updateUserOnNades(steamId, user);
+
+    // Clear cache on update
+    this.cache.flushAll();
+
+    return;
+  }
+
+  async updateStats(
+    nadeId: string,
+    stats: Partial<NadeStats>
+  ): Promise<NadeDTO> {
+    const nade = await this.nadeRepo.updateStats(nadeId, stats);
+
+    this.cache.delCacheWithMap(nade.map);
+    this.cache.delNade(nadeId);
+
+    return nade;
+  }
+
+  private shouldUpdateStats(nade: NadeDTO) {
+    if (!nade.lastGfycatUpdate) {
+      return true;
+    }
+
+    const lastUpdated = nade.lastGfycatUpdate;
+
+    let hours = moment().diff(moment(lastUpdated), "hours", false);
+
+    if (hours > 24) {
+      return true;
+    }
+
+    return false;
+  }
+
+  isAllowedEdit = async (nadeId: string, steamId: string): Promise<boolean> => {
+    const nade = await this.byId(nadeId);
+    const user = await this.userService.byId(steamId);
 
     if (user.role === "administrator" || user.role === "moderator") {
       return true;
@@ -283,142 +254,5 @@ export class NadeService implements INadeService {
     }
 
     return false;
-  }
-
-  async update(
-    nadeId: string,
-    updateFields: NadeUpdateDTO
-  ): AppResult<NadeModel> {
-    const nadeResult = await this.nadeRepo.byID(nadeId);
-
-    if (nadeResult.isErr()) {
-      return nadeResult;
-    }
-
-    const oldNade = nadeResult.value;
-
-    let newGfyData: GfycatData;
-    let newUser: UserModel;
-    let newStats: NadeStats;
-
-    if (updateFields.gfycatIdOrUrl) {
-      const gfycatResult = await this.gfycatService.getGfycatData(
-        updateFields.gfycatIdOrUrl
-      );
-
-      if (gfycatResult.isErr()) {
-        return err(gfycatResult.error);
-      }
-
-      const gfycatDate = gfycatResult.value;
-
-      newGfyData = {
-        gfyId: gfycatDate.gfyItem.gfyId,
-        smallVideoUrl: gfycatDate.gfyItem.mobileUrl,
-        largeVideoUrl: gfycatDate.gfyItem.mp4Url
-      };
-      newStats = {
-        ...oldNade.stats,
-        views: gfycatDate.gfyItem.views
-      };
-    }
-
-    const mergedNade = updatedNadeMerge(
-      updateFields,
-      oldNade,
-      newUser,
-      newGfyData,
-      newStats
-    );
-
-    const updatedNade = await this.nadeRepo.update(mergedNade.id, mergedNade);
-
-    if (updatedNade.isOk()) {
-      // Clear cache on update
-      this.cache.delCacheWithMap(updatedNade.value.map);
-      this.cache.delNade(updatedNade.value.id);
-    }
-
-    return updatedNade;
-  }
-
-  async forceUserUpdate(
-    nadeId: string,
-    newSteamId: string
-  ): AppResult<NadeModel> {
-    const userResult = await this.userService.getOrCreateUser(newSteamId);
-
-    if (userResult.isErr()) {
-      return makeError(userResult.error.status, userResult.error.message);
-    }
-
-    const user = userResult.value;
-
-    const updateResult = await this.nadeRepo.update(nadeId, {
-      steamId: newSteamId,
-      user: {
-        nickname: user.nickname,
-        steamId: user.steamId,
-        avatar: user.avatar
-      }
-    });
-
-    // Clear cache on update
-    if (updateResult.isOk()) {
-      this.cache.delCacheWithMap(updateResult.value.map);
-      this.cache.delNade(updateResult.value.id);
-    }
-
-    return updateResult;
-  }
-
-  async updateNadeStatus(
-    nadeId: string,
-    updatedStatus: NadeStatusDTO
-  ): AppResult<NadeModel> {
-    const result = await this.nadeRepo.update(nadeId, updatedStatus);
-
-    // Clear cache on update
-    if (result.isOk()) {
-      this.cache.delCacheWithMap(result.value.map);
-      this.cache.delNade(nadeId);
-    }
-
-    return result;
-  }
-
-  updateNadesWithUser(
-    steamId: string,
-    user: UserLightModel
-  ): AppResult<boolean> {
-    const result = this.nadeRepo.updateUserOnNades(steamId, user);
-
-    // Clear cache on update
-    this.cache.flushAll();
-
-    return result;
-  }
-
-  async updateStats(nadeId: string, stats: Partial<NadeStats>) {
-    const result = await this.nadeRepo.updateStats(nadeId, stats);
-
-    // Clear cache on update
-    if (result.isOk()) {
-      this.cache.delCacheWithMap(result.value.map);
-      this.cache.delNade(nadeId);
-    }
-  }
-
-  private shouldUpdateStats(nade: NadeModel) {
-    if (!nade.lastGfycatUpdate) {
-      return true;
-    }
-
-    const lastUpdated = nade.lastGfycatUpdate.toMillis();
-    const now = Date.now();
-    const oneDay = 24 * 60 * 60 * 1000;
-    const isMoreThanADayAgo = now - lastUpdated > oneDay;
-
-    return isMoreThanADayAgo;
-  }
+  };
 }

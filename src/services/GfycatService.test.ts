@@ -16,13 +16,7 @@ describe("Gfycat service", () => {
       "https://gfycat.com/idioticadventurousarabianoryx"
     );
 
-    if (result.isErr()) {
-      expect(false).toBe(true);
-      return;
-    }
-    const data = result.value;
-
-    expect(data.statusCode).toBe(200);
-    expect(data.gfyItem.gfyId).toBe("idioticadventurousarabianoryx");
+    expect(result.statusCode).toBe(200);
+    expect(result.gfyItem.gfyId).toBe("idioticadventurousarabianoryx");
   });
 });

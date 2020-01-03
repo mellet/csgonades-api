@@ -13,10 +13,8 @@ import { makeUserRouter } from "./user/UserRouter";
 import { extractTokenMiddleware } from "./utils/AuthUtils";
 import { sessionRoute } from "./utils/SessionRoute";
 import { makeStatusRouter } from "./status/StatusRouter";
-import { NadeRepoFirebase } from "./nade/NadeRepoFirebase";
 import { NadeService } from "./nade/NadeService";
 import { SteamService } from "./steam/SteamService";
-import { UserRepo } from "./user/UserRepoFirebase";
 import { UserService } from "./user/UserService";
 import { makeFavoriteRouter } from "./favorite/FavoriteRouter";
 import { FavoriteService } from "./favorite/FavoriteService";
@@ -31,6 +29,8 @@ import * as Sentry from "@sentry/node";
 import { RewriteFrames } from "@sentry/integrations";
 import { ArticleRepo } from "./article/ArticleRepo";
 import { ArticleController } from "./article/ArticleController";
+import { UserRepo } from "./user/UserRepo";
+import { NadeRepo } from "./nade/NadeRepo";
 
 declare global {
   namespace NodeJS {
@@ -77,8 +77,8 @@ export const AppServer = (config: CSGNConfig) => {
   const { database, bucket } = makePersistedStorage(config);
 
   // Repos
-  const userRepo = new UserRepo(database);
-  const nadeRepo = new NadeRepoFirebase(database);
+  const userRepo = new UserRepo();
+  const nadeRepo = new NadeRepo();
   const favoriteRepo = new FavoriteRepo(database);
   const statsRepo = new StatsRepo(database);
   const contactRepo = new ContactRepo(database);
@@ -105,7 +105,7 @@ export const AppServer = (config: CSGNConfig) => {
   const statusRouter = makeStatusRouter(config, cacheService);
   const nadeRouter = makeNadeRouter(config, nadeService, gfycatService);
   const steamRouter = makeSteamRouter(userService, passport, config);
-  const userRouter = makeUserRouter(config, userService, nadeService);
+  const userRouter = makeUserRouter(userService, nadeService);
   const favoriteRouter = makeFavoriteRouter(favoriteService);
   const statsRouter = makeStatsRouter(statsService);
   const contactRouter = makeContactRouter(contactRepo);

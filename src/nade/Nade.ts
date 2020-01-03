@@ -2,7 +2,6 @@ import { GfycatDetailsResponse } from "gfycat-sdk";
 import { UserLightModel, UserModel } from "../user/UserModel";
 import { removeUndefines } from "../utils/Common";
 import { NadeImages } from "../services/ImageStorageService";
-import { firestore } from "firebase-admin";
 
 export type CsgoMap = "notset" | "dust2" | "mirage" | "nuke" | "inferno";
 
@@ -37,16 +36,15 @@ export type NadeStats = {
   views: number;
 };
 
-export type NadeModel = {
-  id: string;
+export interface NadeModel {
   title?: string;
   gfycat: GfycatData;
   images: NadeImages;
   steamId: string;
   user: UserLightModel;
-  createdAt: FirebaseFirestore.Timestamp;
-  updatedAt: FirebaseFirestore.Timestamp;
-  lastGfycatUpdate: FirebaseFirestore.Timestamp;
+  createdAt: Date;
+  updatedAt: Date;
+  lastGfycatUpdate: Date;
   status: NadeStatus;
   description?: string;
   map?: CsgoMap;
@@ -57,7 +55,11 @@ export type NadeModel = {
   type?: NadeType;
   statusInfo?: StatusInfo;
   mapSite?: MapSite;
-};
+}
+
+export interface NadeDTO extends NadeModel {
+  id: string;
+}
 
 export type NadeModelInsert = {
   gfycat: GfycatData;
@@ -79,27 +81,6 @@ export type NadeCreateModel = {
   stats: NadeStats;
 };
 
-export type NadeDTO = {
-  id: string;
-  title: string;
-  description?: string;
-  gfycat: GfycatData;
-  images: NadeImages;
-  map?: CsgoMap;
-  stats: NadeStats;
-  movement?: Movement;
-  technique?: Technique;
-  tickrate?: Tickrate;
-  type?: NadeType;
-  steamId: string;
-  user: UserLightModel;
-  createdAt: Date;
-  updatedAt: Date;
-  status: NadeStatus;
-  statusInfo?: StatusInfo;
-  mapSite?: MapSite;
-};
-
 export type NadeLightDTO = {
   id: string;
   status: NadeStatus;
@@ -108,7 +89,7 @@ export type NadeLightDTO = {
   images: NadeImages;
   stats: NadeStats;
   type?: NadeType;
-  nadeSite?: MapSite;
+  mapSite?: MapSite;
   tickrate?: Tickrate;
   createdAt: Date;
 };
@@ -164,28 +145,24 @@ export const makeNadeFromBody = (
 
 export function updatedNadeMerge(
   updateFields: NadeUpdateDTO,
-  nade: NadeModel,
   newUser?: UserModel,
   newGfcatData?: GfycatData,
   newStats?: NadeStats
-): NadeModel {
-  const newNade: NadeModel = {
-    ...nade,
-    title: updateFields.title || nade.title,
-    description: updateFields.description || nade.description,
-    map: updateFields.map || nade.map,
-    movement: updateFields.movement || nade.movement,
-    technique: updateFields.technique || nade.technique,
-    tickrate: updateFields.tickrate || nade.tickrate,
-    type: updateFields.type || nade.type,
-    gfycat: newGfcatData || nade.gfycat,
-    stats: newStats || nade.stats,
-    user: newUser || nade.user,
-    steamId: newUser ? newUser.steamId : nade.steamId,
-    mapSite: updateFields.mapSite || nade.mapSite,
-    createdAt: updateFields.createdAt
-      ? firestore.Timestamp.fromDate(new Date(updateFields.createdAt))
-      : nade.createdAt
+): Partial<NadeModel> {
+  const newNade: Partial<NadeModel> = {
+    title: updateFields.title,
+    description: updateFields.description,
+    map: updateFields.map,
+    movement: updateFields.movement,
+    technique: updateFields.technique,
+    tickrate: updateFields.tickrate,
+    type: updateFields.type,
+    gfycat: newGfcatData,
+    stats: newStats,
+    user: newUser,
+    steamId: newUser && newUser.steamId,
+    mapSite: updateFields.mapSite,
+    createdAt: updateFields.createdAt && new Date(updateFields.createdAt)
   };
 
   return removeUndefines(newNade);

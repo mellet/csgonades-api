@@ -7,8 +7,8 @@ import { extractError } from "../utils/ErrorUtil";
 import * as Sentry from "@sentry/node";
 
 export interface GfycatService {
-  getGfycatData(gfyId: string): AppResult<GfycatDetailsResponse>;
-  registerView(gfyId: string, identifier: string): AppResult<boolean>;
+  getGfycatData(gfyId: string): Promise<GfycatDetailsResponse>;
+  registerView(gfyId: string, identifier: string): Promise<boolean>;
 }
 
 export const makeGfycatService = (configContext: CSGNConfig): GfycatService => {
@@ -20,29 +20,27 @@ export const makeGfycatService = (configContext: CSGNConfig): GfycatService => {
 
   async function getGfycatData(
     gfyIdOrUrl: string
-  ): AppResult<GfycatDetailsResponse> {
+  ): Promise<GfycatDetailsResponse> {
     try {
       const gfyId = extractGfyIdFromIdOrUrl(gfyIdOrUrl);
       const gfyResponse = await gfycatSdk.getGifDetails({ gfyId });
-      return ok(gfyResponse);
+      return gfyResponse;
     } catch (error) {
       Sentry.captureException(error);
-      return extractError(error);
     }
   }
 
   async function registerView(
     gfyId: string,
     identifier: string
-  ): AppResult<boolean> {
+  ): Promise<boolean> {
     const url = `https://px.gfycat.com/px.gif?client_id=${config.secrets.gfycat_id}&ver=1.0.0&utc=${identifier}&gfyid=${gfyId}&context=search&flow=half`;
 
     try {
       await axios.get(url);
-      return ok(true);
+      return true;
     } catch (error) {
       Sentry.captureException(error);
-      return extractError(error);
     }
   }
 
