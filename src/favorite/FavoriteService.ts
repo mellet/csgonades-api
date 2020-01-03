@@ -1,5 +1,5 @@
 import { makeFavorite } from "./Favorite";
-import { ErrorGenerator, ErrorFactory } from "../utils/ErrorUtil";
+import { ErrorFactory } from "../utils/ErrorUtil";
 import { FavoriteRepo } from "./FavoriteRepo";
 import { NadeService } from "../nade/NadeService";
 

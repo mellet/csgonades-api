@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { CSGNConfig } from "../config/enironment";
-import NodeCache = require("node-cache");
 import { CachingService } from "../services/CachingService";
 
 export const makeStatusRouter = (

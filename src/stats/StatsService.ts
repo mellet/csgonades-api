@@ -1,6 +1,5 @@
-import { StatsRepo } from "./StatsRepo";
-import { AppResult } from "../utils/Common";
 import { SiteStats } from "./SiteStats";
+import { StatsRepo } from "./StatsRepo";
 
 export class StatsService {
   private statsRepo: StatsRepo;
@@ -9,7 +8,7 @@ export class StatsService {
     this.statsRepo = statsRepo;
   }
 
-  getStats(): AppResult<SiteStats> {
+  getStats(): Promise<SiteStats> {
     return this.statsRepo.getStats();
   }
 

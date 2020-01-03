@@ -12,13 +12,11 @@ export const makePersistedStorage = (config: CSGNConfig) => {
     credential: firebaseAdmin.credential.cert(serviceAccount)
   });
 
-  const database = firebaseAdmin.firestore();
   const bucket = firebaseAdmin
     .storage()
     .bucket(`gs://${config.firebase.projectId}.appspot.com`);
 
   return {
-    bucket,
-    database
+    bucket
   };
 };

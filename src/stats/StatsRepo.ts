@@ -1,69 +1,46 @@
+import {
+  collection,
+  add,
+  Collection,
+  value,
+  update,
+  get,
+  query,
+  limit,
+  order,
+  Doc
+} from "typesaurus";
 import { SiteStats } from "./SiteStats";
-import { extractFirestoreDataPoint } from "../utils/Firebase";
-import { extractError } from "../utils/ErrorUtil";
-import { firestore } from "firebase-admin";
-import { AppResult } from "../utils/Common";
 
 export class StatsRepo {
-  private SITE_STATS_REF: firestore.DocumentReference;
+  private collection: Collection<SiteStats>;
+  private siteDocId = "siteStats";
 
-  constructor(db: FirebaseFirestore.Firestore) {
-    this.SITE_STATS_REF = db.collection("stats").doc("siteStats");
-    this.initializeStatsDocIfNotExcisiting();
+  constructor() {
+    this.collection = collection<SiteStats>("stats");
   }
 
-  async getStats(): AppResult<SiteStats> {
-    try {
-      const result = await this.SITE_STATS_REF.get();
-      return extractFirestoreDataPoint(result);
-    } catch (error) {
-      return extractError(error);
-    }
-  }
+  getStats = async () => {
+    const stats = await get(this.collection, this.siteDocId);
 
-  async incrementUserCounter() {
-    try {
-      await this.SITE_STATS_REF.update({
-        numUsers: firestore.FieldValue.increment(1)
-      });
-    } catch (error) {
-      return extractError(error);
-    }
-  }
+    return stats.data;
+  };
 
-  async incrementNadeCounter() {
-    try {
-      this.SITE_STATS_REF.update({
-        numNades: firestore.FieldValue.increment(1)
-      });
-    } catch (error) {
-      return extractError(error);
-    }
-  }
+  incrementUserCounter = () => {
+    return update(this.collection, this.siteDocId, {
+      numUsers: value("increment", 1)
+    });
+  };
 
-  async decrementNadeCounter() {
-    try {
-      this.SITE_STATS_REF.update({
-        numNades: firestore.FieldValue.increment(-1)
-      });
-    } catch (error) {
-      return extractError(error);
-    }
-  }
+  incrementNadeCounter = () => {
+    return update(this.collection, this.siteDocId, {
+      numNades: value("increment", 1)
+    });
+  };
 
-  private async initializeStatsDocIfNotExcisiting() {
-    try {
-      const data = await this.SITE_STATS_REF.get();
-
-      if (!data.exists) {
-        const blankSiteStats: SiteStats = {
-          numNades: 0,
-          numUsers: 0
-        };
-        await this.SITE_STATS_REF.set(blankSiteStats);
-      }
-    } catch (error) {
-      return extractError(error);
-    }
-  }
+  decrementNadeCounter = () => {
+    return update(this.collection, this.siteDocId, {
+      numNades: value("increment", -1)
+    });
+  };
 }

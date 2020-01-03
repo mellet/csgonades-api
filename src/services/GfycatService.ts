@@ -1,9 +1,7 @@
 import Gfycat, { GfycatDetailsResponse } from "gfycat-sdk";
 import { CSGNConfig } from "../config/enironment";
 import axios from "axios";
-import { AppResult, extractGfyIdFromIdOrUrl } from "../utils/Common";
-import { ok } from "neverthrow";
-import { extractError } from "../utils/ErrorUtil";
+import { extractGfyIdFromIdOrUrl } from "../utils/Common";
 import * as Sentry from "@sentry/node";
 
 export interface GfycatService {

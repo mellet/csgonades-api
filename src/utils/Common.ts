@@ -1,5 +1,3 @@
-import { Result } from "neverthrow";
-
 export const removeUndefines = <T extends Object>(object: T): T => {
   const newObject = {
     ...object
@@ -15,10 +13,3 @@ export function extractGfyIdFromIdOrUrl(gfycatIdOrUrl: string): string {
   const gfyId = gfycatIdOrUrl.substr(index + 1);
   return gfyId;
 }
-
-export type AppError = {
-  status: number;
-  message: string;
-};
-
-export type AppResult<T> = Promise<Result<T, AppError>>;
