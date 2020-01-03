@@ -5,7 +5,6 @@ import {
   NadeUpdateDTO,
   updatedNadeMerge,
   GfycatData,
-  NadeStats,
   NadeStatusDTO,
   NadeDTO,
   NadeLightDTO,

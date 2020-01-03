@@ -1,40 +1,5 @@
-import { updatedNadeMerge, NadeUpdateDTO, GfycatData, NadeModel } from "./Nade";
+import { updatedNadeMerge, NadeUpdateDTO, GfycatData } from "./Nade";
 import { UserModel } from "../user/UserModel";
-
-const dummyNade: NadeModel = {
-  title: "Old title",
-  description: "Old description",
-  map: "dust2",
-  movement: "stationary",
-  technique: "mouseleft",
-  tickrate: "Any",
-  type: "smoke",
-  updatedAt: new Date(),
-  createdAt: new Date(),
-  lastGfycatUpdate: new Date(),
-  gfycat: {
-    gfyId: "old-gfyId",
-    smallVideoUrl: "old-smallUrl",
-    largeVideoUrl: "old-largeVideo"
-  },
-  images: {
-    largeId: "largeId",
-    largeUrl: "largeUrl",
-    thumbnailId: "thumbId",
-    thumbnailUrl: "thumbUrl"
-  },
-  status: "pending",
-  steamId: "old-steamId",
-  user: {
-    nickname: "old-user-nickname",
-    steamId: "old-steamId",
-    avatar: ""
-  },
-  statusInfo: "old-statusInfo",
-  mapSite: "a",
-  viewCount: 10,
-  favoriteCount: 20
-};
 
 describe("Nade tests", () => {
   it("Empty case", () => {

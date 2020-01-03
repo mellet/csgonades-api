@@ -19,7 +19,6 @@ import {
   NadeDTO,
   NadeLightDTO,
   CsgoMap,
-  NadeStats,
   NadeCreateModel
 } from "./Nade";
 import { NadeFilter } from "./NadeFilter";

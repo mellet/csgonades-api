@@ -30,12 +30,6 @@ type Tickrate = "64tick" | "128 tick" | "Any";
 
 type NadeType = "notset" | "smoke" | "flash" | "molotov" | "hegrenade";
 
-export type NadeStats = {
-  comments: number;
-  favorited: number;
-  views: number;
-};
-
 export interface NadeModel {
   title?: string;
   gfycat: GfycatData;
@@ -61,18 +55,6 @@ export interface NadeModel {
 export interface NadeDTO extends NadeModel {
   id: string;
 }
-
-export type NadeModelInsert = {
-  gfycat: GfycatData;
-  images: NadeImages;
-  steamId: string;
-  user: UserLightModel;
-  createdAt: FirebaseFirestore.FieldValue;
-  updatedAt: FirebaseFirestore.FieldValue;
-  lastGfycatUpdate: FirebaseFirestore.FieldValue;
-  status: NadeStatus;
-  stats: NadeStats;
-};
 
 export type NadeCreateModel = {
   gfycat: GfycatData;
