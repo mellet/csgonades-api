@@ -214,6 +214,14 @@ export class NadeService {
     return;
   }
 
+  incrementFavoriteCount = async (nadeId: string) => {
+    await this.nadeRepo.incrementFavoriteCount(nadeId);
+  };
+
+  decrementFavoriteCount = async (nadeId: string) => {
+    await this.nadeRepo.decrementFavoriteCount(nadeId);
+  };
+
   private shouldUpdateStats(nade: NadeDTO) {
     if (!nade.lastGfycatUpdate) {
       return true;

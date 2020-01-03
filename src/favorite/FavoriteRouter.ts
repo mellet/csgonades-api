@@ -2,8 +2,8 @@ import { Router } from "express";
 import { FavoriteService } from "./FavoriteService";
 import { authenticateRoute } from "../utils/AuthUtils";
 import { userFromRequest } from "../utils/RouterUtils";
-import { toFavoriteDTO } from "./Favorite";
 import { sanitizeIt } from "../utils/Sanitize";
+import { errorCatchConverter } from "../utils/ErrorUtil";
 
 export const makeFavoriteRouter = (
   favoriteService: FavoriteService
@@ -11,38 +11,35 @@ export const makeFavoriteRouter = (
   const FavoriteRouter = Router();
 
   FavoriteRouter.get("/favorites", authenticateRoute, async (req, res) => {
-    const user = userFromRequest(req);
-    const result = await favoriteService.getFavoritesForUser(user.steamId);
+    try {
+      const user = userFromRequest(req);
+      const favorites = await favoriteService.getFavoritesForUser(user.steamId);
 
-    if (result.isErr()) {
-      const { status, message } = result.error;
-      return res.status(status).send(message);
+      return res.status(200).send(favorites);
+    } catch (error) {
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
     }
-
-    const favorites = result.value.map(toFavoriteDTO);
-
-    return res.status(200).send(favorites);
   });
 
   FavoriteRouter.post(
     "/favorites/:nadeId",
     authenticateRoute,
     async (req, res) => {
-      const user = userFromRequest(req);
-      const nadeId = sanitizeIt(req.params.nadeId);
+      try {
+        const user = userFromRequest(req);
+        const nadeId = sanitizeIt(req.params.nadeId);
 
-      const result = await favoriteService.createFavoriteForUser(
-        user.steamId,
-        nadeId
-      );
+        const favorite = await favoriteService.createFavoriteForUser(
+          user.steamId,
+          nadeId
+        );
 
-      if (result.isErr()) {
-        return res.status(result.error.status).send(result.error);
+        return res.status(201).send(favorite);
+      } catch (error) {
+        const err = errorCatchConverter(error);
+        return res.status(err.code).send(err);
       }
-
-      const favorite = toFavoriteDTO(result.value);
-
-      return res.status(201).send(favorite);
     }
   );
 
@@ -50,25 +47,17 @@ export const makeFavoriteRouter = (
     "/favorites/:favoriteId",
     authenticateRoute,
     async (req, res) => {
-      const favoriteId = sanitizeIt(req.params.favoriteId);
-      const user = userFromRequest(req);
+      try {
+        const favoriteId = sanitizeIt(req.params.favoriteId);
+        const user = userFromRequest(req);
 
-      const result = await favoriteService.unFavorite(user.steamId, favoriteId);
+        await favoriteService.unFavorite(user.steamId, favoriteId);
 
-      if (result.isErr()) {
-        return res.status(result.error.status).send(result.error);
-      }
-
-      const wasDeleted = result.value;
-
-      if (wasDeleted) {
         return res.status(202).send();
+      } catch (error) {
+        const err = errorCatchConverter(error);
+        return res.status(err.code).send(err);
       }
-
-      return res.status(500).send({
-        status: 500,
-        error: "Unknown error when unfavoriting"
-      });
     }
   );
 

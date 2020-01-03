@@ -159,6 +159,18 @@ export class NadeRepo {
     await commit();
   };
 
+  incrementFavoriteCount = async (nadeId: string) => {
+    return update(this.collection, nadeId, {
+      favoriteCount: value("increment", 1)
+    });
+  };
+
+  decrementFavoriteCount = async (nadeId: string) => {
+    return update(this.collection, nadeId, {
+      favoriteCount: value("increment", -1)
+    });
+  };
+
   private toNadeDtoLight = (doc: Doc<NadeModel>): NadeLightDTO => {
     const {
       tickrate,

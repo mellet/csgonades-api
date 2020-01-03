@@ -1,54 +1,55 @@
-import { IFavoriteRepo } from "./FavoriteRepo";
 import { makeFavorite } from "./Favorite";
-import { ErrorGenerator } from "../utils/ErrorUtil";
+import { ErrorGenerator, ErrorFactory } from "../utils/ErrorUtil";
+import { FavoriteRepo } from "./FavoriteRepo";
+import { NadeService } from "../nade/NadeService";
 
 export class FavoriteService {
-  private favoriteRepo: IFavoriteRepo;
-  constructor(favRepo: IFavoriteRepo) {
+  private favoriteRepo: FavoriteRepo;
+  private nadeService: NadeService;
+
+  constructor(favRepo: FavoriteRepo, nadeService: NadeService) {
     this.favoriteRepo = favRepo;
+    this.nadeService = nadeService;
   }
 
-  async getFavoritesForUser(steamId: string) {
-    const favorites = await this.favoriteRepo.getUserFavorites(steamId);
+  getFavoritesForUser = async (steamId: string) => {
+    const favorites = await this.favoriteRepo.byUser(steamId);
     return favorites;
-  }
+  };
 
-  async createFavoriteForUser(steamId: string, nadeId: string) {
+  createFavoriteForUser = async (steamId: string, nadeId: string) => {
     const newFavorite = makeFavorite(nadeId, steamId);
-    const favorite = await this.favoriteRepo.setFavorite(newFavorite);
-    return favorite;
-  }
+    const favorite = await this.favoriteRepo.set(newFavorite);
 
-  async unFavorite(steamId: string, favoriteId: string) {
+    await this.nadeService.incrementFavoriteCount(nadeId);
+
+    return favorite;
+  };
+
+  unFavorite = async (steamId: string, favoriteId: string): Promise<void> => {
     const allowUnfavorite = await this.isOwnerOfFavorite(steamId, favoriteId);
 
     if (!allowUnfavorite) {
-      return ErrorGenerator.FORBIDDEN(
-        "Can't unfavorite since your not the owner of this favorite"
-      );
+      throw ErrorFactory.Forbidden("You can't unfavorite this item.");
     }
 
-    const favorite = await this.favoriteRepo.unFavorite(favoriteId);
+    const favorite = await this.favoriteRepo.unSet(favoriteId);
 
-    return favorite;
-  }
+    await this.nadeService.decrementFavoriteCount(favorite.nadeId);
 
-  private async isOwnerOfFavorite(
+    return;
+  };
+
+  private isOwnerOfFavorite = async (
     steamId: string,
     favoriteId: string
-  ): Promise<boolean> {
-    const result = await this.favoriteRepo.getFavorite(favoriteId);
-
-    if (result.isErr()) {
-      return false;
-    }
-
-    const favorite = result.value;
+  ): Promise<boolean> => {
+    const favorite = await this.favoriteRepo.byId(favoriteId);
 
     if (favorite.userId === steamId) {
       return true;
     }
 
     return false;
-  }
+  };
 }

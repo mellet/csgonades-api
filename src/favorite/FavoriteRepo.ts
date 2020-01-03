@@ -1,86 +1,58 @@
-import { FavoriteCreateModel, FavoriteModel } from "./Favorite";
-import { Result, err, ok } from "neverthrow";
-import { firestore } from "firebase-admin";
 import {
-  extractFirestoreData,
-  extractFirestoreDataPoint
-} from "../utils/Firebase";
-import { AppResult } from "../utils/Common";
-import { ErrorGenerator, extractError } from "../utils/ErrorUtil";
+  collection,
+  add,
+  Collection,
+  value,
+  get,
+  query,
+  Doc,
+  where,
+  remove
+} from "typesaurus";
+import { FavoriteModel, FavoriteCreateModel, FavoriteDTO } from "./Favorite";
 
-export interface IFavoriteRepo {
-  setFavorite(favorite: FavoriteCreateModel): AppResult<FavoriteModel>;
-  unFavorite(favoriteId: string): AppResult<boolean>;
-  getUserFavorites(steamId: string): AppResult<FavoriteModel[]>;
-  getFavorite(favoriteId: string): AppResult<FavoriteModel>;
-}
+export class FavoriteRepo {
+  private collection: Collection<FavoriteModel>;
 
-export class FavoriteRepo implements IFavoriteRepo {
-  private db: FirebaseFirestore.Firestore;
-  private COLLECTION = "favorites";
-
-  constructor(db: FirebaseFirestore.Firestore) {
-    this.db = db;
+  constructor() {
+    this.collection = collection("favorites");
   }
 
-  async setFavorite(favorite: FavoriteCreateModel): AppResult<FavoriteModel> {
-    try {
-      const favoriteDocRef = await this.db.collection(this.COLLECTION).add({
-        ...favorite,
-        createdAt: firestore.FieldValue.serverTimestamp()
-      });
-      await favoriteDocRef.update({ id: favoriteDocRef.id });
+  set = async (favorite: FavoriteCreateModel): Promise<FavoriteDTO> => {
+    const newFavorite: FavoriteModel = {
+      ...favorite,
+      createdAt: value("serverDate")
+    };
 
-      const result = this.getFavorite(favoriteDocRef.id);
+    const favDoc = await add(this.collection, newFavorite);
 
-      return result;
-    } catch (error) {
-      return extractError(error);
-    }
-  }
+    return this.docToDto(favDoc);
+  };
 
-  async unFavorite(favoriteId: string): AppResult<boolean> {
-    try {
-      await this.db
-        .collection(this.COLLECTION)
-        .doc(favoriteId)
-        .delete();
-      return ok(true);
-    } catch (error) {
-      return extractError(error);
-    }
-  }
+  unSet = async (favoriteId: string): Promise<FavoriteDTO> => {
+    const favorite = this.byId(favoriteId);
+    await remove(this.collection, favoriteId);
 
-  async getUserFavorites(steamId: string): AppResult<FavoriteModel[]> {
-    try {
-      const result = await this.db
-        .collection(this.COLLECTION)
-        .where("userId", "==", steamId)
-        .get();
-      const favorites = extractFirestoreData<FavoriteModel>(result);
+    return favorite;
+  };
 
-      return favorites;
-    } catch (error) {
-      return extractError(error);
-    }
-  }
+  byId = async (favoriteId: string): Promise<FavoriteDTO> => {
+    const doc = await get(this.collection, favoriteId);
+    return this.docToDto(doc);
+  };
 
-  async getFavorite(favoriteId: string): AppResult<FavoriteModel> {
-    try {
-      const docSnap = await this.db
-        .collection(this.COLLECTION)
-        .doc(favoriteId)
-        .get();
+  byUser = async (steamId: string): Promise<FavoriteDTO[]> => {
+    const docs = await query(this.collection, [where("userId", "==", steamId)]);
 
-      if (!docSnap.exists) {
-        return ErrorGenerator.NOT_FOUND("Favorite");
-      }
+    const favorites = docs.map(this.docToDto);
 
-      const nade = extractFirestoreDataPoint<FavoriteModel>(docSnap);
+    return favorites;
+  };
 
-      return nade;
-    } catch (error) {
-      return extractError(error);
-    }
-  }
+  private docToDto = (doc: Doc<FavoriteModel>): FavoriteDTO => {
+    return {
+      ...doc.data,
+      id: doc.ref.id
+    };
+  };
 }

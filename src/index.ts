@@ -18,7 +18,6 @@ import { SteamService } from "./steam/SteamService";
 import { UserService } from "./user/UserService";
 import { makeFavoriteRouter } from "./favorite/FavoriteRouter";
 import { FavoriteService } from "./favorite/FavoriteService";
-import { FavoriteRepo } from "./favorite/FavoriteRepo";
 import { StatsRepo } from "./stats/StatsRepo";
 import { StatsService } from "./stats/StatsService";
 import { makeStatsRouter } from "./stats/StatsRouter";
@@ -31,6 +30,7 @@ import { ArticleRepo } from "./article/ArticleRepo";
 import { ArticleController } from "./article/ArticleController";
 import { UserRepo } from "./user/UserRepo";
 import { NadeRepo } from "./nade/NadeRepo";
+import { FavoriteRepo } from "./favorite/FavoriteRepo";
 
 declare global {
   namespace NodeJS {
@@ -79,7 +79,7 @@ export const AppServer = (config: CSGNConfig) => {
   // Repos
   const userRepo = new UserRepo();
   const nadeRepo = new NadeRepo();
-  const favoriteRepo = new FavoriteRepo(database);
+  const favoriteRepo = new FavoriteRepo();
   const statsRepo = new StatsRepo(database);
   const contactRepo = new ContactRepo(database);
   const articleRepo = new ArticleRepo();
@@ -99,7 +99,7 @@ export const AppServer = (config: CSGNConfig) => {
     statsService,
     cacheService
   );
-  const favoriteService = new FavoriteService(favoriteRepo);
+  const favoriteService = new FavoriteService(favoriteRepo, nadeService);
 
   // Routers
   const statusRouter = makeStatusRouter(config, cacheService);
