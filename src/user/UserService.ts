@@ -41,7 +41,6 @@ export class UserService {
         avatar: player.avatar.medium,
         role: "user"
       };
-
       const user = await this.userRepo.create(newUser);
 
       await this.statsService.incrementUserCounter();

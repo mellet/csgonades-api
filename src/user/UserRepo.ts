@@ -39,6 +39,10 @@ export class UserRepo {
   byId = async (steamId: string): Promise<UserModel> => {
     const userDoc = await get(this.collection, steamId);
 
+    if (!userDoc) {
+      return null;
+    }
+
     return userDoc.data;
   };
 
