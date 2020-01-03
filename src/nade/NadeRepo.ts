@@ -56,6 +56,10 @@ export class NadeRepo {
   byId = async (nadeId: string): Promise<NadeDTO> => {
     const nadeDoc = await get(this.collection, nadeId);
 
+    if (!nadeDoc) {
+      return null;
+    }
+
     return {
       ...nadeDoc.data,
       id: nadeDoc.ref.id

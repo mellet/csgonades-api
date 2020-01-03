@@ -76,6 +76,10 @@ export const makeNadeRouter = (
 
       const nade = await nadeService.byId(id);
 
+      if (!nade) {
+        return res.status(404).send();
+      }
+
       return res.status(200).send(nade);
     } catch (error) {
       const err = errorCatchConverter(error);

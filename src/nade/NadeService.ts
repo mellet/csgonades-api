@@ -71,7 +71,7 @@ export class NadeService {
 
     const nade = await this.nadeRepo.byId(nadeId);
 
-    if (this.shouldUpdateStats(nade)) {
+    if (nade && this.shouldUpdateStats(nade)) {
       const gfycat = await this.gfycatService.getGfycatData(nade.gfycat.gfyId);
 
       const updatedNadeViews: Partial<NadeModel> = {
@@ -85,7 +85,9 @@ export class NadeService {
       return updatedNade;
     }
 
-    this.cache.setNade(nadeId, nade);
+    if (nade) {
+      this.cache.setNade(nadeId, nade);
+    }
 
     return nade;
   };
