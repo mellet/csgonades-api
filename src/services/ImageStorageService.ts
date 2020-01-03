@@ -12,7 +12,7 @@ export type NadeImages = {
 };
 
 export interface IImageStorageService {
-  saveImage(imageBase64: string): Promise<NadeImages>;
+  saveImage(imageBase64: string): Promise<NadeImages | null>;
   deleteImage(fileId: string): Promise<void>;
 }
 
@@ -25,10 +25,16 @@ export class ImageStorageService implements IImageStorageService {
     this.config = config;
   }
 
-  async saveImage(imageBase64: string): Promise<NadeImages> {
+  async saveImage(imageBase64: string): Promise<NadeImages | null> {
     const tmpFolderLocation = this.config.isProduction ? "../tmp" : "tmp";
     try {
       const uri = imageBase64.split(";base64,").pop();
+
+      if (!uri) {
+        // TODO: Throw sensible erro
+        return null;
+      }
+
       const imgBuffer = Buffer.from(uri, "base64");
       const mimeType = imageBase64.substring(
         "data:image/".length,

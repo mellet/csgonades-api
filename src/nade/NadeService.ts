@@ -154,6 +154,11 @@ export class NadeService {
       body.imageBase64
     );
 
+    if (!nadeImages) {
+      // TODO: Throw sensible error
+      return null;
+    }
+
     const tmpNade = makeNadeFromBody(userLight, gfycatData, nadeImages);
     const nade = await this.nadeRepo.save(tmpNade);
 
