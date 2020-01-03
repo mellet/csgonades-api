@@ -1,23 +1,23 @@
 import { Router } from "express";
 import { sanitizeIt } from "../utils/Sanitize";
+import { ContactDTO } from "./ContactData";
 import { ContactRepo } from "./ContactRepo";
-import { ConctactDTO } from "./ContactData";
+import { errorCatchConverter } from "../utils/ErrorUtil";
 
 export const makeContactRouter = (contactRepo: ContactRepo): Router => {
   const ContactRouter = Router();
 
   ContactRouter.post("/contact", async (req, res) => {
-    const contactData = sanitizeIt(req.body) as ConctactDTO;
+    try {
+      const contactData = sanitizeIt(req.body) as ContactDTO;
 
-    const result = await contactRepo.addMessage(contactData);
+      await contactRepo.addMessage(contactData);
 
-    if (result.isErr()) {
-      return res
-        .status(500)
-        .send({ status: 500, message: "Failed to send contact form" });
+      return res.status(201).send();
+    } catch (error) {
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
     }
-
-    return res.status(201).send();
   });
 
   return ContactRouter;

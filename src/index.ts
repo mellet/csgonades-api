@@ -22,7 +22,6 @@ import { StatsRepo } from "./stats/StatsRepo";
 import { StatsService } from "./stats/StatsService";
 import { makeStatsRouter } from "./stats/StatsRouter";
 import { makeContactRouter } from "./contact/ContactRouter";
-import { ContactRepo } from "./contact/ContactRepo";
 import { CachingService } from "./services/CachingService";
 import * as Sentry from "@sentry/node";
 import { RewriteFrames } from "@sentry/integrations";
@@ -31,6 +30,7 @@ import { ArticleController } from "./article/ArticleController";
 import { UserRepo } from "./user/UserRepo";
 import { NadeRepo } from "./nade/NadeRepo";
 import { FavoriteRepo } from "./favorite/FavoriteRepo";
+import { ContactRepo } from "./contact/ContactRepo";
 
 declare global {
   namespace NodeJS {
@@ -81,7 +81,7 @@ export const AppServer = (config: CSGNConfig) => {
   const nadeRepo = new NadeRepo();
   const favoriteRepo = new FavoriteRepo();
   const statsRepo = new StatsRepo(database);
-  const contactRepo = new ContactRepo(database);
+  const contactRepo = new ContactRepo();
   const articleRepo = new ArticleRepo();
 
   // Services
