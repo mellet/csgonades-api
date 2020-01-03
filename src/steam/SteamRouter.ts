@@ -81,15 +81,16 @@ export const makeSteamRouter = (
         csgonadestoken
       );
 
-      const result = await userService.byId(payload.steamId);
+      const user = await userService.byId(payload.steamId);
 
-      const accessToken = createAccessToken(config.secrets.server_key, result);
-      const refreshToken = createRefreshToken(
-        config.secrets.server_key,
-        result
-      );
+      const accessToken = createAccessToken(config.secrets.server_key, user);
+      const refreshToken = createRefreshToken(config.secrets.server_key, user);
 
       res.cookie("csgonadestoken", refreshToken, makeCookieOptions(config));
+
+      if (user) {
+        await userService.updateActivity(user.steamId);
+      }
 
       return res.status(200).send({ accessToken });
     } catch (error) {

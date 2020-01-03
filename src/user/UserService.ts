@@ -54,4 +54,8 @@ export class UserService {
   update = (steamId: string, update: UserUpdateDTO) => {
     return this.userRepo.update(steamId, update);
   };
+
+  updateActivity = (steamId: string) => {
+    return this.userRepo.updateActivity(steamId);
+  };
 }
