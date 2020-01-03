@@ -19,6 +19,12 @@ export const makeSteamRouter = (
 ): Router => {
   const router = Router({ mergeParams: true });
 
+  console.log(
+    "> Steam Router Init",
+    config.server.baseUrl,
+    config.client.baseUrl
+  );
+
   passport.serializeUser(function(steamId: string, done) {
     done(null, steamId);
   });
@@ -52,7 +58,11 @@ export const makeSteamRouter = (
         const dirtySteamId = req.user as string;
         let steamId = sanitizeIt(dirtySteamId);
 
+        console.log("> Sign in from", steamId);
+
         const user = await userService.getOrCreate(steamId);
+
+        console.log("> Got User", user.nickname);
 
         let isFirstSignIn = checkIsFirstSignIn(user);
 
@@ -61,7 +71,11 @@ export const makeSteamRouter = (
           user
         );
 
+        console.log("> Created tokens");
+
         res.cookie("csgonadestoken", refreshToken, makeCookieOptions(config));
+
+        console.log("> Set cookie, redirecting");
 
         res.redirect(
           `${config.client.baseUrl}/auth?isFirstSignIn=${isFirstSignIn}`
