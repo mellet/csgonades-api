@@ -47,4 +47,16 @@ export class StatsRepo {
       numNades: value("increment", -1)
     });
   };
+
+  incrementPendingCounter = () => {
+    return update(this.collection, this.siteDocId, {
+      numPending: value("increment", 1)
+    });
+  };
+
+  decrementPendingCounter = () => {
+    return update(this.collection, this.siteDocId, {
+      numPending: value("increment", -1)
+    });
+  };
 }

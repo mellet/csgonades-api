@@ -163,6 +163,7 @@ export class NadeService {
     const nade = await this.nadeRepo.save(tmpNade);
 
     await this.statsService.incrementNadeCounter();
+    await this.statsService.incrementPendingCounter();
 
     return nade;
   };
@@ -235,11 +236,21 @@ export class NadeService {
     nadeId: string,
     updatedStatus: NadeStatusDTO
   ): Promise<NadeDTO | null> {
+    const oldNade = await this.nadeRepo.byId(nadeId);
+
     const nade = await this.nadeRepo.update(nadeId, updatedStatus);
 
-    if (!nade) {
+    if (!nade || !oldNade) {
       // TODO: Throw sensible error
       return null;
+    }
+
+    // Keep pending counter in sync on status change
+    if (oldNade.status === "pending" && nade.status !== "pending") {
+      this.statsService.decrementPendingCounter();
+    }
+    if (oldNade.status !== "pending" && nade.status === "pending") {
+      this.statsService.incrementPendingCounter();
     }
 
     this.cache.delCacheWithMap(nade.map);

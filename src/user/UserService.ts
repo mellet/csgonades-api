@@ -2,7 +2,7 @@ import { ISteamService } from "../steam/SteamService";
 import { UserModel, UserModelAnon } from "./UserModel";
 import { StatsService } from "../stats/StatsService";
 import { UserUpdateDTO, UserCreateDTO } from "./UserDTOs";
-import { UserRepo } from "./UserRepo";
+import { UserRepo, UserFilter } from "./UserRepo";
 
 export class UserService {
   private userRepo: UserRepo;
@@ -19,7 +19,7 @@ export class UserService {
     this.statsService = statsService;
   }
 
-  all = (limit?: number) => this.userRepo.all(limit);
+  all = (filter?: UserFilter) => this.userRepo.all(filter);
 
   byId = (steamId: string) => this.userRepo.byId(steamId);
 

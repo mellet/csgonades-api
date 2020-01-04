@@ -6,12 +6,24 @@ import {
   get,
   query,
   order,
-  set
+  set,
+  limit,
+  Query
 } from "typesaurus";
 import { UserModel } from "./UserModel";
-import { UserLightDTO, UserCreateDTO, UserUpdateDTO } from "./UserDTOs";
+import {
+  UserLightDTO,
+  UserCreateDTO,
+  UserUpdateDTO,
+  UserDTO
+} from "./UserDTOs";
 import { removeUndefines } from "../utils/Common";
 import { ModelUpdate } from "typesaurus/update";
+
+export type UserFilter = {
+  limit?: number;
+  byActivity?: boolean;
+};
 
 export class UserRepo {
   private collection: Collection<UserModel>;
@@ -20,17 +32,34 @@ export class UserRepo {
     this.collection = collection<UserModel>("users");
   }
 
-  all = async (limit: number = 0): Promise<UserLightDTO[]> => {
-    const usersDocs = await query(this.collection, [
-      order("createdAt", "desc")
-    ]);
+  all = async (filter?: UserFilter): Promise<UserDTO[]> => {
+    const queryBuilder: Query<UserModel, keyof UserModel>[] = [];
+
+    if (!filter) {
+      queryBuilder.push(order("createdAt", "desc"));
+    }
+
+    if (filter?.byActivity) {
+      queryBuilder.push(order("lastActive", "desc"));
+    }
+
+    if (filter?.limit) {
+      queryBuilder.push(limit(filter.limit));
+    }
+
+    const usersDocs = await query(this.collection, queryBuilder);
 
     const users = usersDocs.map(
-      (userDoc): UserLightDTO => ({
+      (userDoc): UserDTO => ({
         steamId: userDoc.data.steamId,
         nickname: userDoc.data.nickname,
         avatar: userDoc.data.avatar,
-        createdAt: userDoc.data.createdAt
+        createdAt: userDoc.data.createdAt,
+        lastActive: userDoc.data.lastActive,
+        role: userDoc.data.role,
+        updatedAt: userDoc.data.updatedAt,
+        bio: userDoc.data.bio,
+        email: userDoc.data.email
       })
     );
 

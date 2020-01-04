@@ -23,4 +23,12 @@ export class StatsService {
   decrementNadeCounter() {
     return this.statsRepo.decrementNadeCounter();
   }
+
+  incrementPendingCounter() {
+    return this.statsRepo.incrementPendingCounter();
+  }
+
+  decrementPendingCounter() {
+    return this.statsRepo.decrementPendingCounter();
+  }
 }

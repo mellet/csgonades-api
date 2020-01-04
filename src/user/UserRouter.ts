@@ -1,6 +1,10 @@
 import { Router } from "express";
-import { authenticateRoute, RequestUser } from "../utils/AuthUtils";
-import { userFromRequest } from "../utils/RouterUtils";
+import {
+  authenticateRoute,
+  RequestUser,
+  adminOrModeratorRouter
+} from "../utils/AuthUtils";
+import { userFromRequest, maybeUserFromRequest } from "../utils/RouterUtils";
 import { NadeService } from "../nade/NadeService";
 import { UserService } from "./UserService";
 import { errorCatchConverter, ErrorFactory } from "../utils/ErrorUtil";
@@ -27,7 +31,7 @@ export const makeUserRouter = (
   UserRouter.get("/users/:steamId", async (req, res) => {
     try {
       const steamId = validateSteamId(req);
-      const requestUser = userFromRequest(req);
+      const requestUser = maybeUserFromRequest(req);
 
       const isAdminOrMod =
         requestUser?.role === "administrator" ||
@@ -48,7 +52,7 @@ export const makeUserRouter = (
     }
   });
 
-  UserRouter.get("/users", async (_, res) => {
+  UserRouter.get("/users", adminOrModeratorRouter, async (_, res) => {
     try {
       const users = await userService.all();
 
