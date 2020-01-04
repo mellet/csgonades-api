@@ -125,10 +125,22 @@ function checkIsFirstSignIn(user: UserModel): boolean {
 
 function makeCookieOptions(config: CSGNConfig): CookieOptions {
   const oneDay = 1000 * 60 * 60 * 24;
+
+  if (config.isProduction) {
+    return {
+      httpOnly: true,
+      secure: true,
+      maxAge: oneDay * 30,
+      signed: true,
+      path: "/",
+      domain: ".csgonades.com"
+    };
+  }
+
   return {
     httpOnly: true,
-    secure: config.isProduction,
-    maxAge: oneDay * 30,
+    secure: false,
+    maxAge: oneDay,
     signed: true,
     path: "/"
   };
