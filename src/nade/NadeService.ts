@@ -277,7 +277,7 @@ export class NadeService {
 
     let hours = moment().diff(moment(lastUpdated), "hours", false);
 
-    if (hours > 24) {
+    if (hours > 6) {
       return true;
     }
 
