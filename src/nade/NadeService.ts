@@ -247,10 +247,10 @@ export class NadeService {
 
     // Keep pending counter in sync on status change
     if (oldNade.status === "pending" && nade.status !== "pending") {
-      this.statsService.decrementPendingCounter();
+      await this.statsService.decrementPendingCounter();
     }
     if (oldNade.status !== "pending" && nade.status === "pending") {
-      this.statsService.incrementPendingCounter();
+      await this.statsService.incrementPendingCounter();
     }
 
     this.cache.delCacheWithMap(nade.map);
