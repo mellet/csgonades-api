@@ -186,6 +186,7 @@ export class NadeService {
     await this.statsService.decrementNadeCounter();
 
     // Clear cache where map was the nades map
+    this.cache.delNade(nadeId);
     this.cache.delCacheWithMap(nade.map);
   };
 
