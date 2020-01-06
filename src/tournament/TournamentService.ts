@@ -28,4 +28,9 @@ export class TournamentService {
     this.cache.flushTournaments();
     return this.tournamentRepo.save(tournament);
   };
+
+  update = async (id: string, updates: Partial<TournamentCreateDTO>) => {
+    await this.tournamentRepo.update(id, updates);
+    this.cache.flushTournaments();
+  };
 }

@@ -8,15 +8,11 @@ import {
   order,
   set,
   limit,
-  Query
+  Query,
+  all
 } from "typesaurus";
 import { UserModel } from "./UserModel";
-import {
-  UserLightDTO,
-  UserCreateDTO,
-  UserUpdateDTO,
-  UserDTO
-} from "./UserDTOs";
+import { UserCreateDTO, UserUpdateDTO, UserDTO } from "./UserDTOs";
 import { removeUndefines } from "../utils/Common";
 import { ModelUpdate } from "typesaurus/update";
 

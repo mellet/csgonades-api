@@ -5,7 +5,8 @@ import {
   query,
   Doc,
   where,
-  order
+  order,
+  update
 } from "typesaurus";
 import {
   TournamentDoc,
@@ -13,6 +14,7 @@ import {
   TournamentCreateDTO
 } from "./Tournament";
 import { removeUndefines } from "../utils/Common";
+import { ModelUpdate } from "typesaurus/update";
 
 export class TournamentRepo {
   private collection: Collection<TournamentDoc>;
@@ -46,6 +48,18 @@ export class TournamentRepo {
       ...res.data,
       id: res.ref.id
     };
+  };
+
+  update = async (id: string, updates: Partial<TournamentCreateDTO>) => {
+    let tournamentDoc: ModelUpdate<TournamentDoc> = {
+      ...updates,
+      endDate: updates.endDate ? new Date(updates.endDate) : undefined,
+      startDate: updates.startDate ? new Date(updates.startDate) : undefined
+    };
+
+    tournamentDoc = removeUndefines(tournamentDoc);
+
+    await update(this.collection, id, tournamentDoc);
   };
 
   private toModel = (doc: Doc<TournamentDoc>): TournamentModel => {

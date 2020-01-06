@@ -21,6 +21,7 @@ export class TournamentController {
   private setUpRoutes = () => {
     this.router.get("/tournaments", this.getTournaments);
     this.router.post("/tournaments", adminOrModHandler, this.createTournament);
+    this.router.patch("/tournaments", adminOrModHandler, this.updateTournament);
   };
 
   private getTournaments: RequestHandler = async (_, res) => {
@@ -39,6 +40,17 @@ export class TournamentController {
       await this.tournamentSerivce.save(tournament);
 
       return res.status(200).send();
+    } catch (error) {
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
+    }
+  };
+
+  private updateTournament: RequestHandler = async (req, res) => {
+    try {
+      const id = req.params.id;
+      const updates = req.body as Partial<TournamentCreateDTO>;
+      await this.tournamentSerivce.update(id, updates);
     } catch (error) {
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
