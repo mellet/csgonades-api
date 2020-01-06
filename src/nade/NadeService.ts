@@ -44,23 +44,25 @@ export class NadeService {
     this.cache = cache;
   }
 
-  async fetchNades(limit?: number): Promise<NadeLightDTO[]> {
+  fetchNades = async (limit?: number): Promise<NadeLightDTO[]> => {
     const cacheKey = limit ? `fetchNades-${limit}` : `fetchNades-all`;
 
     const cachedNades = this.cache.getAllNades(cacheKey);
 
     if (cachedNades) {
-      return cachedNades;
+      return cachedNades.map(this.toLightDTO);
     }
 
     const nades = await this.nadeRepo.getAll(limit);
 
-    return nades;
-  }
+    return nades.map(this.toLightDTO);
+  };
 
-  pending(): Promise<NadeLightDTO[]> {
-    return this.nadeRepo.pending();
-  }
+  pending = async (): Promise<NadeLightDTO[]> => {
+    const pendingDTOS = await this.nadeRepo.pending();
+    const pending = pendingDTOS.map(this.toLightDTO);
+    return pending;
+  };
 
   byId = async (nadeId: string) => {
     const cachedNade = this.cache.getNade(nadeId);
@@ -71,12 +73,15 @@ export class NadeService {
 
     const nade = await this.nadeRepo.byId(nadeId);
 
+    if (nade) {
+      this.cache.setNade(nadeId, nade);
+    }
+
     if (nade && this.shouldUpdateStats(nade)) {
       const gfycat = await this.gfycatService.getGfycatData(nade.gfycat.gfyId);
 
       if (!gfycat) {
-        // TODO: Throw sensible error
-        return null;
+        return nade;
       }
 
       const updatedNadeViews: Partial<NadeModel> = {
@@ -86,14 +91,10 @@ export class NadeService {
       const updatedNade = await this.nadeRepo.update(nadeId, updatedNadeViews);
 
       if (updatedNade) {
-        this.cache.setNade(nadeId, updatedNade);
+        this.cache.delNade(updatedNade.id);
       }
 
       return updatedNade;
-    }
-
-    if (nade) {
-      this.cache.setNade(nadeId, nade);
     }
 
     return nade;
@@ -225,7 +226,6 @@ export class NadeService {
     const updatedNade = await this.nadeRepo.update(nadeId, mergedNade);
 
     if (updatedNade) {
-      this.cache.delCacheWithMap(updatedNade.map);
       this.cache.delNade(updatedNade.id);
     }
 
@@ -253,7 +253,6 @@ export class NadeService {
       await this.statsService.incrementPendingCounter();
     }
 
-    this.cache.delCacheWithMap(nade.map);
     this.cache.delNade(nade.id);
 
     return nade;
@@ -313,5 +312,21 @@ export class NadeService {
     }
 
     return false;
+  };
+
+  private toLightDTO = (nadeDto: NadeDTO): NadeLightDTO => {
+    return {
+      id: nadeDto.id,
+      createdAt: nadeDto.createdAt,
+      favoriteCount: nadeDto.favoriteCount,
+      gfycat: nadeDto.gfycat,
+      images: nadeDto.images,
+      status: nadeDto.status,
+      viewCount: nadeDto.viewCount,
+      mapSite: nadeDto.mapSite,
+      tickrate: nadeDto.tickrate,
+      title: nadeDto.title,
+      type: nadeDto.type
+    };
   };
 }

@@ -15,13 +15,7 @@ import {
   batch,
   Query
 } from "typesaurus";
-import {
-  NadeModel,
-  NadeDTO,
-  NadeLightDTO,
-  CsgoMap,
-  NadeCreateModel
-} from "./Nade";
+import { NadeModel, NadeDTO, CsgoMap, NadeCreateModel } from "./Nade";
 import { NadeFilter } from "./NadeFilter";
 import { removeUndefines } from "../utils/Common";
 import { UserLightModel } from "../user/UserModel";
@@ -33,7 +27,7 @@ export class NadeRepo {
     this.collection = collection("nades");
   }
 
-  getAll = async (nadeLimit: number = 0): Promise<NadeLightDTO[]> => {
+  getAll = async (nadeLimit: number = 0): Promise<NadeDTO[]> => {
     const queryBuilder: Query<NadeModel, keyof NadeModel>[] = [
       order("createdAt", "desc")
     ];
@@ -44,18 +38,18 @@ export class NadeRepo {
 
     const nadesDocs = await query(this.collection, queryBuilder);
 
-    const nades = nadesDocs.map(this.toNadeDtoLight);
+    const nades = nadesDocs.map(this.toNadeDTO);
 
     return nades;
   };
 
-  pending = async (): Promise<NadeLightDTO[]> => {
+  pending = async (): Promise<NadeDTO[]> => {
     const pendingDocs = await query(this.collection, [
       where("status", "==", "pending"),
       order("createdAt", "desc")
     ]);
 
-    const pendingNades = pendingDocs.map(this.toNadeDtoLight);
+    const pendingNades = pendingDocs.map(this.toNadeDTO);
     return pendingNades;
   };
 
@@ -75,7 +69,7 @@ export class NadeRepo {
   byMap = async (
     csgoMap: CsgoMap,
     nadeFilter?: NadeFilter
-  ): Promise<NadeLightDTO[]> => {
+  ): Promise<NadeDTO[]> => {
     const queryBuilder: Query<NadeModel, keyof NadeModel>[] = [
       where("status", "==", "accepted"),
       where("map", "==", csgoMap),
@@ -97,23 +91,23 @@ export class NadeRepo {
 
     const nadeDocs = await query(this.collection, queryBuilder);
 
-    const nades = nadeDocs.map(this.toNadeDtoLight);
+    const nades = nadeDocs.map(this.toNadeDTO);
     return nades;
   };
 
-  byUser = async (steamId: string): Promise<NadeLightDTO[]> => {
+  byUser = async (steamId: string): Promise<NadeDTO[]> => {
     const nadeDocs = await query(this.collection, [
       where("steamId", "==", steamId),
       order("createdAt", "desc")
     ]);
 
-    const nades = nadeDocs.map(this.toNadeDtoLight);
+    const nades = nadeDocs.map(this.toNadeDTO);
     return nades;
   };
 
-  list = async (ids: string[]): Promise<NadeLightDTO[]> => {
+  list = async (ids: string[]): Promise<NadeDTO[]> => {
     const nadeDocs = await getMany(this.collection, ids);
-    const nades = nadeDocs.map(this.toNadeDtoLight);
+    const nades = nadeDocs.map(this.toNadeDTO);
 
     return nades;
   };
@@ -189,34 +183,6 @@ export class NadeRepo {
     return update(this.collection, nadeId, {
       favoriteCount: value("increment", -1)
     });
-  };
-
-  private toNadeDtoLight = (doc: Doc<NadeModel>): NadeLightDTO => {
-    const {
-      tickrate,
-      createdAt,
-      images,
-      gfycat,
-      status,
-      type,
-      title,
-      mapSite,
-      viewCount,
-      favoriteCount
-    } = doc.data;
-    return {
-      id: doc.ref.id,
-      tickrate,
-      createdAt,
-      images,
-      gfycat,
-      status,
-      type,
-      mapSite,
-      title,
-      viewCount,
-      favoriteCount
-    };
   };
 
   private toNadeDTO = (doc: Doc<NadeModel>): NadeDTO => {
