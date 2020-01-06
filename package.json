@@ -13,6 +13,8 @@
     "start": "NODE_ENV=production node dist/index.js"
   },
   "dependencies": {
+    "@hapi/joi": "^17.0.0",
+    "@hapi/joi-date": "^2.0.1",
     "@sentry/integrations": "^5.10.2",
     "@sentry/node": "5.10.2",
     "@types/cors": "^2.8.6",
@@ -22,11 +24,9 @@
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "express-validator": "^6.3.0",
     "firebase-admin": "^8.9.0",
     "gfycat-sdk": "^1.4.18",
     "helmet": "^3.21.2",
-    "joi": "^14.3.1",
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.24.0",
     "nanoid": "^2.1.8",
@@ -44,9 +44,9 @@
   "devDependencies": {
     "@types/cookie-parser": "^1.4.2",
     "@types/express": "^4.17.2",
+    "@types/hapi__joi": "^16.0.6",
     "@types/helmet": "^0.0.45",
     "@types/jest": "^24.0.25",
-    "@types/joi": "^14.3.4",
     "@types/jsonwebtoken": "^8.3.5",
     "@types/nanoid": "^2.1.0",
     "@types/node": "^13.1.1",

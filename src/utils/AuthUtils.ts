@@ -47,7 +47,7 @@ export const payloadFromToken = (secret: string, token: string): JWTPayload => {
   return decoded;
 };
 
-export const authenticateRoute = (
+export const authOnlyHandler = (
   req: Request,
   res: Response,
   next: NextFunction
@@ -61,7 +61,7 @@ export const authenticateRoute = (
   next();
 };
 
-export const adminOrModeratorRouter = (
+export const adminOrModHandler = (
   req: Request,
   res: Response,
   next: NextFunction

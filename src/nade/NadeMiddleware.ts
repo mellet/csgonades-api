@@ -1,22 +1,22 @@
 import { NextFunction, Response, Request } from "express";
-import joi from "joi";
+import Joi from "@hapi/joi";
 
 export const validateNade = (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const nadeBodySchema = joi
-    .object({
-      gfycatIdOrUrl: joi.string().required(),
-      imageBase64: joi.string().required()
-    })
-    .unknown(false);
+  const nadeBodySchema = Joi.object({
+    gfycatIdOrUrl: Joi.string().required(),
+    imageBase64: Joi.string().required()
+  }).unknown(false);
 
-  const { error } = joi.validate(req.body, nadeBodySchema);
-  if (error) {
-    return res.status(400).send(error.message);
+  try {
+    Joi.attempt(req.body, nadeBodySchema);
+  } catch (error) {
+    return res.status(400).send(error);
   }
+
   next();
 };
 
@@ -25,24 +25,24 @@ export const ValidateUpdateNade = (
   res: Response,
   next: NextFunction
 ) => {
-  const nadeBodySchema = joi
-    .object({
-      title: joi.string(),
-      description: joi.string(),
-      gfycatIdOrUrl: joi.string(),
-      map: joi.string(),
-      movement: joi.string(),
-      technique: joi.string(),
-      tickrate: joi.string(),
-      steamId: joi.string(),
-      status: joi.string(),
-      statusInfo: joi.string()
-    })
-    .unknown(false);
+  const nadeBodySchema = Joi.object({
+    title: Joi.string(),
+    description: Joi.string(),
+    gfycatIdOrUrl: Joi.string(),
+    map: Joi.string(),
+    movement: Joi.string(),
+    technique: Joi.string(),
+    tickrate: Joi.string(),
+    steamId: Joi.string(),
+    status: Joi.string(),
+    statusInfo: Joi.string()
+  }).unknown(false);
 
-  const { error } = joi.validate(req.body, nadeBodySchema);
-  if (error) {
-    return res.status(400).send(error.message);
+  try {
+    Joi.attempt(req.body, nadeBodySchema);
+  } catch (error) {
+    return res.status(400).send(error);
   }
+
   next();
 };

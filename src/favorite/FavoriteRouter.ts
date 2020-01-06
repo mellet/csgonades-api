@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { FavoriteService } from "./FavoriteService";
-import { authenticateRoute } from "../utils/AuthUtils";
+import { authOnlyHandler } from "../utils/AuthUtils";
 import { userFromRequest } from "../utils/RouterUtils";
 import { sanitizeIt } from "../utils/Sanitize";
 import { errorCatchConverter } from "../utils/ErrorUtil";
@@ -10,7 +10,7 @@ export const makeFavoriteRouter = (
 ): Router => {
   const FavoriteRouter = Router();
 
-  FavoriteRouter.get("/favorites", authenticateRoute, async (req, res) => {
+  FavoriteRouter.get("/favorites", authOnlyHandler, async (req, res) => {
     try {
       const user = userFromRequest(req);
       const favorites = await favoriteService.getFavoritesForUser(user.steamId);
@@ -24,7 +24,7 @@ export const makeFavoriteRouter = (
 
   FavoriteRouter.post(
     "/favorites/:nadeId",
-    authenticateRoute,
+    authOnlyHandler,
     async (req, res) => {
       try {
         const user = userFromRequest(req);
@@ -45,7 +45,7 @@ export const makeFavoriteRouter = (
 
   FavoriteRouter.delete(
     "/favorites/:favoriteId",
-    authenticateRoute,
+    authOnlyHandler,
     async (req, res) => {
       try {
         const favoriteId = sanitizeIt(req.params.favoriteId);

@@ -1,7 +1,7 @@
 import { Router, RequestHandler } from "express";
 import { ArticleRepo } from "./ArticleRepo";
 import { errorCatchConverter } from "../utils/ErrorUtil";
-import { adminOrModeratorRouter } from "../utils/AuthUtils";
+import { adminOrModHandler } from "../utils/AuthUtils";
 import {
   validateArticleUpdateDTO,
   validateArticleId,
@@ -20,11 +20,11 @@ export class ArticleController {
 
   setUpRoutes = () => {
     this.router.get("/articles", this.getArticles);
-    this.router.post("/articles", adminOrModeratorRouter, this.createArticle);
+    this.router.post("/articles", adminOrModHandler, this.createArticle);
     this.router.get("/articles/:articleId", this.get);
     this.router.patch(
       "/articles/:articleId",
-      adminOrModeratorRouter,
+      adminOrModHandler,
       this.updateArticle
     );
   };

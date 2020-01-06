@@ -1,62 +1,40 @@
-import joi from "joi";
-import { ErrorFactory } from "../utils/ErrorUtil";
+import Joi from "@hapi/joi";
 import { ArticleUpdateDTO, ArticleCreateDTO } from "./Article";
 import { Request } from "express";
 import { sanitizeIt } from "../utils/Sanitize";
 
 export const validateArticleUpdateDTO = (req: Request): ArticleUpdateDTO => {
-  const articleUpdateSchema = joi
-    .object({
-      title: joi.string().optional(),
-      body: joi.string().optional(),
-      status: joi.string().optional()
-    })
-    .unknown(false);
+  const body = req.body as ArticleUpdateDTO;
+  const articleUpdateSchema = Joi.object<ArticleUpdateDTO>({
+    title: Joi.string().optional(),
+    body: Joi.string().optional(),
+    status: Joi.string().optional()
+  }).unknown(false);
 
-  const { error } = joi.validate(req.body, articleUpdateSchema);
+  const value = Joi.attempt(body, articleUpdateSchema) as ArticleUpdateDTO;
 
-  if (error) {
-    throw ErrorFactory.BadRequest(error.message);
-  }
-
-  const dto = sanitizeIt<ArticleUpdateDTO>(req.body);
-
-  return dto;
+  return value;
 };
 
 export const validateArticleCreateDTO = (req: Request): ArticleCreateDTO => {
-  const articleUpdateSchema = joi
-    .object({
-      title: joi.string().required(),
-      body: joi.string().required()
-    })
-    .unknown(false);
+  const body = req.body as ArticleCreateDTO;
+  const articleUpdateSchema = Joi.object({
+    title: Joi.string().required(),
+    body: Joi.string().required()
+  }).unknown(false);
 
-  const { error } = joi.validate(req.body, articleUpdateSchema);
+  const value = Joi.attempt(body, articleUpdateSchema) as ArticleCreateDTO;
 
-  if (error) {
-    throw ErrorFactory.BadRequest(error.message);
-  }
-
-  const dto = sanitizeIt<ArticleCreateDTO>(req.body);
-
-  return dto;
+  return value;
 };
 
 export const validateArticleId = (req: Request): string => {
-  const articleUpdateSchema = joi
-    .object({
-      articleId: joi.string().required()
-    })
-    .unknown(false);
+  const articleUpdateSchema = Joi.object({
+    articleId: Joi.string().required()
+  }).unknown(false);
 
-  const { error } = joi.validate(req.params, articleUpdateSchema);
-
-  if (error) {
-    throw ErrorFactory.BadRequest(error.message);
-  }
-
-  const articleId = sanitizeIt<string>(req.params.articleId);
+  const value = Joi.attempt(req.params, articleUpdateSchema) as string;
+  const articleId = sanitizeIt<string>(value);
 
   return articleId;
 };

@@ -1,44 +1,32 @@
-import joi from "joi";
-import { ErrorFactory } from "../utils/ErrorUtil";
+import Joi from "@hapi/joi";
 import { Request } from "express";
 import { sanitizeIt } from "../utils/Sanitize";
 import { UserUpdateDTO } from "./UserDTOs";
 
 export const validateUserUpdateDTO = (req: Request): UserUpdateDTO => {
-  const articleUpdateSchema = joi
-    .object({
-      nickname: joi.string().optional(),
-      bio: joi.string().optional(),
-      email: joi.string().optional(),
-      createdAt: joi.string().optional()
-    })
-    .unknown(false);
+  const body = req.body as UserUpdateDTO;
+  const articleUpdateSchema = Joi.object<UserUpdateDTO>({
+    nickname: Joi.string().optional(),
+    bio: Joi.string().optional(),
+    email: Joi.string().optional(),
+    createdAt: Joi.string().optional()
+  }).unknown(false);
 
-  const { error } = joi.validate(req.body, articleUpdateSchema);
+  const value = Joi.attempt(body, articleUpdateSchema) as UserUpdateDTO;
 
-  if (error) {
-    throw ErrorFactory.BadRequest(error.message);
-  }
-
-  const dto = sanitizeIt<UserUpdateDTO>(req.body);
+  const dto = sanitizeIt<UserUpdateDTO>(value);
 
   return dto;
 };
 
 export const validateSteamId = (req: Request): string => {
-  const articleUpdateSchema = joi
-    .object({
-      steamId: joi.string().required()
-    })
-    .unknown(false);
+  const articleUpdateSchema = Joi.object({
+    steamId: Joi.string().required()
+  }).unknown(false);
 
-  const { error } = joi.validate(req.params, articleUpdateSchema);
+  const value = Joi.attempt(req.params, articleUpdateSchema) as string;
 
-  if (error) {
-    throw ErrorFactory.BadRequest(error.message);
-  }
-
-  const steamId = sanitizeIt<string>(req.params.steamId);
+  const steamId = sanitizeIt<string>(value);
 
   return steamId;
 };

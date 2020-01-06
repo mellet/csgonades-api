@@ -9,7 +9,7 @@ import {
   GfycatData
 } from "./Nade";
 import { CSGNConfig } from "../config/enironment";
-import { authenticateRoute, adminOrModeratorRouter } from "../utils/AuthUtils";
+import { authOnlyHandler, adminOrModHandler } from "../utils/AuthUtils";
 import { userFromRequest } from "../utils/RouterUtils";
 import { GfycatService } from "../services/GfycatService";
 import { getSessionId } from "../utils/SessionRoute";
@@ -59,7 +59,7 @@ export const makeNadeRouter = (
     }
   });
 
-  NadeRouter.get("/nades/pending", adminOrModeratorRouter, async (req, res) => {
+  NadeRouter.get("/nades/pending", adminOrModHandler, async (req, res) => {
     try {
       const pendingNades = await nadeService.pending();
 
@@ -115,7 +115,7 @@ export const makeNadeRouter = (
     }
   });
 
-  const postNadeMiddleware = [authenticateRoute, validateNade];
+  const postNadeMiddleware = [authOnlyHandler, validateNade];
 
   NadeRouter.post("/nades", ...postNadeMiddleware, async (req, res) => {
     try {
@@ -158,7 +158,7 @@ export const makeNadeRouter = (
     }
   });
 
-  NadeRouter.put<IdParam>("/nades/:id", authenticateRoute, async (req, res) => {
+  NadeRouter.put<IdParam>("/nades/:id", authOnlyHandler, async (req, res) => {
     try {
       const id = sanitizeIt(req.params.id);
       const user = userFromRequest(req);
@@ -207,7 +207,7 @@ export const makeNadeRouter = (
 
   NadeRouter.patch<IdParam>(
     "/nades/:id/status",
-    adminOrModeratorRouter,
+    adminOrModHandler,
     async (req, res) => {
       try {
         const id = sanitizeIt(req.params.id);
@@ -263,7 +263,7 @@ export const makeNadeRouter = (
 
   NadeRouter.delete<IdParam>(
     "/nades/:id",
-    adminOrModeratorRouter,
+    adminOrModHandler,
     async (req, res) => {
       try {
         const id = sanitizeIt(req.params.id);

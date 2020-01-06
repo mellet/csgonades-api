@@ -1,8 +1,8 @@
 import { Router } from "express";
 import {
-  authenticateRoute,
+  authOnlyHandler,
   RequestUser,
-  adminOrModeratorRouter
+  adminOrModHandler
 } from "../utils/AuthUtils";
 import { userFromRequest, maybeUserFromRequest } from "../utils/RouterUtils";
 import { NadeService } from "../nade/NadeService";
@@ -16,7 +16,7 @@ export const makeUserRouter = (
 ): Router => {
   const UserRouter = Router();
 
-  UserRouter.get("/users/self", authenticateRoute, async (req, res) => {
+  UserRouter.get("/users/self", authOnlyHandler, async (req, res) => {
     try {
       const requestUser = userFromRequest(req);
       const user = await userService.byId(requestUser.steamId);
@@ -52,7 +52,7 @@ export const makeUserRouter = (
     }
   });
 
-  UserRouter.get("/users", adminOrModeratorRouter, async (_, res) => {
+  UserRouter.get("/users", adminOrModHandler, async (_, res) => {
     try {
       const users = await userService.all();
 
@@ -63,7 +63,7 @@ export const makeUserRouter = (
     }
   });
 
-  UserRouter.patch("/users/:steamId", authenticateRoute, async (req, res) => {
+  UserRouter.patch("/users/:steamId", authOnlyHandler, async (req, res) => {
     try {
       const steamId = validateSteamId(req);
       const requestUser = userFromRequest(req); // TODO: Check privileges for role and createdAt

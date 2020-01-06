@@ -8,9 +8,11 @@ export const makePersistedStorage = (config: CSGNConfig) => {
     projectId: config.firebase.projectId
   };
 
-  firebaseAdmin.initializeApp({
-    credential: firebaseAdmin.credential.cert(serviceAccount)
-  });
+  if (!firebaseAdmin.apps.length) {
+    firebaseAdmin.initializeApp({
+      credential: firebaseAdmin.credential.cert(serviceAccount)
+    });
+  }
 
   const bucket = firebaseAdmin
     .storage()

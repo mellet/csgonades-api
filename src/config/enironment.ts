@@ -1,20 +1,19 @@
-import joi from "joi";
+import Joi from "@hapi/joi";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const envVarSchema = joi
-  .object({
-    PORT: joi.number().required(),
-    STEAM_API_KEY: joi.string().required(),
-    SERVER_SECRET: joi.string().required(),
-    FIREBASE_CLIENT_EMAIL: joi.string().required(),
-    FIREBASE_CLIENT_ID: joi.string().required(),
-    FIREBASE_PRIVATE_KEY: joi.string().required(),
-    GFYCAT_ID: joi.string().required(),
-    GFYCAT_SECRET: joi.string().required(),
-    SENTRY_DSN: joi.string().required()
-  })
+const envVarSchema = Joi.object({
+  PORT: Joi.number().required(),
+  STEAM_API_KEY: Joi.string().required(),
+  SERVER_SECRET: Joi.string().required(),
+  FIREBASE_CLIENT_EMAIL: Joi.string().required(),
+  FIREBASE_CLIENT_ID: Joi.string().required(),
+  FIREBASE_PRIVATE_KEY: Joi.string().required(),
+  GFYCAT_ID: Joi.string().required(),
+  GFYCAT_SECRET: Joi.string().required(),
+  SENTRY_DSN: Joi.string().required()
+})
   .unknown()
   .required();
 
@@ -42,10 +41,7 @@ export type CSGNConfig = {
 };
 
 export const makeConfig = (): CSGNConfig => {
-  const { error } = joi.validate(process.env, envVarSchema);
-  if (error) {
-    throw new Error(`Environment not configured correctly: ${error.message}`);
-  }
+  Joi.attempt(process.env, envVarSchema);
 
   const isProduction = process.env.NODE_ENV === "production";
 
