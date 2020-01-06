@@ -105,7 +105,7 @@ export const AppServer = (config: CSGNConfig) => {
     cacheService
   );
   const favoriteService = new FavoriteService(favoriteRepo, nadeService);
-  const tournamentService = new TournamentService(tournamentRepo);
+  const tournamentService = new TournamentService(tournamentRepo, cacheService);
 
   // Routers
   const statusRouter = makeStatusRouter(config, cacheService);

@@ -1,6 +1,7 @@
 import NodeCache from "node-cache";
 import { CsgoMap, NadeDTO, NadeLightDTO } from "../nade/Nade";
 import { NadeFilter } from "../nade/NadeFilter";
+import { TournamentModel } from "../tournament/Tournament";
 
 export class CachingService {
   private cache: NodeCache;
@@ -8,6 +9,18 @@ export class CachingService {
 
   constructor() {
     this.cache = new NodeCache({ stdTTL: this.defaultTTL });
+  }
+
+  setTournaments(tournaments: TournamentModel[]) {
+    this.cache.set("tournaments", tournaments);
+  }
+
+  getTournaments() {
+    return this.cache.get<TournamentModel[]>("tournaments");
+  }
+
+  flushTournaments() {
+    this.cache.del("tournaments");
   }
 
   setAllNades(key: string, nades: NadeLightDTO[]) {
