@@ -24,7 +24,7 @@ export class TournamentRepo {
   getAll = async (): Promise<TournamentModel[]> => {
     const tournamentDocs = await query(this.collection, [
       where("endDate", ">=", new Date()),
-      order("endDate", "desc")
+      order("endDate", "asc")
     ]);
 
     const tournaments = tournamentDocs.map(this.toModel);
