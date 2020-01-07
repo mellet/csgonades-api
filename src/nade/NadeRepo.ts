@@ -29,6 +29,7 @@ export class NadeRepo {
 
   getAll = async (nadeLimit: number = 0): Promise<NadeDTO[]> => {
     const queryBuilder: Query<NadeModel, keyof NadeModel>[] = [
+      where("status", "==", "accepted"),
       order("createdAt", "desc")
     ];
 

@@ -91,7 +91,8 @@ export class NadeService {
       const updatedNade = await this.nadeRepo.update(nadeId, updatedNadeViews);
 
       if (updatedNade) {
-        this.cache.delNade(updatedNade.id);
+        this.cache.setNade(updatedNade.id, updatedNade);
+        this.cache.delCacheWithMap(updatedNade.map);
       }
 
       return updatedNade;
