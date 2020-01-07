@@ -30,7 +30,7 @@ export const makeUserRouter = (
 
   UserRouter.get("/users/:steamId", async (req, res) => {
     try {
-      const steamId = validateSteamId(req);
+      const { steamId } = validateSteamId(req);
       const requestUser = maybeUserFromRequest(req);
 
       const isAdminOrMod =
@@ -65,7 +65,7 @@ export const makeUserRouter = (
 
   UserRouter.patch("/users/:steamId", authOnlyHandler, async (req, res) => {
     try {
-      const steamId = validateSteamId(req);
+      const { steamId } = validateSteamId(req);
       const requestUser = userFromRequest(req); // TODO: Check privileges for role and createdAt
       const userUpdateFields = validateUserUpdateDTO(req);
 

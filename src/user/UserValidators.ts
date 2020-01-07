@@ -19,14 +19,18 @@ export const validateUserUpdateDTO = (req: Request): UserUpdateDTO => {
   return dto;
 };
 
-export const validateSteamId = (req: Request): string => {
+type SteamIdReqParam = {
+  steamId: string;
+};
+
+export const validateSteamId = (req: Request): SteamIdReqParam => {
   const articleUpdateSchema = Joi.object({
     steamId: Joi.string().required()
   }).unknown(false);
 
-  const value = Joi.attempt(req.params, articleUpdateSchema) as string;
+  const value = Joi.attempt(req.params, articleUpdateSchema) as SteamIdReqParam;
 
-  const steamId = sanitizeIt<string>(value);
+  const steamId = sanitizeIt<SteamIdReqParam>(value);
 
   return steamId;
 };
