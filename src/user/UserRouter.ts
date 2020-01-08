@@ -53,7 +53,7 @@ export const makeUserRouter = (
     }
   });
 
-  UserRouter.get("/users", async (req, res) => {
+  UserRouter.get("/users", adminOrModHandler, async (req, res) => {
     try {
       const limit = req.query.limit ? Number(req.query.limit) : undefined;
       const page = req.query.page ? Number(req.query.page) : undefined;
