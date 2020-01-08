@@ -19,7 +19,9 @@ export class UserService {
     this.statsService = statsService;
   }
 
-  all = (filter?: UserFilter) => this.userRepo.all(filter);
+  all = (filter: UserFilter) => {
+    return this.userRepo.all(filter);
+  };
 
   byId = (steamId: string) => this.userRepo.byId(steamId);
 

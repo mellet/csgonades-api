@@ -1,16 +1,4 @@
-import {
-  collection,
-  Collection,
-  value,
-  update,
-  get,
-  query,
-  order,
-  set,
-  limit,
-  Query,
-  all
-} from "typesaurus";
+import { collection, Collection, value, update, get, set } from "typesaurus";
 import { UserModel } from "./UserModel";
 import { UserCreateDTO, UserUpdateDTO, UserDTO } from "./UserDTOs";
 import { removeUndefines } from "../utils/Common";
@@ -18,44 +6,66 @@ import { ModelUpdate } from "typesaurus/update";
 
 export type UserFilter = {
   limit?: number;
+  page?: number;
   byActivity?: boolean;
 };
 
 export class UserRepo {
   private collection: Collection<UserModel>;
+  private db: FirebaseFirestore.Firestore;
 
-  constructor() {
+  constructor(db: FirebaseFirestore.Firestore) {
     this.collection = collection<UserModel>("users");
+    this.db = db;
   }
 
-  all = async (filter?: UserFilter): Promise<UserDTO[]> => {
-    const queryBuilder: Query<UserModel, keyof UserModel>[] = [];
+  all = async (filter: UserFilter): Promise<UserDTO[]> => {
+    const userFilter = {
+      ...filter,
+      limit: filter.limit || 5,
+      page: filter.page || 1
+    };
 
-    if (!filter) {
-      queryBuilder.push(order("createdAt", "desc"));
-    }
+    let offset = userFilter.limit * (userFilter.page - 1);
 
-    if (filter?.byActivity) {
-      queryBuilder.push(order("lastActive", "desc"));
-    }
+    // First page of users
+    let query = this.db
+      .collection("users")
+      .orderBy(userFilter.byActivity ? "lastActive" : "createdAt", "desc")
+      .offset(offset)
+      .limit(userFilter.limit);
 
-    if (filter?.limit) {
-      queryBuilder.push(limit(filter.limit));
-    }
+    let querySnap = await query.get();
 
-    const usersDocs = await query(this.collection, queryBuilder);
+    let userDocs: UserModel[] = [];
 
-    const users = usersDocs.map(
+    querySnap.forEach(snap => {
+      const userDoc = snap.data();
+      const userModel: UserModel = {
+        createdAt: userDoc.createdAt.toDate(),
+        updatedAt: userDoc.updatedAt.toDate(),
+        avatar: userDoc.avatar,
+        lastActive: userDoc.lastActive.toDate(),
+        nickname: userDoc.nickname,
+        role: userDoc.role,
+        steamId: userDoc.steamId,
+        bio: userDoc.bio,
+        email: userDoc.email
+      };
+      userDocs.push(userModel);
+    });
+
+    const users = userDocs.map(
       (userDoc): UserDTO => ({
-        steamId: userDoc.data.steamId,
-        nickname: userDoc.data.nickname,
-        avatar: userDoc.data.avatar,
-        createdAt: userDoc.data.createdAt,
-        lastActive: userDoc.data.lastActive,
-        role: userDoc.data.role,
-        updatedAt: userDoc.data.updatedAt,
-        bio: userDoc.data.bio,
-        email: userDoc.data.email
+        steamId: userDoc.steamId,
+        nickname: userDoc.nickname,
+        avatar: userDoc.avatar,
+        createdAt: userDoc.createdAt,
+        lastActive: userDoc.lastActive,
+        role: userDoc.role,
+        updatedAt: userDoc.updatedAt,
+        bio: userDoc.bio,
+        email: userDoc.email
       })
     );
 

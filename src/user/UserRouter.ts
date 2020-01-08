@@ -9,6 +9,7 @@ import { NadeService } from "../nade/NadeService";
 import { UserService } from "./UserService";
 import { errorCatchConverter, ErrorFactory } from "../utils/ErrorUtil";
 import { validateUserUpdateDTO, validateSteamId } from "./UserValidators";
+import { UserFilter } from "./UserRepo";
 
 export const makeUserRouter = (
   userService: UserService,
@@ -52,9 +53,19 @@ export const makeUserRouter = (
     }
   });
 
-  UserRouter.get("/users", adminOrModHandler, async (_, res) => {
+  UserRouter.get("/users", async (req, res) => {
     try {
-      const users = await userService.all();
+      const limit = req.query.limit ? Number(req.query.limit) : undefined;
+      const page = req.query.page ? Number(req.query.page) : undefined;
+      const sortActive = req.query.sortActive === "true";
+
+      const userFilter: UserFilter = {
+        byActivity: sortActive,
+        limit,
+        page
+      };
+
+      const users = await userService.all(userFilter);
 
       return res.status(200).send(users);
     } catch (error) {

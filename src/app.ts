@@ -78,10 +78,10 @@ export const AppServer = (config: CSGNConfig) => {
   app.use(extractTokenMiddleware(config));
 
   // Storage
-  const { bucket } = makePersistedStorage(config);
+  const { bucket, db } = makePersistedStorage(config);
 
   // Repos
-  const userRepo = new UserRepo();
+  const userRepo = new UserRepo(db);
   const nadeRepo = new NadeRepo();
   const favoriteRepo = new FavoriteRepo();
   const statsRepo = new StatsRepo();
