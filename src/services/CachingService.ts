@@ -26,22 +26,18 @@ export class CachingService {
   setAllNades = (key: string, nades: NadeDTO[]) => {
     this.cache.set(key, nades);
 
-    this.log(key, "set");
-
     for (let nade of nades) {
       this.setNade(nade.id, nade);
     }
   };
 
   getAllNades = (key: string): NadeDTO[] | undefined => {
-    this.log(key, "get");
     return this.cache.get(key);
   };
 
   setByMap = (map: CsgoMap, nades: NadeDTO[], filter?: NadeFilter) => {
     const cacheKey = `map-${map}-${JSON.stringify(filter)}`;
     this.cache.set(cacheKey, nades);
-    this.log(cacheKey, "set");
 
     for (let nade of nades) {
       this.setNade(nade.id, nade);
@@ -50,7 +46,6 @@ export class CachingService {
 
   getByMap = (map: CsgoMap, filter?: NadeFilter) => {
     const cacheKey = `map-${map}-${JSON.stringify(filter)}`;
-    this.log(cacheKey, "get");
     return this.cache.get<NadeDTO[]>(cacheKey);
   };
 
@@ -61,19 +56,20 @@ export class CachingService {
 
     const cacheKeys = this.cache.keys();
     const staleKeys = cacheKeys.filter(key => key.includes(map));
-    this.cache.del(staleKeys);
-    this.log(staleKeys, "del");
+
+    if (staleKeys.length) {
+      this.cache.del(staleKeys);
+    }
   };
 
   setNade = (nadeId: string, nade: NadeDTO) => {
     const cacheKey = `nade-${nadeId}`;
     this.cache.set(cacheKey, nade);
-    this.log(cacheKey, "set");
   };
 
   getNade = (nadeId: string): NadeDTO | undefined => {
     const cacheKey = `nade-${nadeId}`;
-    this.log(cacheKey, "get");
+
     return this.cache.get(cacheKey);
   };
 
@@ -83,7 +79,6 @@ export class CachingService {
       this.delCacheWithMap(nade.map);
       const cacheKey = `nade-${nadeId}`;
       this.cache.del(cacheKey);
-      this.log(cacheKey, "del");
     }
   };
 
@@ -93,7 +88,6 @@ export class CachingService {
 
   flushAll = () => {
     this.cache.flushAll();
-    this.log("all", "flush");
   };
 
   private log = (

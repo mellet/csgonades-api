@@ -13,3 +13,7 @@ export function extractGfyIdFromIdOrUrl(gfycatIdOrUrl: string): string {
   const gfyId = gfycatIdOrUrl.substr(index + 1);
   return gfyId;
 }
+
+export function clamp(num: number, min: number, max: number) {
+  return num <= min ? min : num >= max ? max : num;
+}

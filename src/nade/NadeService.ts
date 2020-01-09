@@ -19,6 +19,7 @@ import { CachingService } from "../services/CachingService";
 import { UserService } from "../user/UserService";
 import { NadeRepo } from "./NadeRepo";
 import moment from "moment";
+import { clamp } from "../utils/Common";
 
 export class NadeService {
   private nadeRepo: NadeRepo;
@@ -67,7 +68,7 @@ export class NadeService {
   byId = async (nadeId: string) => {
     const cachedNade = this.cache.getNade(nadeId);
 
-    if (cachedNade) {
+    if (cachedNade && !this.shouldUpdateStats(cachedNade)) {
       return cachedNade;
     }
 
@@ -285,15 +286,18 @@ export class NadeService {
       return true;
     }
 
+    const daysAgoSubmitted = moment().diff(
+      moment(nade.createdAt),
+      "days",
+      false
+    );
+    const hoursToWaitForUpdate = clamp(daysAgoSubmitted, 1, 24);
     const lastUpdated = nade.lastGfycatUpdate;
+    const hoursSinceUpdate = moment().diff(moment(lastUpdated), "hours", false);
 
-    let hours = moment().diff(moment(lastUpdated), "hours", false);
+    const shouldUpdate = hoursSinceUpdate > hoursToWaitForUpdate;
 
-    if (hours > 6) {
-      return true;
-    }
-
-    return false;
+    return shouldUpdate;
   }
 
   isAllowedEdit = async (nadeId: string, steamId: string): Promise<boolean> => {
