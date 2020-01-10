@@ -14,7 +14,6 @@ import { userFromRequest } from "../utils/RouterUtils";
 import { GfycatService } from "../services/GfycatService";
 import { getSessionId } from "../utils/SessionRoute";
 import { sanitizeIt } from "../utils/Sanitize";
-import { nadeFilterFromRequest } from "./NadeFilter";
 import { NadeService } from "./NadeService";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 
@@ -93,8 +92,7 @@ export const makeNadeRouter = (
   NadeRouter.get<MapNameParam>("/nades/map/:mapname", async (req, res) => {
     try {
       const mapName = sanitizeIt(req.params.mapname);
-      const nadeFilter = nadeFilterFromRequest(req);
-      const nades = await nadeService.byMap(mapName, nadeFilter);
+      const nades = await nadeService.byMap(mapName);
 
       return res.status(200).send(nades);
     } catch (error) {

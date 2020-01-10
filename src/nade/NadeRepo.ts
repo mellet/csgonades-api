@@ -16,7 +16,6 @@ import {
   Query
 } from "typesaurus";
 import { NadeModel, NadeDTO, CsgoMap, NadeCreateModel } from "./Nade";
-import { NadeFilter } from "./NadeFilter";
 import { removeUndefines } from "../utils/Common";
 import { UserLightModel } from "../user/UserModel";
 
@@ -67,28 +66,12 @@ export class NadeRepo {
     };
   };
 
-  byMap = async (
-    csgoMap: CsgoMap,
-    nadeFilter?: NadeFilter
-  ): Promise<NadeDTO[]> => {
+  byMap = async (csgoMap: CsgoMap): Promise<NadeDTO[]> => {
     const queryBuilder: Query<NadeModel, keyof NadeModel>[] = [
       where("status", "==", "accepted"),
       where("map", "==", csgoMap),
       order("createdAt", "desc")
     ];
-
-    if (nadeFilter?.flash) {
-      queryBuilder.push(where("type", "==", "flash"));
-    }
-    if (nadeFilter?.hegrenade) {
-      queryBuilder.push(where("type", "==", "hegrenade"));
-    }
-    if (nadeFilter?.smoke) {
-      queryBuilder.push(where("type", "==", "smoke"));
-    }
-    if (nadeFilter?.molotov) {
-      queryBuilder.push(where("type", "==", "molotov"));
-    }
 
     const nadeDocs = await query(this.collection, queryBuilder);
 

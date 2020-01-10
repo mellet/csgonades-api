@@ -14,7 +14,6 @@ import { IImageStorageService } from "../services/ImageStorageService";
 import { GfycatService } from "../services/GfycatService";
 import { UserModel, UserLightModel } from "../user/UserModel";
 import { StatsService } from "../stats/StatsService";
-import { NadeFilter } from "./NadeFilter";
 import { CachingService } from "../services/CachingService";
 import { UserService } from "../user/UserService";
 import { NadeRepo } from "./NadeRepo";
@@ -46,15 +45,15 @@ export class NadeService {
   }
 
   fetchNades = async (limit?: number): Promise<NadeLightDTO[]> => {
-    const cacheKey = limit ? `fetchNades-${limit}` : `fetchNades-all`;
-
-    const cachedNades = this.cache.getAllNades(cacheKey);
+    const cachedNades = this.cache.getRecentNades();
 
     if (cachedNades) {
       return cachedNades.map(this.toLightDTO);
     }
 
     const nades = await this.nadeRepo.getAll(limit);
+
+    this.cache.setRecentNades(nades);
 
     return nades.map(this.toLightDTO);
   };
@@ -73,10 +72,6 @@ export class NadeService {
     }
 
     const nade = await this.nadeRepo.byId(nadeId);
-
-    if (nade) {
-      this.cache.setNade(nadeId, nade);
-    }
 
     if (nade && this.shouldUpdateStats(nade)) {
       const gfycat = await this.gfycatService.getGfycatData(nade.gfycat.gfyId);
@@ -99,6 +94,10 @@ export class NadeService {
       return updatedNade;
     }
 
+    if (nade) {
+      this.cache.setNade(nadeId, nade);
+    }
+
     return nade;
   };
 
@@ -106,19 +105,16 @@ export class NadeService {
     return this.nadeRepo.list(ids);
   };
 
-  byMap = async (
-    map: CsgoMap,
-    nadeFilter: NadeFilter
-  ): Promise<NadeLightDTO[]> => {
-    const cachedNades = this.cache.getByMap(map, nadeFilter);
+  byMap = async (map: CsgoMap): Promise<NadeLightDTO[]> => {
+    const cachedNades = this.cache.getByMap(map);
 
     if (cachedNades) {
       return cachedNades;
     }
 
-    const nades = await this.nadeRepo.byMap(map, nadeFilter);
+    const nades = await this.nadeRepo.byMap(map);
 
-    this.cache.setByMap(map, nades, nadeFilter);
+    this.cache.setByMap(map, nades);
 
     return nades;
   };
@@ -187,9 +183,7 @@ export class NadeService {
 
     await this.statsService.decrementNadeCounter();
 
-    // Clear cache where map was the nades map
     this.cache.delNade(nadeId);
-    this.cache.delCacheWithMap(nade.map);
   };
 
   async update(
