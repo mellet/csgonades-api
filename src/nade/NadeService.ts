@@ -84,9 +84,11 @@ export class NadeService {
         viewCount: gfycat.gfyItem.views
       };
 
+      const viewCountDidDiffer = gfycat.gfyItem.views !== nade.viewCount;
+
       const updatedNade = await this.nadeRepo.update(nadeId, updatedNadeViews);
 
-      if (updatedNade) {
+      if (updatedNade && viewCountDidDiffer) {
         this.cache.setNade(updatedNade.id, updatedNade);
         this.cache.delCacheWithMap(updatedNade.map);
       }
