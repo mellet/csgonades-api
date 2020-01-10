@@ -285,7 +285,15 @@ export class NadeService {
       "days",
       false
     );
-    const hoursToWaitForUpdate = clamp(daysAgoSubmitted, 1, 24);
+
+    const MIN_HOURS_TO_UPDATE = 4;
+    const MAX_HOURS_TO_UPDATE = 48;
+
+    const hoursToWaitForUpdate = clamp(
+      daysAgoSubmitted,
+      MIN_HOURS_TO_UPDATE,
+      MAX_HOURS_TO_UPDATE
+    );
     const lastUpdated = nade.lastGfycatUpdate;
     const hoursSinceUpdate = moment().diff(moment(lastUpdated), "hours", false);
 
