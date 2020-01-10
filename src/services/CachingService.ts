@@ -66,6 +66,7 @@ export class CachingService {
     const nade = this.getNade(nadeId);
     if (nade) {
       this.cache.del(nade.id);
+      this.unvalidateRecentIfNadePresent(nade.id);
       this.delCacheWithMap(nade.map);
     }
   };
@@ -76,5 +77,16 @@ export class CachingService {
 
   flushAll = () => {
     this.cache.flushAll();
+  };
+
+  private unvalidateRecentIfNadePresent = (nadeId: string) => {
+    const recentNades = this.cache.get<NadeDTO[]>("recent");
+
+    if (recentNades) {
+      const found = recentNades.find(n => n.id === nadeId);
+      if (found) {
+        this.cache.del("recent");
+      }
+    }
   };
 }
