@@ -18,6 +18,7 @@ import {
 import { NadeModel, NadeDTO, CsgoMap, NadeCreateModel } from "./Nade";
 import { removeUndefines } from "../utils/Common";
 import { UserLightModel } from "../user/UserModel";
+import { ModelUpdate } from "typesaurus/update";
 
 export class NadeRepo {
   private collection: Collection<NadeModel>;
@@ -112,20 +113,14 @@ export class NadeRepo {
 
   update = async (
     nadeId: string,
-    updates: Partial<NadeDTO>
+    updates: Partial<NadeModel>
   ): Promise<NadeDTO | null> => {
-    let modelUpdates: Partial<NadeModel> = {
-      ...updates
+    let modelUpdates: ModelUpdate<NadeModel> = {
+      ...updates,
+      lastGfycatUpdate: updates.lastGfycatUpdate
+        ? value("serverDate")
+        : undefined
     };
-
-    // If viewcount is updated,
-    // set new time so we don't update again for a while
-    if (updates.viewCount) {
-      modelUpdates = {
-        ...modelUpdates,
-        lastGfycatUpdate: value("serverDate")
-      };
-    }
 
     modelUpdates = removeUndefines(modelUpdates);
 

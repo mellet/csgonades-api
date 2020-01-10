@@ -30,6 +30,11 @@ type Tickrate = "64tick" | "128 tick" | "Any";
 
 type NadeType = "notset" | "smoke" | "flash" | "molotov" | "hegrenade";
 
+type MapCoordinates = {
+  x: number;
+  y: number;
+};
+
 export interface NadeModel {
   title?: string;
   gfycat: GfycatData;
@@ -48,6 +53,8 @@ export interface NadeModel {
   type?: NadeType;
   statusInfo?: StatusInfo;
   mapSite?: MapSite;
+  mapStartCoord?: MapCoordinates;
+  mapEndCoord?: MapCoordinates;
   viewCount: number;
   favoriteCount: number;
 }
@@ -100,6 +107,8 @@ export type NadeUpdateDTO = {
   type?: NadeType;
   mapSite?: MapSite;
   createdAt?: string;
+  mapStartCoord?: MapCoordinates;
+  mapEndCoord?: MapCoordinates;
 };
 
 export type NadeGfycatValidateDTO = {
@@ -144,6 +153,7 @@ export function updatedNadeMerge(
     steamId: newUser && newUser.steamId,
     mapSite: updateFields.mapSite,
     viewCount: views,
+    mapEndCoord: updateFields.mapEndCoord,
     createdAt: updateFields.createdAt
       ? new Date(updateFields.createdAt)
       : undefined
