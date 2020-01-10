@@ -84,6 +84,7 @@ export type NadeLightDTO = {
   createdAt: Date;
   viewCount: number;
   favoriteCount: number;
+  mapEndCoord?: MapCoordinates;
 };
 
 export type NadeCreateDTO = {
