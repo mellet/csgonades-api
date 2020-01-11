@@ -46,14 +46,6 @@ export class CachingService {
     return this.cache.get<NadeDTO[]>(map);
   };
 
-  delCacheWithMap = (map?: CsgoMap) => {
-    if (!map) {
-      return;
-    }
-
-    this.cache.del(map);
-  };
-
   setNade = (nadeId: string, nade: NadeDTO) => {
     this.cache.set(nade.id, nade);
   };
@@ -62,7 +54,7 @@ export class CachingService {
     return this.cache.get(nadeId);
   };
 
-  delNade = (nadeId: string) => {
+  invalidateNade = (nadeId: string) => {
     const nade = this.getNade(nadeId);
     if (nade) {
       this.cache.del(nade.id);
@@ -88,5 +80,13 @@ export class CachingService {
         this.cache.del("recent");
       }
     }
+  };
+
+  private delCacheWithMap = (map?: CsgoMap) => {
+    if (!map) {
+      return;
+    }
+
+    this.cache.del(map);
   };
 }

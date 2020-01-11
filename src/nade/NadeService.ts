@@ -89,8 +89,7 @@ export class NadeService {
       const updatedNade = await this.nadeRepo.update(nadeId, updatedNadeViews);
 
       if (updatedNade && viewCountDidDiffer) {
-        this.cache.setNade(updatedNade.id, updatedNade);
-        this.cache.delCacheWithMap(updatedNade.map);
+        this.cache.invalidateNade(updatedNade.id);
       }
 
       return updatedNade;
@@ -185,7 +184,7 @@ export class NadeService {
 
     await this.statsService.decrementNadeCounter();
 
-    this.cache.delNade(nadeId);
+    this.cache.invalidateNade(nadeId);
   };
 
   async update(
@@ -225,7 +224,7 @@ export class NadeService {
     const updatedNade = await this.nadeRepo.update(nadeId, mergedNade);
 
     if (updatedNade) {
-      this.cache.delNade(updatedNade.id);
+      this.cache.invalidateNade(updatedNade.id);
     }
 
     return updatedNade;
@@ -252,7 +251,7 @@ export class NadeService {
       await this.statsService.incrementPendingCounter();
     }
 
-    this.cache.delNade(nade.id);
+    this.cache.invalidateNade(nade.id);
 
     return nade;
   }
