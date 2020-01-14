@@ -175,16 +175,22 @@ export class NadeRepo {
   };
 
   private calcScore = (nade: NadeModel): number => {
-    const daysAgoSubmitted =
-      moment().diff(moment(nade.createdAt), "days", false) + 1;
+    const DATE_WEIGHT = 1;
+    const VIEW_WEIGHT = 2;
+    const FAVORITE_WEIGHT = 4;
 
-    const views = nade.viewCount || 0;
+    const addedHoursAgo =
+      moment().diff(moment(nade.createdAt), "hours", false) + 1;
 
-    const viewScore = Math.max(views, 1);
+    const views = nade.viewCount;
+    const favorites = Math.max(nade.favoriteCount || 0, 1);
 
-    const favoriteScore = Math.max(nade.favoriteCount * 100, 1);
+    const viewScore = Math.log(views) * VIEW_WEIGHT;
+    const favoriteScore = Math.log(favorites) * FAVORITE_WEIGHT;
+    const agoScore = Math.log(addedHoursAgo) * DATE_WEIGHT;
 
-    const hotScore = Math.round((viewScore + favoriteScore) / daysAgoSubmitted);
+    const hotScore =
+      Math.round(((viewScore + favoriteScore) / agoScore) * 100) / 100;
 
     return hotScore;
   };
