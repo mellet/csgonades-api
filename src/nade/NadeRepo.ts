@@ -19,6 +19,7 @@ import { NadeModel, NadeDTO, CsgoMap, NadeCreateModel } from "./Nade";
 import { removeUndefines } from "../utils/Common";
 import { UserLightModel } from "../user/UserModel";
 import { ModelUpdate } from "typesaurus/update";
+import moment from "moment";
 
 export class NadeRepo {
   private collection: Collection<NadeModel>;
@@ -63,7 +64,8 @@ export class NadeRepo {
 
     return {
       ...nadeDoc.data,
-      id: nadeDoc.ref.id
+      id: nadeDoc.ref.id,
+      score: this.calcScore(nadeDoc.data)
     };
   };
 
@@ -167,7 +169,23 @@ export class NadeRepo {
   private toNadeDTO = (doc: Doc<NadeModel>): NadeDTO => {
     return {
       ...doc.data,
-      id: doc.ref.id
+      id: doc.ref.id,
+      score: this.calcScore(doc.data)
     };
+  };
+
+  private calcScore = (nade: NadeModel): number => {
+    const daysAgoSubmitted =
+      moment().diff(moment(nade.createdAt), "days", false) + 1;
+
+    const views = nade.viewCount || 0;
+
+    const viewScore = Math.max(views, 1);
+
+    const favoriteScore = Math.max(nade.favoriteCount * 100, 1);
+
+    const hotScore = Math.round((viewScore + favoriteScore) / daysAgoSubmitted);
+
+    return hotScore;
   };
 }

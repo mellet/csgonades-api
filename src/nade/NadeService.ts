@@ -336,7 +336,8 @@ export class NadeService {
       tickrate: nadeDto.tickrate,
       title: nadeDto.title,
       type: nadeDto.type,
-      mapEndCoord: nadeDto.mapEndCoord
+      mapEndCoord: nadeDto.mapEndCoord,
+      score: nadeDto.score
     };
   };
 }

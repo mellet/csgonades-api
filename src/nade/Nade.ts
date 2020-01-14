@@ -61,6 +61,7 @@ export interface NadeModel {
 
 export interface NadeDTO extends NadeModel {
   id: string;
+  score: number;
 }
 
 export type NadeCreateModel = {
@@ -85,6 +86,7 @@ export type NadeLightDTO = {
   viewCount: number;
   favoriteCount: number;
   mapEndCoord?: MapCoordinates;
+  score: number;
 };
 
 export type NadeCreateDTO = {
