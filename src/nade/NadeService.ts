@@ -64,7 +64,7 @@ export class NadeService {
     return pending;
   };
 
-  byId = async (nadeId: string) => {
+  byId = async (nadeId: string): Promise<NadeDTO | null> => {
     const cachedNade = this.cache.getNade(nadeId);
 
     if (cachedNade && !this.shouldUpdateStats(cachedNade)) {
@@ -102,26 +102,28 @@ export class NadeService {
     return nade;
   };
 
-  list = (ids: string[]): Promise<NadeLightDTO[]> => {
-    return this.nadeRepo.list(ids);
+  list = async (ids: string[]): Promise<NadeLightDTO[]> => {
+    const nades = await this.nadeRepo.list(ids);
+    return nades.map(this.toLightDTO);
   };
 
   byMap = async (map: CsgoMap): Promise<NadeLightDTO[]> => {
     const cachedNades = this.cache.getByMap(map);
 
     if (cachedNades) {
-      return cachedNades;
+      return cachedNades.map(this.toLightDTO);
     }
 
     const nades = await this.nadeRepo.byMap(map);
 
     this.cache.setByMap(map, nades);
 
-    return nades;
+    return nades.map(this.toLightDTO);
   };
 
-  byUser = (steamId: string): Promise<NadeLightDTO[]> => {
-    return this.nadeRepo.byUser(steamId);
+  byUser = async (steamId: string): Promise<NadeLightDTO[]> => {
+    const nadesByUse = await this.nadeRepo.byUser(steamId);
+    return nadesByUse.map(this.toLightDTO);
   };
 
   save = async (
