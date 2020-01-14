@@ -42,10 +42,19 @@ export const makeUserRouter = (
       if (isAdminOrMod || isRequestingSelf) {
         const result = await userService.byId(steamId);
 
+        if (!result) {
+          return res.status(404).send();
+        }
+
         return res.status(200).send(result);
       }
 
       const result = await userService.byIdAnon(steamId);
+
+      if (!result) {
+        return res.status(404).send();
+      }
+
       return res.status(200).send(result);
     } catch (error) {
       const err = errorCatchConverter(error);
