@@ -42,7 +42,7 @@ export const makeNadeRouter = (
       let limit: number | undefined = undefined;
 
       if (!limitParam) {
-        limit = 8;
+        limit = 12;
       } else if (limitParam === "all") {
         limit = undefined;
       } else {
