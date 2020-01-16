@@ -5,6 +5,7 @@ import { TournamentModel } from "../tournament/Tournament";
 export class CachingService {
   private cache: NodeCache;
   private defaultTTL = 1000 * 60 * 60 * 48; // 48 hours
+  private recentKey = "recent";
 
   constructor() {
     this.cache = new NodeCache({ stdTTL: this.defaultTTL });
@@ -23,7 +24,7 @@ export class CachingService {
   };
 
   setRecentNades = (nades: NadeDTO[]) => {
-    this.cache.set("recent", nades);
+    this.cache.set(this.recentKey, nades);
 
     for (let nade of nades) {
       this.setNade(nade.id, nade);
@@ -31,7 +32,7 @@ export class CachingService {
   };
 
   getRecentNades = (): NadeDTO[] | undefined => {
-    return this.cache.get("recent");
+    return this.cache.get(this.recentKey);
   };
 
   setByMap = (map: CsgoMap, nades: NadeDTO[]) => {
@@ -71,13 +72,24 @@ export class CachingService {
     this.cache.flushAll();
   };
 
+  invalidateRecent = () => {
+    this.cache.del(this.recentKey);
+  };
+
+  invalidateMap = (map?: CsgoMap) => {
+    if (!map) {
+      return;
+    }
+    this.cache.del(map);
+  };
+
   private unvalidateRecentIfNadePresent = (nadeId: string) => {
-    const recentNades = this.cache.get<NadeDTO[]>("recent");
+    const recentNades = this.cache.get<NadeDTO[]>(this.recentKey);
 
     if (recentNades) {
       const found = recentNades.find(n => n.id === nadeId);
       if (found) {
-        this.cache.del("recent");
+        this.cache.del(this.recentKey);
       }
     }
   };

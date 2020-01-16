@@ -253,7 +253,9 @@ export class NadeService {
       await this.statsService.incrementPendingCounter();
     }
 
-    this.cache.invalidateNade(nade.id);
+    this.cache.invalidateRecent();
+    this.cache.invalidateMap(nade.map);
+    this.cache.invalidateNade(nadeId);
 
     return nade;
   }

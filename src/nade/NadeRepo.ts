@@ -79,6 +79,7 @@ export class NadeRepo {
     const nadeDocs = await query(this.collection, queryBuilder);
 
     const nades = nadeDocs.map(this.toNadeDTO);
+
     return nades;
   };
 
@@ -185,9 +186,9 @@ export class NadeRepo {
     const views = nade.viewCount;
     const favorites = Math.max(nade.favoriteCount || 0, 1);
 
-    const viewScore = Math.log(views) * VIEW_WEIGHT;
-    const favoriteScore = Math.log(favorites) * FAVORITE_WEIGHT;
-    const agoScore = Math.log(addedHoursAgo) * DATE_WEIGHT;
+    const viewScore = (Math.log(views) + 1) * VIEW_WEIGHT;
+    const favoriteScore = (Math.log(favorites) + 1) * FAVORITE_WEIGHT;
+    const agoScore = (Math.log(addedHoursAgo) + 1) * DATE_WEIGHT;
 
     const hotScore =
       Math.round(((viewScore + favoriteScore) / agoScore) * 100) / 100;
