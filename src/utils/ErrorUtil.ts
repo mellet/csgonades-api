@@ -1,5 +1,10 @@
 import { CustomError } from "ts-custom-error";
 
+type ApiError = {
+  code: number;
+  message: string;
+};
+
 class ErrorNotFound extends CustomError {
   constructor(public code: number, message?: string) {
     super(message);
@@ -28,7 +33,7 @@ export class ErrorFactory {
   }
 }
 
-export const errorCatchConverter = (error: any) => {
+export const errorCatchConverter = (error: any): ApiError => {
   console.error(error);
   return {
     code: error.code || 500,

@@ -16,6 +16,9 @@ import { FavoriteService } from "./favorite/FavoriteService";
 import { NadeRepo } from "./nade/NadeRepo";
 import { makeNadeRouter } from "./nade/NadeRouter";
 import { NadeService } from "./nade/NadeService";
+import { ReportRepo } from "./reports/ReportRepo";
+import { ReportRouter } from "./reports/ReportRouter";
+import { ReportService } from "./reports/ReportService";
 import { CachingService } from "./services/CachingService";
 import { makeGfycatService } from "./services/GfycatService";
 import { ImageStorageService } from "./services/ImageStorageService";
@@ -88,6 +91,7 @@ export const AppServer = (config: CSGNConfig) => {
   const contactRepo = new ContactRepo();
   const articleRepo = new ArticleRepo();
   const tournamentRepo = new TournamentRepo();
+  const reportRepo = new ReportRepo();
 
   // Services
   const cacheService = new CachingService();
@@ -106,6 +110,7 @@ export const AppServer = (config: CSGNConfig) => {
   );
   const favoriteService = new FavoriteService(favoriteRepo, nadeService);
   const tournamentService = new TournamentService(tournamentRepo, cacheService);
+  const reporService = new ReportService(reportRepo);
 
   // Routers
   const statusRouter = makeStatusRouter(config, cacheService);
@@ -115,11 +120,11 @@ export const AppServer = (config: CSGNConfig) => {
   const favoriteRouter = makeFavoriteRouter(favoriteService);
   const statsRouter = makeStatsRouter(statsService);
   const contactRouter = makeContactRouter(contactRepo);
-
   const articleRouter = new ArticleController(articleRepo).getRouter();
   const tournamentRouter = new TournamentController(
     tournamentService
   ).getRouter();
+  const reportRouter = new ReportRouter(reporService).getRouter();
 
   app.use(nadeRouter);
   app.use(steamRouter);
@@ -130,6 +135,7 @@ export const AppServer = (config: CSGNConfig) => {
   app.use(contactRouter);
   app.use(articleRouter);
   app.use(tournamentRouter);
+  app.use(reportRouter);
 
   app.get("/", (_, res) => {
     res.send("");
