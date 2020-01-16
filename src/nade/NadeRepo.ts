@@ -181,7 +181,7 @@ export class NadeRepo {
     const FAVORITE_WEIGHT = 4;
 
     const addedHoursAgo =
-      moment().diff(moment(nade.createdAt), "hours", false) + 1;
+      moment().diff(moment(nade.createdAt), "days", false) + 1;
 
     const views = nade.viewCount;
     const favorites = Math.max(nade.favoriteCount || 0, 1);
