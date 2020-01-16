@@ -1,6 +1,6 @@
-import { TournamentRepo } from "./TournamentRepo";
-import { TournamentModel, TournamentCreateDTO } from "./Tournament";
 import { CachingService } from "../services/CachingService";
+import { TournamentCreateDTO, TournamentModel } from "./Tournament";
+import { TournamentRepo } from "./TournamentRepo";
 
 export class TournamentService {
   private tournamentRepo: TournamentRepo;

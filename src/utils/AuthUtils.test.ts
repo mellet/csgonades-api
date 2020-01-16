@@ -1,5 +1,5 @@
-import { createRefreshToken, payloadFromToken } from "./AuthUtils";
 import { UserModel } from "../user/UserModel";
+import { createRefreshToken, payloadFromToken } from "./AuthUtils";
 
 describe("Auth Utils", () => {
   it("Creates a valid refresh token", () => {

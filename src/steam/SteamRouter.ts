@@ -1,16 +1,16 @@
-import { Router, CookieOptions } from "express";
+import * as Sentry from "@sentry/node";
+import { CookieOptions, Router } from "express";
 import { PassportStatic } from "passport";
 import SteamStrategy from "passport-steam";
 import { CSGNConfig } from "../config/enironment";
+import { UserModel } from "../user/UserModel";
+import { UserService } from "../user/UserService";
 import {
-  createRefreshToken,
   createAccessToken,
+  createRefreshToken,
   payloadFromToken
 } from "../utils/AuthUtils";
-import { UserModel } from "../user/UserModel";
 import { sanitizeIt } from "../utils/Sanitize";
-import { UserService } from "../user/UserService";
-import * as Sentry from "@sentry/node";
 
 export const makeSteamRouter = (
   userService: UserService,

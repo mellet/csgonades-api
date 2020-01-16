@@ -1,5 +1,5 @@
+import { CookieOptions, Request, Response } from "express";
 import uniqid from "uniqid";
-import { Request, Response, CookieOptions } from "express";
 
 export function sessionRoute(req: Request, res: Response) {
   const sessionId = getSessionId(req);

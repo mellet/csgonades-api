@@ -1,21 +1,21 @@
 import { Router } from "express";
-import { validateNade } from "./NadeMiddleware";
+import { CSGNConfig } from "../config/enironment";
+import { GfycatService } from "../services/GfycatService";
+import { adminOrModHandler, authOnlyHandler } from "../utils/AuthUtils";
+import { errorCatchConverter } from "../utils/ErrorUtil";
+import { userFromRequest } from "../utils/RouterUtils";
+import { sanitizeIt } from "../utils/Sanitize";
+import { getSessionId } from "../utils/SessionRoute";
 import {
   CsgoMap,
+  GfycatData,
   NadeCreateDTO,
-  NadeUpdateDTO,
-  NadeStatusDTO,
   NadeGfycatValidateDTO,
-  GfycatData
+  NadeStatusDTO,
+  NadeUpdateDTO
 } from "./Nade";
-import { CSGNConfig } from "../config/enironment";
-import { authOnlyHandler, adminOrModHandler } from "../utils/AuthUtils";
-import { userFromRequest } from "../utils/RouterUtils";
-import { GfycatService } from "../services/GfycatService";
-import { getSessionId } from "../utils/SessionRoute";
-import { sanitizeIt } from "../utils/Sanitize";
+import { validateNade } from "./NadeMiddleware";
 import { NadeService } from "./NadeService";
-import { errorCatchConverter } from "../utils/ErrorUtil";
 
 type IdParam = {
   id: string;

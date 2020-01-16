@@ -1,15 +1,4 @@
-import {
-  collection,
-  add,
-  Collection,
-  value,
-  update,
-  get,
-  query,
-  limit,
-  order,
-  Doc
-} from "typesaurus";
+import { collection, Collection, get, update, value } from "typesaurus";
 import { SiteStats } from "./SiteStats";
 
 export class StatsRepo {

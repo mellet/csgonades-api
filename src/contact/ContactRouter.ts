@@ -1,8 +1,8 @@
 import { Router } from "express";
+import { errorCatchConverter } from "../utils/ErrorUtil";
 import { sanitizeIt } from "../utils/Sanitize";
 import { ContactDTO } from "./ContactData";
 import { ContactRepo } from "./ContactRepo";
-import { errorCatchConverter } from "../utils/ErrorUtil";
 
 export const makeContactRouter = (contactRepo: ContactRepo): Router => {
   const ContactRouter = Router();

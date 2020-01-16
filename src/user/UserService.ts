@@ -1,8 +1,8 @@
-import { ISteamService } from "../steam/SteamService";
-import { UserModel, UserModelAnon } from "./UserModel";
 import { StatsService } from "../stats/StatsService";
-import { UserUpdateDTO, UserCreateDTO } from "./UserDTOs";
-import { UserRepo, UserFilter } from "./UserRepo";
+import { ISteamService } from "../steam/SteamService";
+import { UserCreateDTO, UserUpdateDTO } from "./UserDTOs";
+import { UserModel, UserModelAnon } from "./UserModel";
+import { UserFilter, UserRepo } from "./UserRepo";
 
 export class UserService {
   private userRepo: UserRepo;

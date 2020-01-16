@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { StatsService } from "./StatsService";
 import { errorCatchConverter } from "../utils/ErrorUtil";
+import { StatsService } from "./StatsService";
 
 export const makeStatsRouter = (statsService: StatsService): Router => {
   const StatsRouter = Router();

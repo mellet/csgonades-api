@@ -1,8 +1,8 @@
-import { Router, RequestHandler } from "express";
-import { TournamentService } from "./TournamentService";
-import { errorCatchConverter } from "../utils/ErrorUtil";
+import { RequestHandler, Router } from "express";
 import { adminOrModHandler } from "../utils/AuthUtils";
+import { errorCatchConverter } from "../utils/ErrorUtil";
 import { TournamentCreateDTO } from "./Tournament";
+import { TournamentService } from "./TournamentService";
 
 export class TournamentController {
   private router: Router;

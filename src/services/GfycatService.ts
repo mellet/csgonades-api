@@ -1,8 +1,8 @@
+import * as Sentry from "@sentry/node";
+import axios from "axios";
 import Gfycat, { GfycatDetailsResponse } from "gfycat-sdk";
 import { CSGNConfig } from "../config/enironment";
-import axios from "axios";
 import { extractGfyIdFromIdOrUrl } from "../utils/Common";
-import * as Sentry from "@sentry/node";
 
 export interface GfycatService {
   getGfycatData(gfyId: string): Promise<GfycatDetailsResponse | null>;

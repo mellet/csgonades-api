@@ -1,5 +1,5 @@
-import { CSGNConfig } from "../config/enironment";
 import SteamAPI, { SteamPlayerSummary } from "steamapi";
+import { CSGNConfig } from "../config/enironment";
 
 export interface ISteamService {
   getPlayerBySteamID(steamID: string): Promise<SteamPlayerSummary>;

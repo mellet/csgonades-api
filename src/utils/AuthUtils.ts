@@ -1,7 +1,7 @@
+import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { Role, UserModel } from "../user/UserModel";
-import { NextFunction, Response, Request } from "express";
 import { CSGNConfig } from "../config/enironment";
+import { Role, UserModel } from "../user/UserModel";
 import { userFromRequest } from "./RouterUtils";
 
 type JWTPayload = {

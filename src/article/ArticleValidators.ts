@@ -1,7 +1,7 @@
 import Joi from "@hapi/joi";
-import { ArticleUpdateDTO, ArticleCreateDTO } from "./Article";
 import { Request } from "express";
 import { sanitizeIt } from "../utils/Sanitize";
+import { ArticleCreateDTO, ArticleUpdateDTO } from "./Article";
 
 export const validateArticleUpdateDTO = (req: Request): ArticleUpdateDTO => {
   const body = req.body as ArticleUpdateDTO;

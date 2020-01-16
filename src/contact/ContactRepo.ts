@@ -1,5 +1,5 @@
-import { collection, add, Collection, value, Doc, all } from "typesaurus";
-import { ContactModel, ContactSaveDTO, ContactDTO } from "./ContactData";
+import { add, all, collection, Collection, Doc, value } from "typesaurus";
+import { ContactDTO, ContactModel, ContactSaveDTO } from "./ContactData";
 
 export class ContactRepo {
   private collection: Collection<ContactModel>;

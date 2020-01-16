@@ -1,11 +1,11 @@
-import { Router, RequestHandler } from "express";
-import { ArticleRepo } from "./ArticleRepo";
-import { errorCatchConverter } from "../utils/ErrorUtil";
+import { RequestHandler, Router } from "express";
 import { adminOrModHandler } from "../utils/AuthUtils";
+import { errorCatchConverter } from "../utils/ErrorUtil";
+import { ArticleRepo } from "./ArticleRepo";
 import {
-  validateArticleUpdateDTO,
+  validateArticleCreateDTO,
   validateArticleId,
-  validateArticleCreateDTO
+  validateArticleUpdateDTO
 } from "./ArticleValidators";
 
 export class ArticleController {

@@ -1,8 +1,8 @@
-import { collection, Collection, value, update, get, set } from "typesaurus";
-import { UserModel } from "./UserModel";
-import { UserCreateDTO, UserUpdateDTO, UserDTO } from "./UserDTOs";
-import { removeUndefines } from "../utils/Common";
+import { collection, Collection, get, set, update, value } from "typesaurus";
 import { ModelUpdate } from "typesaurus/update";
+import { removeUndefines } from "../utils/Common";
+import { UserCreateDTO, UserDTO, UserUpdateDTO } from "./UserDTOs";
+import { UserModel } from "./UserModel";
 
 export type UserFilter = {
   limit?: number;

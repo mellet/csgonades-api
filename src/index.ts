@@ -1,5 +1,5 @@
-import { makeConfig } from "./config/enironment";
 import { AppServer } from "./app";
+import { makeConfig } from "./config/enironment";
 
 function main() {
   const config = makeConfig();

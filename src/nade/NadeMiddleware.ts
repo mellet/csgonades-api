@@ -1,5 +1,5 @@
-import { NextFunction, Response, Request } from "express";
 import Joi from "@hapi/joi";
+import { NextFunction, Request, Response } from "express";
 
 export const validateNade = (
   req: Request,

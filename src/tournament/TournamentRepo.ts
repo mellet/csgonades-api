@@ -1,20 +1,20 @@
 import {
-  collection,
   add,
+  collection,
   Collection,
-  query,
   Doc,
-  where,
   order,
-  update
+  query,
+  update,
+  where
 } from "typesaurus";
-import {
-  TournamentDoc,
-  TournamentModel,
-  TournamentCreateDTO
-} from "./Tournament";
-import { removeUndefines } from "../utils/Common";
 import { ModelUpdate } from "typesaurus/update";
+import { removeUndefines } from "../utils/Common";
+import {
+  TournamentCreateDTO,
+  TournamentDoc,
+  TournamentModel
+} from "./Tournament";
 
 export class TournamentRepo {
   private collection: Collection<TournamentDoc>;

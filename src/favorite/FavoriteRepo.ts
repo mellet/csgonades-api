@@ -1,15 +1,15 @@
 import {
-  collection,
   add,
+  collection,
   Collection,
-  value,
+  Doc,
   get,
   query,
-  Doc,
-  where,
-  remove
+  remove,
+  value,
+  where
 } from "typesaurus";
-import { FavoriteModel, FavoriteCreateModel, FavoriteDTO } from "./Favorite";
+import { FavoriteCreateModel, FavoriteDTO, FavoriteModel } from "./Favorite";
 
 export class FavoriteRepo {
   private collection: Collection<FavoriteModel>;

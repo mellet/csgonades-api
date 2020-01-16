@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { FavoriteService } from "./FavoriteService";
 import { authOnlyHandler } from "../utils/AuthUtils";
+import { errorCatchConverter } from "../utils/ErrorUtil";
 import { userFromRequest } from "../utils/RouterUtils";
 import { sanitizeIt } from "../utils/Sanitize";
-import { errorCatchConverter } from "../utils/ErrorUtil";
+import { FavoriteService } from "./FavoriteService";
 
 export const makeFavoriteRouter = (
   favoriteService: FavoriteService

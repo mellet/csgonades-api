@@ -1,7 +1,7 @@
-import { makeFavorite } from "./Favorite";
-import { ErrorFactory } from "../utils/ErrorUtil";
-import { FavoriteRepo } from "./FavoriteRepo";
 import { NadeService } from "../nade/NadeService";
+import { ErrorFactory } from "../utils/ErrorUtil";
+import { makeFavorite } from "./Favorite";
+import { FavoriteRepo } from "./FavoriteRepo";
 
 export class FavoriteService {
   private favoriteRepo: FavoriteRepo;

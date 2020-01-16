@@ -1,5 +1,5 @@
-import { updatedNadeMerge, NadeUpdateDTO, GfycatData } from "./Nade";
 import { UserModel } from "../user/UserModel";
+import { GfycatData, NadeUpdateDTO, updatedNadeMerge } from "./Nade";
 
 describe("Nade tests", () => {
   it("Empty case", () => {

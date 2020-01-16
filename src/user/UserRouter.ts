@@ -1,15 +1,15 @@
 import { Router } from "express";
-import {
-  authOnlyHandler,
-  RequestUser,
-  adminOrModHandler
-} from "../utils/AuthUtils";
-import { userFromRequest, maybeUserFromRequest } from "../utils/RouterUtils";
 import { NadeService } from "../nade/NadeService";
-import { UserService } from "./UserService";
+import {
+  adminOrModHandler,
+  authOnlyHandler,
+  RequestUser
+} from "../utils/AuthUtils";
 import { errorCatchConverter, ErrorFactory } from "../utils/ErrorUtil";
-import { validateUserUpdateDTO, validateSteamId } from "./UserValidators";
+import { maybeUserFromRequest, userFromRequest } from "../utils/RouterUtils";
 import { UserFilter } from "./UserRepo";
+import { UserService } from "./UserService";
+import { validateSteamId, validateUserUpdateDTO } from "./UserValidators";
 
 export const makeUserRouter = (
   userService: UserService,
