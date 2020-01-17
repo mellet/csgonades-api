@@ -1,4 +1,5 @@
 import moment from "moment";
+import { NotificationService } from "../notifications/NotificationService";
 import { CachingService } from "../services/CachingService";
 import { GfycatService } from "../services/GfycatService";
 import { IImageStorageService } from "../services/ImageStorageService";
@@ -27,6 +28,7 @@ export class NadeService {
   private gfycatService: GfycatService;
   private statsService: StatsService;
   private cache: CachingService;
+  private notiService: NotificationService;
 
   constructor(
     nadeRepo: NadeRepo,
@@ -34,6 +36,7 @@ export class NadeService {
     imageStorageService: IImageStorageService,
     gfycatService: GfycatService,
     statsService: StatsService,
+    notiService: NotificationService,
     cache: CachingService
   ) {
     this.nadeRepo = nadeRepo;
@@ -42,6 +45,7 @@ export class NadeService {
     this.gfycatService = gfycatService;
     this.statsService = statsService;
     this.cache = cache;
+    this.notiService = notiService;
   }
 
   fetchNades = async (limit?: number): Promise<NadeLightDTO[]> => {
@@ -247,10 +251,17 @@ export class NadeService {
 
     // Keep pending counter in sync on status change
     if (oldNade.status === "pending" && nade.status !== "pending") {
+      await this.notiService.nadeAccepted(nade.id, nade.user.steamId);
       await this.statsService.decrementPendingCounter();
     }
+
     if (oldNade.status !== "pending" && nade.status === "pending") {
       await this.statsService.incrementPendingCounter();
+    }
+
+    // Send notification if nade status changed to declined
+    if (oldNade.status !== "declined" && nade.status === "declined") {
+      await this.notiService.nadeDeclined(nade.id, nade.user.steamId);
     }
 
     this.cache.invalidateRecent();
