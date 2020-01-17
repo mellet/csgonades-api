@@ -9,7 +9,7 @@ import { ArticleController } from "./article/ArticleController";
 import { ArticleRepo } from "./article/ArticleRepo";
 import { CSGNConfig } from "./config/enironment";
 import { ContactRepo } from "./contact/ContactRepo";
-import { makeContactRouter } from "./contact/ContactRouter";
+import { ContactRouter } from "./contact/ContactRouter";
 import { FavoriteRepo } from "./favorite/FavoriteRepo";
 import { makeFavoriteRouter } from "./favorite/FavoriteRouter";
 import { FavoriteService } from "./favorite/FavoriteService";
@@ -119,7 +119,7 @@ export const AppServer = (config: CSGNConfig) => {
   const userRouter = makeUserRouter(userService, nadeService);
   const favoriteRouter = makeFavoriteRouter(favoriteService);
   const statsRouter = makeStatsRouter(statsService);
-  const contactRouter = makeContactRouter(contactRepo);
+  const contactRouter = new ContactRouter(contactRepo).getRouter();
   const articleRouter = new ArticleController(articleRepo).getRouter();
   const tournamentRouter = new TournamentController(
     tournamentService
