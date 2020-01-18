@@ -87,18 +87,19 @@ export const AppServer = (config: CSGNConfig) => {
   const { bucket, db } = makePersistedStorage(config);
 
   // Repos
+  const notificationRepo = new NotificationRepo();
+  const notificationService = new NotificationService(notificationRepo);
+
   const userRepo = new UserRepo(db);
   const nadeRepo = new NadeRepo();
   const favoriteRepo = new FavoriteRepo();
   const statsRepo = new StatsRepo();
-  const contactRepo = new ContactRepo();
+  const contactRepo = new ContactRepo(notificationService);
   const articleRepo = new ArticleRepo();
   const tournamentRepo = new TournamentRepo();
   const reportRepo = new ReportRepo();
-  const notificationRepo = new NotificationRepo();
 
   // Services
-  const notificationService = new NotificationService(notificationRepo);
   const cacheService = new CachingService();
   const gfycatService = makeGfycatService(config);
   const steamService = new SteamService(config);
@@ -116,7 +117,7 @@ export const AppServer = (config: CSGNConfig) => {
   );
   const favoriteService = new FavoriteService(favoriteRepo, nadeService);
   const tournamentService = new TournamentService(tournamentRepo, cacheService);
-  const reporService = new ReportService(reportRepo);
+  const reporService = new ReportService(reportRepo, notificationService);
 
   // Routers
   const statusRouter = makeStatusRouter(config, cacheService);

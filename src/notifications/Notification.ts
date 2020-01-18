@@ -1,4 +1,10 @@
-type NotificationType = "accepted-nade" | "favorited-nade" | "declined-nade";
+type NotificationType =
+  | "accepted-nade"
+  | "favorited-nade"
+  | "declined-nade"
+  | "new-report"
+  | "new-contact-msg"
+  | "new-nade";
 
 export interface NotificationModel {
   steamId: string;

@@ -4,6 +4,7 @@ import { NotificationRepo } from "./NotificationRepo";
 
 export class NotificationService {
   private notiRepo: NotificationRepo;
+  private adminId = "76561198026064832";
 
   constructor(notiRepo: NotificationRepo) {
     this.notiRepo = notiRepo;
@@ -25,6 +26,30 @@ export class NotificationService {
     return this.notiRepo.addNotification({
       steamId: userId,
       type: "declined-nade",
+      entityId: nadeId
+    });
+  };
+
+  newReport = () => {
+    return this.notiRepo.addNotification({
+      steamId: this.adminId,
+      type: "new-report",
+      entityId: ""
+    });
+  };
+
+  newContactMsg = () => {
+    this.notiRepo.addNotification({
+      steamId: this.adminId,
+      type: "new-contact-msg",
+      entityId: ""
+    });
+  };
+
+  newNade = (nadeId: string) => {
+    this.notiRepo.addNotification({
+      steamId: this.adminId,
+      type: "new-nade",
       entityId: nadeId
     });
   };

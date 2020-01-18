@@ -1,11 +1,17 @@
+import { NotificationService } from "../notifications/NotificationService";
 import { ReportDTO, ReportSaveDTO } from "./Report";
 import { ReportRepo } from "./ReportRepo";
 
 export class ReportService {
   private reportRepo: ReportRepo;
+  private notificationService: NotificationService;
 
-  constructor(reportRepo: ReportRepo) {
+  constructor(
+    reportRepo: ReportRepo,
+    notificationService: NotificationService
+  ) {
     this.reportRepo = reportRepo;
+    this.notificationService = notificationService;
   }
 
   getAll = async (): Promise<ReportDTO[]> => {
@@ -13,6 +19,7 @@ export class ReportService {
   };
 
   save = async (saveDto: ReportSaveDTO): Promise<ReportDTO> => {
+    this.notificationService.newReport();
     return this.reportRepo.save(saveDto);
   };
 

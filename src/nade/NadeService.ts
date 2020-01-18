@@ -170,6 +170,7 @@ export class NadeService {
 
     await this.statsService.incrementNadeCounter();
     await this.statsService.incrementPendingCounter();
+    this.notiService.newNade(nade.id);
 
     return nade;
   };
