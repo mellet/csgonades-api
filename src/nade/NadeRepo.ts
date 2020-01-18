@@ -177,20 +177,20 @@ export class NadeRepo {
 
   private calcScore = (nade: NadeModel): number => {
     const DATE_WEIGHT = 1;
-    const VIEW_WEIGHT = 2;
-    const FAVORITE_WEIGHT = 4;
+    const VIEW_WEIGHT = 1;
+    const FAVORITE_WEIGHT = 2;
 
     const addedHoursAgo = Math.max(
       moment().diff(moment(nade.createdAt), "hours", false),
       2
     );
 
-    const views = Math.max(nade.viewCount, 2);
+    const views = Math.max(nade.viewCount, 1);
     const favorites = Math.max(nade.favoriteCount || 0, 1);
 
-    const viewScore = Math.log10(views) * VIEW_WEIGHT;
-    const favoriteScore = favorites * FAVORITE_WEIGHT;
-    const agoScore = Math.log10(addedHoursAgo) * DATE_WEIGHT;
+    const viewScore = Math.log(views) * VIEW_WEIGHT;
+    const favoriteScore = Math.log(favorites) * FAVORITE_WEIGHT;
+    const agoScore = Math.log(addedHoursAgo) * DATE_WEIGHT;
 
     const hotScore =
       Math.round(((viewScore + favoriteScore) / agoScore) * 100) / 100;
@@ -199,8 +199,7 @@ export class NadeRepo {
     console.log(
       `(${viewScore} + ${favoriteScore}) / ${agoScore}) = ${hotScore}`
     );
-
-     */
+    */
 
     return hotScore;
   };
