@@ -11,10 +11,10 @@ import { CSGNConfig } from "./config/enironment";
 import { ContactRepo } from "./contact/ContactRepo";
 import { ContactRouter } from "./contact/ContactRouter";
 import { FavoriteRepo } from "./favorite/FavoriteRepo";
-import { makeFavoriteRouter } from "./favorite/FavoriteRouter";
+import { FavoriteRouter } from "./favorite/FavoriteRouter";
 import { FavoriteService } from "./favorite/FavoriteService";
 import { NadeRepo } from "./nade/NadeRepo";
-import { makeNadeRouter } from "./nade/NadeRouter";
+import { NadeRouter } from "./nade/NadeRouter";
 import { NadeService } from "./nade/NadeService";
 import { NotificationRepo } from "./notifications/NotificationRepo";
 import { NotificationRouter } from "./notifications/NotificationRouter";
@@ -121,10 +121,13 @@ export const AppServer = (config: CSGNConfig) => {
 
   // Routers
   const statusRouter = makeStatusRouter(config, cacheService);
-  const nadeRouter = makeNadeRouter(config, nadeService, gfycatService);
+  const nadeRouter = new NadeRouter({
+    gfycatService,
+    nadeService
+  });
   const steamRouter = makeSteamRouter(userService, passport, config);
   const userRouter = makeUserRouter(userService, nadeService);
-  const favoriteRouter = makeFavoriteRouter(favoriteService);
+  const favoriteRouter = new FavoriteRouter({ favoriteService });
   const statsRouter = makeStatsRouter(statsService);
   const contactRouter = new ContactRouter(contactRepo).getRouter();
   const articleRouter = new ArticleController(articleRepo).getRouter();
@@ -136,11 +139,11 @@ export const AppServer = (config: CSGNConfig) => {
     notificationService
   ).getRouter();
 
-  app.use(nadeRouter);
+  app.use(nadeRouter.getRouter());
   app.use(steamRouter);
   app.use(userRouter);
   app.use(statusRouter);
-  app.use(favoriteRouter);
+  app.use(favoriteRouter.getRouter());
   app.use(statsRouter);
   app.use(contactRouter);
   app.use(articleRouter);
