@@ -176,35 +176,30 @@ export class NadeRepo {
   };
 
   private calcScore = (nade: NadeModel): number => {
-    const DATE_WEIGHT = 1;
-    const VIEW_WEIGHT = 1;
-    const FAVORITE_WEIGHT = 2;
+    const FAVORITE_WEIGHT = 200;
 
-    const addedHoursAgo = Math.max(
-      moment().diff(moment(nade.createdAt), "hours", false),
-      2
+    const addedDaysAgo = Math.max(
+      moment().diff(moment(nade.createdAt), "days", false),
+      1
     );
 
-    if (addedHoursAgo < 48) {
-      return 1000;
-    }
+    const averageViewsPerWeek = this.viewsPerView(nade.viewCount, addedDaysAgo);
 
-    const views = Math.max(nade.viewCount, 1);
-    const favorites = Math.max(nade.favoriteCount || 0, 1);
+    const ageScore = Math.round(Math.log(1500 - addedDaysAgo)) * 100;
 
-    const viewScore = Math.log(views) * VIEW_WEIGHT;
-    const favoriteScore = Math.log(favorites) * FAVORITE_WEIGHT;
-    const agoScore = Math.log(addedHoursAgo) * DATE_WEIGHT;
+    const favoriteScore =
+      Math.max(nade.favoriteCount || 0, 1) * FAVORITE_WEIGHT;
 
-    const hotScore =
-      Math.round(((viewScore + favoriteScore) / agoScore) * 100) / 100;
-
-    /**
-    console.log(
-      `(${viewScore} + ${favoriteScore}) / ${agoScore}) = ${hotScore}`
-    );
-    */
+    const hotScore = ageScore + averageViewsPerWeek + favoriteScore;
 
     return hotScore;
   };
+
+  private viewsPerView(views: number, daysAgo: number) {
+    // Give new nades some initial news to keep them highly rated for the initial week
+    const viewScore = Math.max(1000, views);
+    const weeksAgoAdded = Math.max(daysAgo / 7, 1);
+
+    return Math.round(viewScore / weeksAgoAdded);
+  }
 }
