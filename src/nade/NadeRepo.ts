@@ -185,6 +185,10 @@ export class NadeRepo {
       2
     );
 
+    if (addedHoursAgo < 48) {
+      return 1000;
+    }
+
     const views = Math.max(nade.viewCount, 1);
     const favorites = Math.max(nade.favoriteCount || 0, 1);
 
