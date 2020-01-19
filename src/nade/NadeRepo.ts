@@ -185,7 +185,7 @@ export class NadeRepo {
 
     const averageViewsPerWeek = this.viewsPerView(nade.viewCount, addedDaysAgo);
 
-    const ageScore = Math.round(Math.log(1500 - addedDaysAgo)) * 100;
+    const ageScore = Math.round(Math.log(1500 - addedDaysAgo) * 100);
 
     const favoriteScore =
       Math.max(nade.favoriteCount || 0, 1) * FAVORITE_WEIGHT;
