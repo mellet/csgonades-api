@@ -3,13 +3,13 @@ import { adminOrModHandler } from "../utils/AuthUtils";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { sanitizeIt } from "../utils/Sanitize";
 import { ContactDTO } from "./ContactData";
-import { ContactRepo } from "./ContactRepo";
+import { ContactService } from "./ContactService";
 
 export class ContactRouter {
   private router: Router;
-  private contactRepo: ContactRepo;
+  private contactRepo: ContactService;
 
-  constructor(contactRepo: ContactRepo) {
+  constructor(contactRepo: ContactService) {
     this.router = Router();
     this.contactRepo = contactRepo;
     this.setupRoutes();

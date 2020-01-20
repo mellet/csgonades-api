@@ -10,6 +10,7 @@ export interface NotificationModel {
   steamId: string;
   type: NotificationType;
   entityId: string;
+  count?: number;
   hasBeenViewed: boolean;
   createdAt: Date;
 }
@@ -22,4 +23,5 @@ export interface NotificationAddDto {
   steamId: string;
   type: NotificationType;
   entityId: string;
+  count?: number;
 }

@@ -54,6 +54,23 @@ export class FavoriteRepo {
     return favorites;
   };
 
+  newToday = async (): Promise<FavoriteDTO[]> => {
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setHours(0, 0, 0, 0);
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 1);
+
+    const yesterDay = new Date();
+    yesterDay.setHours(0, 0, 0, 0);
+
+    const docs = await query(this.collection, [
+      where("createdAt", ">", twoDaysAgo),
+      where("createdAt", "<=", yesterDay)
+    ]);
+    const favorites = docs.map(this.docToDto);
+
+    return favorites;
+  };
+
   private docToDto = (doc: Doc<FavoriteModel>): FavoriteDTO => {
     return {
       ...doc.data,

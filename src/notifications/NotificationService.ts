@@ -2,12 +2,16 @@ import { RequestUser } from "../utils/AuthUtils";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import { NotificationRepo } from "./NotificationRepo";
 
+type NotificationServiceDeps = {
+  notificationRepo: NotificationRepo;
+};
+
 export class NotificationService {
   private notiRepo: NotificationRepo;
   private adminId = "76561198026064832";
 
-  constructor(notiRepo: NotificationRepo) {
-    this.notiRepo = notiRepo;
+  constructor(deps: NotificationServiceDeps) {
+    this.notiRepo = deps.notificationRepo;
   }
 
   forUser = (steamId: string) => {
@@ -51,6 +55,19 @@ export class NotificationService {
       steamId: this.adminId,
       type: "new-nade",
       entityId: nadeId
+    });
+  };
+
+  addOrUpdateFavNotification = (
+    nadeId: string,
+    userId: string,
+    count?: number
+  ) => {
+    this.notiRepo.addOrUpdateFavNotification({
+      steamId: userId,
+      type: "favorited-nade",
+      entityId: nadeId,
+      count
     });
   };
 

@@ -60,6 +60,36 @@ export class NotificationRepo {
     return this.toDto(res);
   };
 
+  addOrUpdateFavNotification = async (noti: NotificationAddDto) => {
+    // Try finding the notification if it has not been seen
+    const res = await query(this.collection, [
+      where("entityId", "==", noti.entityId),
+      where("steamId", "==", noti.steamId),
+      where("hasBeenViewed", "==", false)
+    ]);
+    const found = res.length === 1;
+
+    if (found) {
+      const item = res[0];
+      const oldCount = item.data.count || 0;
+      const additionalCount = noti.count || 0;
+      console.log("Found notification", { item, oldCount, additionalCount });
+
+      update(this.collection, item.ref.id, {
+        count: oldCount + additionalCount
+      });
+    } else {
+      add(this.collection, {
+        steamId: noti.steamId,
+        hasBeenViewed: false,
+        createdAt: value("serverDate"),
+        type: "favorited-nade",
+        entityId: noti.entityId,
+        count: noti.count
+      });
+    }
+  };
+
   markNotificationAsViewed = async (id: string) => {
     await update(this.collection, id, {
       hasBeenViewed: true

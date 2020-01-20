@@ -4,18 +4,21 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
+import nodeCron from "node-cron";
 import passport from "passport";
 import { ArticleController } from "./article/ArticleController";
 import { ArticleRepo } from "./article/ArticleRepo";
 import { CSGNConfig } from "./config/enironment";
 import { ContactRepo } from "./contact/ContactRepo";
 import { ContactRouter } from "./contact/ContactRouter";
+import { ContactService } from "./contact/ContactService";
 import { FavoriteRepo } from "./favorite/FavoriteRepo";
 import { FavoriteRouter } from "./favorite/FavoriteRouter";
 import { FavoriteService } from "./favorite/FavoriteService";
 import { NadeRepo } from "./nade/NadeRepo";
 import { NadeRouter } from "./nade/NadeRouter";
 import { NadeService } from "./nade/NadeService";
+import { NotificationGeneratorService } from "./notifications/NotificationGeneratorService";
 import { NotificationRepo } from "./notifications/NotificationRepo";
 import { NotificationRouter } from "./notifications/NotificationRouter";
 import { NotificationService } from "./notifications/NotificationService";
@@ -88,23 +91,23 @@ export const AppServer = (config: CSGNConfig) => {
 
   // Repos
   const notificationRepo = new NotificationRepo();
-  const notificationService = new NotificationService(notificationRepo);
 
   const userRepo = new UserRepo(db);
   const nadeRepo = new NadeRepo();
   const favoriteRepo = new FavoriteRepo();
   const statsRepo = new StatsRepo();
-  const contactRepo = new ContactRepo(notificationService);
+  const contactRepo = new ContactRepo();
   const articleRepo = new ArticleRepo();
   const tournamentRepo = new TournamentRepo();
   const reportRepo = new ReportRepo();
 
   // Services
   const cacheService = new CachingService();
-  const gfycatService = makeGfycatService(config);
   const steamService = new SteamService(config);
   const statsService = new StatsService(statsRepo);
   const imageStorageService = new ImageStorageService(config, bucket);
+  const gfycatService = makeGfycatService(config);
+  const notificationService = new NotificationService({ notificationRepo });
   const userService = new UserService(userRepo, steamService, statsService);
   const nadeService = new NadeService(
     nadeRepo,
@@ -122,6 +125,14 @@ export const AppServer = (config: CSGNConfig) => {
   });
   const tournamentService = new TournamentService(tournamentRepo, cacheService);
   const reporService = new ReportService(reportRepo, notificationService);
+  const contactService = new ContactService({
+    contactRepo,
+    notificationService
+  });
+  const notificationGeneratorService = new NotificationGeneratorService({
+    favoriteService,
+    notificationService
+  });
 
   // Routers
   const statusRouter = makeStatusRouter(config, cacheService);
@@ -133,7 +144,7 @@ export const AppServer = (config: CSGNConfig) => {
   const userRouter = makeUserRouter(userService, nadeService);
   const favoriteRouter = new FavoriteRouter({ favoriteService });
   const statsRouter = makeStatsRouter(statsService);
-  const contactRouter = new ContactRouter(contactRepo).getRouter();
+  const contactRouter = new ContactRouter(contactService).getRouter();
   const articleRouter = new ArticleController(articleRepo).getRouter();
   const tournamentRouter = new TournamentController(
     tournamentService
@@ -163,6 +174,12 @@ export const AppServer = (config: CSGNConfig) => {
   app.post("/initSession", sessionRoute);
 
   app.use(Sentry.Handlers.errorHandler());
+
+  // Run Favorite notification generator every day at 23:50
+  nodeCron.schedule(
+    "50 23 * * *",
+    notificationGeneratorService.generateNewFavoriteNotifications
+  );
 
   return app;
 };

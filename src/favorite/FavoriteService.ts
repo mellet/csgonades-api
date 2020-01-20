@@ -21,6 +21,10 @@ export class FavoriteService {
     this.cache = deps.cache;
   }
 
+  getTodaysFavorites = () => {
+    return this.favoriteRepo.newToday();
+  };
+
   getFavoritesForUser = async (steamId: string) => {
     const favorites = await this.favoriteRepo.byUser(steamId);
     return favorites;
