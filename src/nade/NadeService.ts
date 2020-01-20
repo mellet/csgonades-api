@@ -303,7 +303,7 @@ export class NadeService {
       false
     );
 
-    const MIN_HOURS_TO_UPDATE = 4;
+    const MIN_HOURS_TO_UPDATE = 1;
     const MAX_HOURS_TO_UPDATE = 48;
 
     const hoursToWaitForUpdate = clamp(
@@ -311,6 +311,7 @@ export class NadeService {
       MIN_HOURS_TO_UPDATE,
       MAX_HOURS_TO_UPDATE
     );
+
     const lastUpdated = nade.lastGfycatUpdate;
     const hoursSinceUpdate = moment().diff(moment(lastUpdated), "hours", false);
 
