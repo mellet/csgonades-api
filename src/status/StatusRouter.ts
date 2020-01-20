@@ -11,6 +11,7 @@ export const makeStatusRouter = (
   router.get("/status", (req, res) => {
     res.send({
       status: "OK",
+      serverClock: new Date(),
       uptime: format(process.uptime()),
       node_env: process.env.NODE_ENV,
       cache: cache.getStats()
