@@ -115,7 +115,11 @@ export const AppServer = (config: CSGNConfig) => {
     notificationService,
     cacheService
   );
-  const favoriteService = new FavoriteService(favoriteRepo, nadeService);
+  const favoriteService = new FavoriteService({
+    favoriteRepo,
+    nadeService,
+    cache: cacheService
+  });
   const tournamentService = new TournamentService(tournamentRepo, cacheService);
   const reporService = new ReportService(reportRepo, notificationService);
 

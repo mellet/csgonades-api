@@ -1,15 +1,24 @@
 import { NadeService } from "../nade/NadeService";
+import { CachingService } from "../services/CachingService";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import { makeFavorite } from "./Favorite";
 import { FavoriteRepo } from "./FavoriteRepo";
 
+type FavoriteDeps = {
+  favoriteRepo: FavoriteRepo;
+  nadeService: NadeService;
+  cache: CachingService;
+};
+
 export class FavoriteService {
   private favoriteRepo: FavoriteRepo;
   private nadeService: NadeService;
+  private cache: CachingService;
 
-  constructor(favRepo: FavoriteRepo, nadeService: NadeService) {
-    this.favoriteRepo = favRepo;
-    this.nadeService = nadeService;
+  constructor(deps: FavoriteDeps) {
+    this.favoriteRepo = deps.favoriteRepo;
+    this.nadeService = deps.nadeService;
+    this.cache = deps.cache;
   }
 
   getFavoritesForUser = async (steamId: string) => {
@@ -22,6 +31,7 @@ export class FavoriteService {
     const favorite = await this.favoriteRepo.set(newFavorite);
 
     await this.nadeService.incrementFavoriteCount(nadeId);
+    this.cache.invalidateNade(nadeId);
 
     return favorite;
   };
@@ -41,6 +51,7 @@ export class FavoriteService {
     }
 
     await this.nadeService.decrementFavoriteCount(favorite.nadeId);
+    this.cache.invalidateNade(favorite.nadeId);
 
     return;
   };
