@@ -83,12 +83,6 @@ export const makeSteamRouter = (
 
       const user = await userService.byId(payload.steamId);
 
-      if (!user) {
-        return res
-          .status(500)
-          .send({ message: "Did not find a user for the token" });
-      }
-
       const accessToken = createAccessToken(config.secrets.server_key, user);
       const refreshToken = createRefreshToken(config.secrets.server_key, user);
 

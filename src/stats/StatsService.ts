@@ -1,34 +1,52 @@
+import { NadeDTO } from "../nade/Nade";
+import { EventBus } from "../services/EventHandler";
 import { SiteStats } from "./SiteStats";
 import { StatsRepo } from "./StatsRepo";
+
+type StatsServiceDeps = {
+  statsRepo: StatsRepo;
+  eventBus: EventBus;
+};
 
 export class StatsService {
   private statsRepo: StatsRepo;
 
-  constructor(statsRepo: StatsRepo) {
+  constructor(deps: StatsServiceDeps) {
+    const { eventBus, statsRepo } = deps;
     this.statsRepo = statsRepo;
+
+    eventBus.subNewNade(this.onNewNade);
+    eventBus.subNadeDelete(this.onNadeDelete);
+    eventBus.subAcceptedNade(this.onNadeAccepted);
+    eventBus.subDeclinedNade(this.onNadeDeclined);
+    eventBus.subNewUser(this.incrementUserCounter);
   }
 
   getStats(): Promise<SiteStats | null> {
     return this.statsRepo.getStats();
   }
 
-  incrementUserCounter() {
+  private incrementUserCounter = () => {
     return this.statsRepo.incrementUserCounter();
-  }
+  };
 
-  incrementNadeCounter() {
-    return this.statsRepo.incrementNadeCounter();
-  }
+  private onNewNade = () => {
+    this.statsRepo.incrementNadeCounter();
+    this.statsRepo.incrementPendingCounter();
+  };
 
-  decrementNadeCounter() {
-    return this.statsRepo.decrementNadeCounter();
-  }
+  private onNadeDelete = (nade: NadeDTO) => {
+    if (nade.status === "pending") {
+      this.statsRepo.decrementPendingCounter();
+    }
+    this.statsRepo.decrementNadeCounter();
+  };
 
-  incrementPendingCounter() {
-    return this.statsRepo.incrementPendingCounter();
-  }
+  private onNadeAccepted = (nade: NadeDTO) => {
+    this.statsRepo.decrementPendingCounter();
+  };
 
-  decrementPendingCounter() {
-    return this.statsRepo.decrementPendingCounter();
-  }
+  private onNadeDeclined = (nade: NadeDTO) => {
+    this.statsRepo.decrementPendingCounter();
+  };
 }

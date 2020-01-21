@@ -1,46 +1,52 @@
 import { FavoriteService } from "../favorite/FavoriteService";
+import { NadeService } from "../nade/NadeService";
 import { NotificationAddDto } from "./Notification";
 import { NotificationService } from "./NotificationService";
 
 type NotificationGeneratorServiceDeps = {
   notificationService: NotificationService;
   favoriteService: FavoriteService;
+  nadeService: NadeService;
 };
 
 export class NotificationGeneratorService {
   private notificationService: NotificationService;
   private favoriteService: FavoriteService;
+  private nadeService: NadeService;
 
   constructor(deps: NotificationGeneratorServiceDeps) {
     this.notificationService = deps.notificationService;
     this.favoriteService = deps.favoriteService;
+    this.nadeService = deps.nadeService;
   }
 
   // Ran by CRON once a day
   generateNewFavoriteNotifications = async () => {
     const newFavorites = await this.favoriteService.getTodaysFavorites();
 
-    const initialNotification: NotificationAddDto[] = [];
+    let notifications: NotificationAddDto[] = [];
 
-    const notifications: NotificationAddDto[] = newFavorites.reduce(
-      (acc, cur) => {
-        const found = acc.find(a => a.entityId == cur.nadeId);
-        if (found && found.count) {
-          const other = acc.filter(a => a.entityId !== cur.nadeId);
-          found.count += 1;
-          return [...other, found];
-        } else {
-          const newNoti: NotificationAddDto = {
-            entityId: cur.nadeId,
-            steamId: cur.userId,
-            type: "favorited-nade",
-            count: 1
-          };
-          return [...acc, newNoti];
-        }
-      },
-      initialNotification
-    );
+    for (let favorite of newFavorites) {
+      const notification = notifications.find(
+        a => a.entityId === favorite.nadeId
+      );
+
+      // Check if we allready have this nade and increment count in this case
+      if (notification && notification.count) {
+        const other = notifications.filter(a => a.entityId !== favorite.nadeId);
+        notification.count += 1;
+        notifications = [...other, notification];
+      } else {
+        const nadeForFavorite = await this.nadeService.byId(favorite.nadeId);
+        const newNoti: NotificationAddDto = {
+          entityId: favorite.nadeId,
+          steamId: nadeForFavorite.steamId,
+          type: "favorited-nade",
+          count: 1
+        };
+        notifications = [...notifications, newNoti];
+      }
+    }
 
     for (let noti of notifications) {
       this.notificationService.addOrUpdateFavNotification(

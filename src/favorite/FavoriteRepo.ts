@@ -1,5 +1,6 @@
 import {
   add,
+  batch,
   collection,
   Collection,
   Doc,
@@ -36,6 +37,20 @@ export class FavoriteRepo {
     return favorite;
   };
 
+  deleteByNadeId = async (nadeId: string) => {
+    const favsForNadeId = await this.byNadeId(nadeId);
+
+    const idsToRemove = favsForNadeId.map(f => f.id);
+
+    const { commit, remove } = batch();
+
+    idsToRemove.forEach(id => {
+      remove(this.collection, id);
+    });
+
+    await commit();
+  };
+
   byId = async (favoriteId: string): Promise<FavoriteDTO | null> => {
     const doc = await get(this.collection, favoriteId);
 
@@ -52,6 +67,12 @@ export class FavoriteRepo {
     const favorites = docs.map(this.docToDto);
 
     return favorites;
+  };
+
+  byNadeId = async (nadeId: string): Promise<FavoriteDTO[]> => {
+    const docs = await query(this.collection, [where("nadeId", "==", nadeId)]);
+    const favs = docs.map(this.docToDto);
+    return favs;
   };
 
   newToday = async (): Promise<FavoriteDTO[]> => {

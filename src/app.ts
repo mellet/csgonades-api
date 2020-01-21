@@ -26,12 +26,13 @@ import { ReportRepo } from "./reports/ReportRepo";
 import { ReportRouter } from "./reports/ReportRouter";
 import { ReportService } from "./reports/ReportService";
 import { CachingService } from "./services/CachingService";
+import { EventBus } from "./services/EventHandler";
 import { makeGfycatService } from "./services/GfycatService";
 import { ImageStorageService } from "./services/ImageStorageService";
 import { StatsRepo } from "./stats/StatsRepo";
 import { makeStatsRouter } from "./stats/StatsRouter";
 import { StatsService } from "./stats/StatsService";
-import { makeStatusRouter } from "./status/StatusRouter";
+import { StatusRouter } from "./status/StatusRouter";
 import { makeSteamRouter } from "./steam/SteamRouter";
 import { SteamService } from "./steam/SteamService";
 import { makePersistedStorage } from "./storage/FirebaseFirestore";
@@ -101,27 +102,39 @@ export const AppServer = (config: CSGNConfig) => {
   const tournamentRepo = new TournamentRepo();
   const reportRepo = new ReportRepo();
 
+  // Event bus so services can send events that others can subscribe to
+  const eventBus = new EventBus();
+
   // Services
   const cacheService = new CachingService();
   const steamService = new SteamService(config);
-  const statsService = new StatsService(statsRepo);
+  const statsService = new StatsService({
+    eventBus,
+    statsRepo
+  });
   const imageStorageService = new ImageStorageService(config, bucket);
   const gfycatService = makeGfycatService(config);
-  const notificationService = new NotificationService({ notificationRepo });
-  const userService = new UserService(userRepo, steamService, statsService);
-  const nadeService = new NadeService(
+  const notificationService = new NotificationService({
+    eventBus,
+    notificationRepo
+  });
+  const userService = new UserService({
+    eventBus,
+    steamService,
+    userRepo
+  });
+  const nadeService = new NadeService({
+    cache: cacheService,
+    gfycatService,
+    imageStorageService,
     nadeRepo,
     userService,
-    imageStorageService,
-    gfycatService,
-    statsService,
-    notificationService,
-    cacheService
-  );
+    eventBus
+  });
   const favoriteService = new FavoriteService({
     favoriteRepo,
-    nadeService,
-    cache: cacheService
+    cache: cacheService,
+    eventBus
   });
   const tournamentService = new TournamentService(tournamentRepo, cacheService);
   const reporService = new ReportService(reportRepo, notificationService);
@@ -131,11 +144,12 @@ export const AppServer = (config: CSGNConfig) => {
   });
   const notificationGeneratorService = new NotificationGeneratorService({
     favoriteService,
-    notificationService
+    notificationService,
+    nadeService
   });
 
   // Routers
-  const statusRouter = makeStatusRouter(config, cacheService);
+  const statusRouter = new StatusRouter({ cache: cacheService });
   const nadeRouter = new NadeRouter({
     gfycatService,
     nadeService
@@ -157,7 +171,7 @@ export const AppServer = (config: CSGNConfig) => {
   app.use(nadeRouter.getRouter());
   app.use(steamRouter);
   app.use(userRouter);
-  app.use(statusRouter);
+  app.use(statusRouter.getRouter());
   app.use(favoriteRouter.getRouter());
   app.use(statsRouter);
   app.use(contactRouter);

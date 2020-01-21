@@ -40,20 +40,12 @@ export const makeUserRouter = (
       const isRequestingSelf = requestUser?.steamId === steamId;
 
       if (isAdminOrMod || isRequestingSelf) {
-        const result = await userService.byId(steamId);
+        const user = await userService.byId(steamId);
 
-        if (!result) {
-          return res.status(404).send();
-        }
-
-        return res.status(200).send(result);
+        return res.status(200).send(user);
       }
 
       const result = await userService.byIdAnon(steamId);
-
-      if (!result) {
-        return res.status(404).send();
-      }
 
       return res.status(200).send(result);
     } catch (error) {

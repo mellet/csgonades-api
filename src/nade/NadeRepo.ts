@@ -19,6 +19,7 @@ import {
 import { ModelUpdate } from "typesaurus/update";
 import { UserLightModel } from "../user/UserModel";
 import { removeUndefines } from "../utils/Common";
+import { ErrorFactory } from "../utils/ErrorUtil";
 import { CsgoMap, NadeCreateModel, NadeDTO, NadeModel } from "./Nade";
 
 export class NadeRepo {
@@ -55,11 +56,11 @@ export class NadeRepo {
     return pendingNades;
   };
 
-  byId = async (nadeId: string): Promise<NadeDTO | null> => {
+  byId = async (nadeId: string): Promise<NadeDTO> => {
     const nadeDoc = await get(this.collection, nadeId);
 
     if (!nadeDoc) {
-      return null;
+      throw ErrorFactory.NotFound("Nade not found");
     }
 
     return {
@@ -117,7 +118,7 @@ export class NadeRepo {
   update = async (
     nadeId: string,
     updates: Partial<NadeModel>
-  ): Promise<NadeDTO | null> => {
+  ): Promise<NadeDTO> => {
     let modelUpdates: ModelUpdate<NadeModel> = {
       ...updates,
       lastGfycatUpdate: updates.lastGfycatUpdate

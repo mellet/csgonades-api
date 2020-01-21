@@ -1,6 +1,7 @@
 import { collection, Collection, get, set, update, value } from "typesaurus";
 import { ModelUpdate } from "typesaurus/update";
 import { removeUndefines } from "../utils/Common";
+import { ErrorFactory } from "../utils/ErrorUtil";
 import { UserCreateDTO, UserDTO, UserUpdateDTO } from "./UserDTOs";
 import { UserModel } from "./UserModel";
 
@@ -72,11 +73,11 @@ export class UserRepo {
     return users;
   };
 
-  byId = async (steamId: string): Promise<UserModel | null> => {
+  byId = async (steamId: string): Promise<UserModel> => {
     const userDoc = await get(this.collection, steamId);
 
     if (!userDoc) {
-      return null;
+      throw ErrorFactory.NotFound("User not found");
     }
 
     return userDoc.data;

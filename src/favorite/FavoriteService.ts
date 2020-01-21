@@ -1,24 +1,27 @@
-import { NadeService } from "../nade/NadeService";
+import { NadeDTO } from "../nade/Nade";
 import { CachingService } from "../services/CachingService";
+import { EventBus } from "../services/EventHandler";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import { makeFavorite } from "./Favorite";
 import { FavoriteRepo } from "./FavoriteRepo";
 
 type FavoriteDeps = {
   favoriteRepo: FavoriteRepo;
-  nadeService: NadeService;
   cache: CachingService;
+  eventBus: EventBus;
 };
 
 export class FavoriteService {
   private favoriteRepo: FavoriteRepo;
-  private nadeService: NadeService;
   private cache: CachingService;
+  private eventBus: EventBus;
 
   constructor(deps: FavoriteDeps) {
+    const { eventBus } = deps;
     this.favoriteRepo = deps.favoriteRepo;
-    this.nadeService = deps.nadeService;
     this.cache = deps.cache;
+    this.eventBus = eventBus;
+    eventBus.subNadeDelete(this.deleteFavoritesForNade);
   }
 
   getTodaysFavorites = () => {
@@ -34,8 +37,9 @@ export class FavoriteService {
     const newFavorite = makeFavorite(nadeId, steamId);
     const favorite = await this.favoriteRepo.set(newFavorite);
 
-    await this.nadeService.incrementFavoriteCount(nadeId);
     this.cache.invalidateNade(nadeId);
+
+    this.eventBus.emitNewFavorite(favorite);
 
     return favorite;
   };
@@ -50,14 +54,17 @@ export class FavoriteService {
     const favorite = await this.favoriteRepo.unSet(favoriteId);
 
     if (!favorite) {
-      // TODO: Throw sensible error
-      return;
+      throw ErrorFactory.NotFound("Favorite not found.");
     }
 
-    await this.nadeService.decrementFavoriteCount(favorite.nadeId);
     this.cache.invalidateNade(favorite.nadeId);
+    this.eventBus.emitUnFavorite(favorite);
 
     return;
+  };
+
+  private deleteFavoritesForNade = (nade: NadeDTO) => {
+    return this.favoriteRepo.deleteByNadeId(nade.id);
   };
 
   private isOwnerOfFavorite = async (

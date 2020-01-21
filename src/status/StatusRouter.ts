@@ -1,25 +1,38 @@
-import { Router } from "express";
-import { CSGNConfig } from "../config/enironment";
+import { RequestHandler, Router } from "express";
 import { CachingService } from "../services/CachingService";
 
-export const makeStatusRouter = (
-  config: CSGNConfig,
-  cache: CachingService
-): Router => {
-  const router = Router();
+type StatusRouterDeps = {
+  cache: CachingService;
+};
 
-  router.get("/status", (req, res) => {
-    res.send({
+export class StatusRouter {
+  private cache: CachingService;
+  private router: Router;
+
+  constructor(deps: StatusRouterDeps) {
+    this.router = Router();
+    this.cache = deps.cache;
+    this.setupRoutes();
+  }
+
+  getRouter = () => {
+    return this.router;
+  };
+
+  private setupRoutes = () => {
+    this.router.get("/status", this.statusHandler);
+  };
+
+  private statusHandler: RequestHandler = async (req, res) => {
+    return res.send({
       status: "OK",
       serverClock: new Date(),
       uptime: format(process.uptime()),
       node_env: process.env.NODE_ENV,
-      cache: cache.getStats()
+      cache: this.cache.getStats()
     });
-  });
-
-  return router;
-};
+  };
+}
 
 function format(seconds: number) {
   function pad(s: number) {

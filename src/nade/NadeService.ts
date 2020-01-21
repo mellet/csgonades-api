@@ -1,12 +1,13 @@
 import moment from "moment";
-import { NotificationService } from "../notifications/NotificationService";
+import { FavoriteDTO } from "../favorite/Favorite";
 import { CachingService } from "../services/CachingService";
+import { EventBus } from "../services/EventHandler";
 import { GfycatService } from "../services/GfycatService";
 import { IImageStorageService } from "../services/ImageStorageService";
-import { StatsService } from "../stats/StatsService";
 import { UserLightModel, UserModel } from "../user/UserModel";
 import { UserService } from "../user/UserService";
 import { clamp } from "../utils/Common";
+import { ErrorFactory } from "../utils/ErrorUtil";
 import {
   CsgoMap,
   GfycatData,
@@ -21,31 +22,42 @@ import {
 } from "./Nade";
 import { NadeRepo } from "./NadeRepo";
 
+type NadeServiceDeps = {
+  nadeRepo: NadeRepo;
+  userService: UserService;
+  imageStorageService: IImageStorageService;
+  gfycatService: GfycatService;
+  cache: CachingService;
+  eventBus: EventBus;
+};
+
 export class NadeService {
   private nadeRepo: NadeRepo;
   private userService: UserService;
   private imageStorageService: IImageStorageService;
   private gfycatService: GfycatService;
-  private statsService: StatsService;
   private cache: CachingService;
-  private notiService: NotificationService;
+  private eventBus: EventBus;
 
-  constructor(
-    nadeRepo: NadeRepo,
-    userService: UserService,
-    imageStorageService: IImageStorageService,
-    gfycatService: GfycatService,
-    statsService: StatsService,
-    notiService: NotificationService,
-    cache: CachingService
-  ) {
+  constructor(deps: NadeServiceDeps) {
+    const {
+      cache,
+      gfycatService,
+      imageStorageService,
+      nadeRepo,
+      userService,
+      eventBus
+    } = deps;
+
     this.nadeRepo = nadeRepo;
     this.userService = userService;
     this.imageStorageService = imageStorageService;
     this.gfycatService = gfycatService;
-    this.statsService = statsService;
     this.cache = cache;
-    this.notiService = notiService;
+    this.eventBus = eventBus;
+
+    this.eventBus.subNewFavorites(this.incrementFavoriteCount);
+    this.eventBus.subUnFavorite(this.decrementFavoriteCount);
   }
 
   fetchNades = async (limit?: number): Promise<NadeLightDTO[]> => {
@@ -68,40 +80,17 @@ export class NadeService {
     return pending;
   };
 
-  byId = async (nadeId: string): Promise<NadeDTO | null> => {
+  byId = async (nadeId: string): Promise<NadeDTO> => {
     const cachedNade = this.cache.getNade(nadeId);
 
     if (cachedNade && !this.shouldUpdateStats(cachedNade)) {
       return cachedNade;
     }
 
-    const nade = await this.nadeRepo.byId(nadeId);
+    let nade = await this.nadeRepo.byId(nadeId);
+    nade = await this.tryUpdateViewCounter(nade);
 
-    if (nade && this.shouldUpdateStats(nade)) {
-      const gfycat = await this.gfycatService.getGfycatData(nade.gfycat.gfyId);
-
-      if (!gfycat) {
-        return nade;
-      }
-
-      const updatedNadeViews: Partial<NadeModel> = {
-        viewCount: gfycat.gfyItem.views
-      };
-
-      const viewCountDidDiffer = gfycat.gfyItem.views !== nade.viewCount;
-
-      const updatedNade = await this.nadeRepo.update(nadeId, updatedNadeViews);
-
-      if (updatedNade && viewCountDidDiffer) {
-        this.cache.invalidateNade(updatedNade.id);
-      }
-
-      return updatedNade;
-    }
-
-    if (nade) {
-      this.cache.setNade(nadeId, nade);
-    }
+    this.cache.setNade(nadeId, nade);
 
     return nade;
   };
@@ -136,11 +125,6 @@ export class NadeService {
   ): Promise<NadeDTO | null> => {
     const user = await this.userService.byId(steamID);
 
-    if (!user) {
-      // TODO: Throw sensible error
-      return null;
-    }
-
     const userLight: UserLightModel = {
       nickname: user.nickname,
       avatar: user.avatar,
@@ -168,9 +152,7 @@ export class NadeService {
     const tmpNade = makeNadeFromBody(userLight, gfycatData, nadeImages);
     const nade = await this.nadeRepo.save(tmpNade);
 
-    await this.statsService.incrementNadeCounter();
-    await this.statsService.incrementPendingCounter();
-    this.notiService.newNade(nade.id);
+    this.eventBus.emitNewNade(nade);
 
     return nade;
   };
@@ -178,19 +160,13 @@ export class NadeService {
   delete = async (nadeId: string) => {
     const nade = await this.nadeRepo.byId(nadeId);
 
-    if (!nade) {
-      // TODO: Throw sensible error
-      return null;
-    }
-
     await Promise.all([
       this.nadeRepo.delete(nade.id),
       this.imageStorageService.deleteImage(nade.images.largeId),
       this.imageStorageService.deleteImage(nade.images.thumbnailId)
     ]);
 
-    await this.statsService.decrementNadeCounter();
-
+    this.eventBus.emitNadeDelete(nade);
     this.cache.invalidateNade(nadeId);
   };
 
@@ -246,23 +222,17 @@ export class NadeService {
     const nade = await this.nadeRepo.update(nadeId, updatedStatus);
 
     if (!nade || !oldNade) {
-      // TODO: Throw sensible error
-      return null;
+      throw ErrorFactory.NotFound("Nade not found.");
     }
 
     // Keep pending counter in sync on status change
-    if (oldNade.status === "pending" && nade.status !== "pending") {
-      await this.notiService.nadeAccepted(nade.id, nade.user.steamId);
-      await this.statsService.decrementPendingCounter();
-    }
-
-    if (oldNade.status !== "pending" && nade.status === "pending") {
-      await this.statsService.incrementPendingCounter();
+    if (oldNade.status === "pending" && nade.status === "accepted") {
+      this.eventBus.emitNadeAccepted(nade);
     }
 
     // Send notification if nade status changed to declined
     if (oldNade.status !== "declined" && nade.status === "declined") {
-      await this.notiService.nadeDeclined(nade.id, nade.user.steamId);
+      this.eventBus.emitNadeDeclined(nade);
     }
 
     this.cache.invalidateRecent();
@@ -284,12 +254,12 @@ export class NadeService {
     return;
   }
 
-  incrementFavoriteCount = async (nadeId: string) => {
-    await this.nadeRepo.incrementFavoriteCount(nadeId);
+  private incrementFavoriteCount = async (favorite: FavoriteDTO) => {
+    await this.nadeRepo.incrementFavoriteCount(favorite.nadeId);
   };
 
-  decrementFavoriteCount = async (nadeId: string) => {
-    await this.nadeRepo.decrementFavoriteCount(nadeId);
+  private decrementFavoriteCount = async (favorite: FavoriteDTO) => {
+    await this.nadeRepo.decrementFavoriteCount(favorite.id);
   };
 
   private shouldUpdateStats(nade: NadeDTO) {
@@ -321,23 +291,55 @@ export class NadeService {
   }
 
   isAllowedEdit = async (nadeId: string, steamId: string): Promise<boolean> => {
-    const nade = await this.byId(nadeId);
-    const user = await this.userService.byId(steamId);
+    try {
+      const nade = await this.byId(nadeId);
+      const user = await this.userService.byId(steamId);
 
-    if (!user || !nade) {
-      // TODO: Throw sensible error
+      if (!nade) {
+        // TODO: Throw sensible error
+        return false;
+      }
+
+      if (user.role === "administrator" || user.role === "moderator") {
+        return true;
+      }
+
+      if (nade.steamId === user.steamId) {
+        return true;
+      }
+
+      return false;
+    } catch (error) {
       return false;
     }
+  };
 
-    if (user.role === "administrator" || user.role === "moderator") {
-      return true;
+  private tryUpdateViewCounter = async (nade: NadeDTO): Promise<NadeDTO> => {
+    const shouldUpdate = this.shouldUpdateStats(nade);
+    if (!shouldUpdate) {
+      return nade;
     }
 
-    if (nade.steamId === user.steamId) {
-      return true;
+    const gfycat = await this.gfycatService.getGfycatData(nade.gfycat.gfyId);
+
+    if (!gfycat) {
+      // Gfycat service down, so we can't update view counter
+      return nade;
     }
 
-    return false;
+    const updatedNadeViews: Partial<NadeModel> = {
+      viewCount: gfycat.gfyItem.views
+    };
+
+    const viewCountDidDiffer = gfycat.gfyItem.views !== nade.viewCount;
+
+    const updatedNade = await this.nadeRepo.update(nade.id, updatedNadeViews);
+
+    if (viewCountDidDiffer) {
+      this.cache.invalidateNade(updatedNade.id);
+    }
+
+    return updatedNade;
   };
 
   private toLightDTO = (nadeDto: NadeDTO): NadeLightDTO => {
