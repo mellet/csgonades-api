@@ -37,9 +37,10 @@ export class UserService {
   };
 
   getOrCreate = async (steamId: string): Promise<UserModel> => {
-    const user = await this.userRepo.byId(steamId);
-
-    if (!user) {
+    try {
+      const user = await this.userRepo.byId(steamId);
+      return user;
+    } catch (error) {
       const player = await this.steamService.getPlayerBySteamID(steamId);
 
       const newUser: UserCreateDTO = {
@@ -54,8 +55,6 @@ export class UserService {
 
       return user;
     }
-
-    return user;
   };
 
   update = (steamId: string, update: UserUpdateDTO) => {
