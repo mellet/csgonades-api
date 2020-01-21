@@ -131,11 +131,7 @@ export const AppServer = (config: CSGNConfig) => {
     userService,
     eventBus
   });
-  const favoriteService = new FavoriteService({
-    favoriteRepo,
-    cache: cacheService,
-    eventBus
-  });
+  const favoriteService = new FavoriteService({ favoriteRepo, eventBus });
   const tournamentService = new TournamentService(tournamentRepo, cacheService);
   const reporService = new ReportService(reportRepo, notificationService);
   const contactService = new ContactService({
@@ -150,10 +146,7 @@ export const AppServer = (config: CSGNConfig) => {
 
   // Routers
   const statusRouter = new StatusRouter({ cache: cacheService });
-  const nadeRouter = new NadeRouter({
-    gfycatService,
-    nadeService
-  });
+  const nadeRouter = new NadeRouter({ gfycatService, nadeService });
   const steamRouter = makeSteamRouter(userService, passport, config);
   const userRouter = makeUserRouter(userService, nadeService);
   const favoriteRouter = new FavoriteRouter({ favoriteService });

@@ -256,10 +256,12 @@ export class NadeService {
 
   private incrementFavoriteCount = async (favorite: FavoriteDTO) => {
     await this.nadeRepo.incrementFavoriteCount(favorite.nadeId);
+    this.cache.invalidateNade(favorite.nadeId);
   };
 
   private decrementFavoriteCount = async (favorite: FavoriteDTO) => {
-    await this.nadeRepo.decrementFavoriteCount(favorite.id);
+    await this.nadeRepo.decrementFavoriteCount(favorite.nadeId);
+    this.cache.invalidateNade(favorite.nadeId);
   };
 
   private shouldUpdateStats(nade: NadeDTO) {
