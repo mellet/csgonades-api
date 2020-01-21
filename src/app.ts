@@ -182,9 +182,9 @@ export const AppServer = (config: CSGNConfig) => {
 
   app.use(Sentry.Handlers.errorHandler());
 
-  // Run Favorite notification generator every day at 23:50
+  // Run Favorite notification generator every day at 06:00
   nodeCron.schedule(
-    "50 23 * * *",
+    "0 6 * * *",
     notificationGeneratorService.generateNewFavoriteNotifications
   );
 

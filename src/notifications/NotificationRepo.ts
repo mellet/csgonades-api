@@ -73,7 +73,6 @@ export class NotificationRepo {
       const item = res[0];
       const oldCount = item.data.count || 0;
       const additionalCount = noti.count || 0;
-      console.log("Found notification", { item, oldCount, additionalCount });
 
       update(this.collection, item.ref.id, {
         count: oldCount + additionalCount

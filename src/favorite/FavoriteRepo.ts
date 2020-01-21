@@ -76,12 +76,12 @@ export class FavoriteRepo {
   };
 
   newToday = async (): Promise<FavoriteDTO[]> => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Get all between yesterday 6AM and today 6AM
+    const date = new Date();
+    date.setDate(date.getDate() - 1);
+    date.setHours(6, 0, 0, 0);
 
-    const docs = await query(this.collection, [
-      where("createdAt", ">=", today)
-    ]);
+    const docs = await query(this.collection, [where("createdAt", ">", date)]);
     const favorites = docs.map(this.docToDto);
 
     return favorites;
