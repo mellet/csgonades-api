@@ -289,17 +289,15 @@ export class NadeRouter {
   };
 
   private deleteNade: RequestHandler<IdParam> = async (req, res) => {
-    async (req, res) => {
-      try {
-        const id = sanitizeIt(req.params.id);
+    try {
+      const id = sanitizeIt(req.params.id);
 
-        await this.nadeService.delete(id);
+      await this.nadeService.delete(id);
 
-        return res.status(204).send();
-      } catch (error) {
-        const err = errorCatchConverter(error);
-        return res.status(err.code).send(err);
-      }
-    };
+      return res.status(204).send();
+    } catch (error) {
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
+    }
   };
 }
