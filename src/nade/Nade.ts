@@ -82,6 +82,8 @@ export type NadeLightDTO = {
   type?: NadeType;
   mapSite?: MapSite;
   tickrate?: Tickrate;
+  technique?: Technique;
+  movement?: Movement;
   createdAt: Date;
   viewCount: number;
   favoriteCount: number;
