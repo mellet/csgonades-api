@@ -50,10 +50,10 @@ export class ImageStorageService implements IImageStorageService {
       const largeName = `${imageId}.jpg`;
 
       await sharp(imgBuffer)
-        .resize(1080, null)
+        .resize(600, null)
         .toFile(`${tmpFolderLocation}/${thumbnailName}`);
       await sharp(imgBuffer)
-        .resize(1920, null)
+        .resize(1200, null)
         .toFile(`${tmpFolderLocation}/${largeName}`);
 
       await this.bucket.upload(`${tmpFolderLocation}/${thumbnailName}`, {
