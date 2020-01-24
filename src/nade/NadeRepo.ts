@@ -198,7 +198,7 @@ export class NadeRepo {
 
   private viewsPerView(views: number, daysAgo: number) {
     // Give new nades some initial news to keep them highly rated for the initial week
-    const viewScore = Math.max(1000, views);
+    const viewScore = Math.max(3000, views);
     const weeksAgoAdded = Math.max(daysAgo / 7, 1);
 
     return Math.round(viewScore / weeksAgoAdded);
