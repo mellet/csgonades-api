@@ -177,7 +177,7 @@ export class NadeRepo {
   };
 
   private calcScore = (nade: NadeModel): number => {
-    const FAVORITE_WEIGHT = 200;
+    const FAVORITE_WEIGHT = 300;
 
     const addedDaysAgo = Math.max(
       moment().diff(moment(nade.createdAt), "days", false),
@@ -186,7 +186,7 @@ export class NadeRepo {
 
     const averageViewsPerWeek = this.viewsPerView(nade.viewCount, addedDaysAgo);
 
-    const ageScore = Math.round(Math.log(1500 - addedDaysAgo) * 100);
+    const ageScore = Math.round(Math.log(1500 - addedDaysAgo) * 100) / 2;
 
     const favoriteScore =
       Math.max(nade.favoriteCount || 0, 1) * FAVORITE_WEIGHT;
