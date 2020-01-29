@@ -106,7 +106,11 @@ export class NotificationRepo {
       case "report":
         return add(this.collection, { ...commonValues, type: "report" });
       case "new-nade":
-        return add(this.collection, { ...commonValues, type: "new-nade" });
+        return add(this.collection, {
+          ...commonValues,
+          type: "new-nade",
+          nadeId: noti.nadeId
+        });
       default:
         throw assertNever(noti);
     }

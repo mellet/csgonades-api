@@ -3,20 +3,29 @@ import * as Sentry from "@sentry/node";
 import nanoid from "nanoid";
 import sharp from "sharp";
 import { CSGNConfig } from "../config/enironment";
+import { ErrorFactory } from "../utils/ErrorUtil";
 
 export type NadeImages = {
   thumbnailId: string;
   thumbnailUrl: string;
-  largeId: string;
-  largeUrl: string;
+  largeId?: string;
+  largeUrl?: string;
+};
+
+type ImageUploadResult = {
+  id: string;
+  url: string;
 };
 
 export interface IImageStorageService {
-  saveImage(imageBase64: string): Promise<NadeImages | null>;
+  saveImage(
+    imageBase64: string,
+    bucketFolder: string
+  ): Promise<ImageUploadResult>;
   deleteImage(fileId: string): Promise<void>;
 }
 
-export class ImageStorageService implements IImageStorageService {
+export class ImageStorageRepo implements IImageStorageService {
   private bucket: Bucket;
   private config: CSGNConfig;
 
@@ -25,72 +34,104 @@ export class ImageStorageService implements IImageStorageService {
     this.config = config;
   }
 
-  async saveImage(imageBase64: string): Promise<NadeImages | null> {
+  listImagesInFolder = async (folder?: string) => {
+    const res = await this.bucket.getFiles({ directory: folder });
+    const files = res[0];
+
+    const large: string[] = [];
+    const thumbs: string[] = [];
+
+    for (let file of files) {
+      if (!file.id) {
+        continue;
+      }
+      if (file.id.includes("thumb")) {
+        thumbs.push(file.id);
+      } else {
+        large.push(file.id);
+      }
+    }
+
+    return {
+      large,
+      thumbs
+    };
+  };
+
+  saveImage = async (
+    imageBase64: string,
+    bucketFolder: string
+  ): Promise<ImageUploadResult> => {
+    const { fileName, folder } = await this.imageTransform(imageBase64);
+
+    const bucketPathAndName = `${bucketFolder}/${fileName}`;
+
+    await this.uploadToBucket(`${folder}/${fileName}`, bucketPathAndName);
+
+    const fireBaseStorageUrl = this.createPublicFileURL(
+      this.bucket.name,
+      bucketPathAndName
+    );
+
+    return {
+      id: fileName,
+      url: fireBaseStorageUrl
+    };
+  };
+
+  private imageTransform = async (base64Image: string) => {
     const tmpFolderLocation = this.config.isProduction ? "../tmp" : "tmp";
+    const uri = base64Image.split(";base64,").pop();
+
+    if (!uri) {
+      throw ErrorFactory.BadRequest("Failed to process image");
+    }
+
+    const imgBuffer = Buffer.from(uri, "base64");
+
+    const mimeType = base64Image.substring(
+      "data:image/".length,
+      base64Image.indexOf(";base64")
+    );
+
+    if (mimeType !== "jpeg") {
+      throw ErrorFactory.BadRequest("Wrong image format, only JPG supported.");
+    }
+
+    const imageId = nanoid();
+    const fileName = `${imageId}_thumb.jpg`;
+
+    await sharp(imgBuffer)
+      .resize(1080, null)
+      .jpeg()
+      .toFile(`${tmpFolderLocation}/${fileName}`);
+
+    return {
+      folder: tmpFolderLocation,
+      fileName: fileName
+    };
+  };
+
+  private uploadToBucket = async (
+    imagePath: string,
+    fullFilePathAndName: string
+  ) => {
     try {
-      const uri = imageBase64.split(";base64,").pop();
-
-      if (!uri) {
-        // TODO: Throw sensible erro
-        return null;
-      }
-
-      const imgBuffer = Buffer.from(uri, "base64");
-      const mimeType = imageBase64.substring(
-        "data:image/".length,
-        imageBase64.indexOf(";base64")
-      );
-
-      if (mimeType !== "jpeg") {
-        throw new Error("Wrong image format");
-      }
-
-      const imageId = nanoid();
-      const thumbnailName = `${imageId}_thumb.jpg`;
-      const largeName = `${imageId}.jpg`;
-
-      await sharp(imgBuffer)
-        .resize(600, null)
-        .toFile(`${tmpFolderLocation}/${thumbnailName}`);
-      await sharp(imgBuffer)
-        .resize(1200, null)
-        .toFile(`${tmpFolderLocation}/${largeName}`);
-
-      await this.bucket.upload(`${tmpFolderLocation}/${thumbnailName}`, {
+      await this.bucket.upload(imagePath, {
         public: true,
         gzip: true,
-        destination: `${thumbnailName}`,
+        destination: `${fullFilePathAndName}`,
         contentType: `image/jpeg`,
         metadata: {
           contentType: `image/jpeg`,
           cacheControl: "public, max-age=31536000"
         }
       });
-
-      await this.bucket.upload(`${tmpFolderLocation}/${largeName}`, {
-        public: true,
-        gzip: true,
-        destination: `${largeName}`,
-        contentType: `image/jpeg`,
-        metadata: {
-          contentType: `image/jpeg`,
-          cacheControl: "public, max-age=31536000"
-        }
-      });
-
-      const images: NadeImages = {
-        thumbnailId: thumbnailName,
-        thumbnailUrl: this.createPublicFileURL(this.bucket.name, thumbnailName),
-        largeId: largeName,
-        largeUrl: this.createPublicFileURL(this.bucket.name, largeName)
-      };
-
-      return images;
     } catch (error) {
       Sentry.captureException(error);
-      throw error;
+      throw ErrorFactory.ExternalError("Failed to upload image.");
     }
-  }
+  };
 
   async deleteImage(fileId: string) {
     try {
@@ -99,7 +140,7 @@ export class ImageStorageService implements IImageStorageService {
       await image.delete();
     } catch (error) {
       Sentry.captureException(error);
-      throw error;
+      throw ErrorFactory.ExternalError("Failed to delete image.");
     }
   }
 

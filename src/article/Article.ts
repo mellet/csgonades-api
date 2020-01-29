@@ -2,6 +2,7 @@ type ArticleStatus = "draft" | "published" | "unpublished";
 
 export type ArticleModelDoc = {
   title: string;
+  slug: string;
   body: string;
   status: ArticleStatus;
   createdAt: Date;

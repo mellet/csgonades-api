@@ -1,5 +1,5 @@
 interface CommonNotificationValues {
-  subjectSteamId: String; // Reciever of notification
+  subjectSteamId: string; // Reciever of notification
   viewed: boolean;
   createdAt: Date;
 }
@@ -30,6 +30,7 @@ interface NewContactNotification extends CommonNotificationValues {
 
 interface NewNadeNotification extends CommonNotificationValues {
   type: "new-nade";
+  nadeId: string;
 }
 
 export type NotificationModel =

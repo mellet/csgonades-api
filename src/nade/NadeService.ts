@@ -136,20 +136,21 @@ export class NadeService {
     );
 
     if (!gfycatData) {
-      // TODO: Throw sensible error
-      return null;
+      throw ErrorFactory.ExternalError(
+        "Gfycat seems to be down. Try again later."
+      );
     }
 
-    const nadeImages = await this.imageStorageService.saveImage(
-      body.imageBase64
+    const resultImage = await this.imageStorageService.saveImage(
+      body.imageBase64,
+      "nades"
     );
 
-    if (!nadeImages) {
-      // TODO: Throw sensible error
-      return null;
-    }
+    const tmpNade = makeNadeFromBody(userLight, gfycatData, {
+      thumbnailId: resultImage.id,
+      thumbnailUrl: resultImage.url
+    });
 
-    const tmpNade = makeNadeFromBody(userLight, gfycatData, nadeImages);
     const nade = await this.nadeRepo.save(tmpNade);
 
     this.eventBus.emitNewNade(nade);
@@ -162,7 +163,6 @@ export class NadeService {
 
     await Promise.all([
       this.nadeRepo.delete(nade.id),
-      this.imageStorageService.deleteImage(nade.images.largeId),
       this.imageStorageService.deleteImage(nade.images.thumbnailId)
     ]);
 

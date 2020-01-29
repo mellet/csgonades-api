@@ -67,7 +67,8 @@ export class NotificationService {
   private newNade = (nade: NadeDTO) => {
     this.notiRepo.add({
       type: "new-nade",
-      subjectSteamId: this.adminId
+      subjectSteamId: this.adminId,
+      nadeId: nade.id
     });
   };
 

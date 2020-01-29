@@ -71,6 +71,7 @@ export class ArticleRepo {
     const res = await add(this.collection, {
       title: articleModel.title,
       body: articleModel.body,
+      slug: "",
       status: "draft",
       createdAt: value("serverDate"),
       updatedAt: value("serverDate")
