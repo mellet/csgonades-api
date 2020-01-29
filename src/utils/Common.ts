@@ -1,3 +1,5 @@
+import { ErrorFactory } from "./ErrorUtil";
+
 export const removeUndefines = <T extends Object>(object: T): T => {
   const newObject = {
     ...object
@@ -16,4 +18,9 @@ export function extractGfyIdFromIdOrUrl(gfycatIdOrUrl: string): string {
 
 export function clamp(num: number, min: number, max: number) {
   return num <= min ? min : num >= max ? max : num;
+}
+
+export function assertNever(never: never) {
+  return ErrorFactory.InternalServerError(`Did not expect to reach this code.`);
+  // no-op
 }

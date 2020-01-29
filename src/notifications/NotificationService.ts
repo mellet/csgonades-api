@@ -1,4 +1,6 @@
+import { FavoriteDTO } from "../favorite/Favorite";
 import { NadeDTO } from "../nade/Nade";
+import { NadeService } from "../nade/NadeService";
 import { EventBus } from "../services/EventHandler";
 import { RequestUser } from "../utils/AuthUtils";
 import { ErrorFactory } from "../utils/ErrorUtil";
@@ -7,76 +9,65 @@ import { NotificationRepo } from "./NotificationRepo";
 type NotificationServiceDeps = {
   notificationRepo: NotificationRepo;
   eventBus: EventBus;
+  nadeService: NadeService;
 };
 
 export class NotificationService {
   private notiRepo: NotificationRepo;
   private eventBus: EventBus;
+  private nadeService: NadeService;
   private adminId = "76561198026064832";
 
   constructor(deps: NotificationServiceDeps) {
     this.eventBus = deps.eventBus;
     this.notiRepo = deps.notificationRepo;
+    this.nadeService = deps.nadeService;
 
     this.eventBus.subAcceptedNade(this.nadeAccepted);
     this.eventBus.subDeclinedNade(this.nadeDeclined);
     this.eventBus.subNewNade(this.newNade);
+    this.eventBus.subNewFavorites(this.addFavoriteNotification);
+    this.eventBus.subUnFavorite(this.onRemoveFavorite);
   }
 
   forUser = (steamId: string) => {
-    return this.notiRepo.getNotificationForUser(steamId);
+    return this.notiRepo.forUser(steamId);
   };
 
   private nadeAccepted = (nade: NadeDTO) => {
-    return this.notiRepo.addNotification({
-      steamId: nade.steamId,
+    return this.notiRepo.add({
       type: "accepted-nade",
-      entityId: nade.id
+      nadeId: nade.id,
+      subjectSteamId: nade.steamId
     });
   };
 
   private nadeDeclined = (nade: NadeDTO) => {
-    return this.notiRepo.addNotification({
-      steamId: nade.steamId,
+    return this.notiRepo.add({
       type: "declined-nade",
-      entityId: nade.id
+      nadeId: nade.id,
+      subjectSteamId: nade.steamId
     });
   };
 
   newReport = () => {
-    return this.notiRepo.addNotification({
-      steamId: this.adminId,
-      type: "new-report",
-      entityId: ""
+    return this.notiRepo.add({
+      type: "report",
+      subjectSteamId: this.adminId
     });
   };
 
   newContactMsg = () => {
-    this.notiRepo.addNotification({
-      steamId: this.adminId,
-      type: "new-contact-msg",
-      entityId: ""
+    this.notiRepo.add({
+      type: "contact-msg",
+      subjectSteamId: this.adminId
     });
   };
 
   private newNade = (nade: NadeDTO) => {
-    this.notiRepo.addNotification({
-      steamId: this.adminId,
+    this.notiRepo.add({
       type: "new-nade",
-      entityId: nade.id
-    });
-  };
-
-  addOrUpdateFavNotification = (
-    nadeId: string,
-    userId: string,
-    count?: number
-  ) => {
-    this.notiRepo.addOrUpdateFavNotification({
-      steamId: userId,
-      type: "favorited-nade",
-      entityId: nadeId,
-      count
+      subjectSteamId: this.adminId
     });
   };
 
@@ -87,10 +78,35 @@ export class NotificationService {
       throw ErrorFactory.NotFound("Notification not found.");
     }
 
-    if (noti.steamId !== user.steamId) {
+    if (noti.subjectSteamId !== user.steamId) {
       throw ErrorFactory.Forbidden("This notification does not belong to you.");
     }
 
-    return this.notiRepo.markNotificationAsViewed(id);
+    return this.notiRepo.markAsViewed(id);
+  };
+
+  private addFavoriteNotification = async (favorite: FavoriteDTO) => {
+    console.log("> addFavoriteNotification", favorite);
+    try {
+      const nade = await this.nadeService.byId(favorite.nadeId);
+
+      this.notiRepo.add({
+        type: "favorite",
+        subjectSteamId: nade.steamId,
+        nadeId: nade.id
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  private onRemoveFavorite = async (favorite: FavoriteDTO) => {
+    console.log("> onRemoveFavorite", favorite);
+    try {
+      const nade = await this.nadeService.byId(favorite.nadeId);
+      this.notiRepo.removeFavoriteNotification(nade.id);
+    } catch (error) {
+      console.error(error);
+    }
   };
 }

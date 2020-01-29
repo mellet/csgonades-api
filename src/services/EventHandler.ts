@@ -1,6 +1,7 @@
 import { EventEmitter } from "events";
 import { FavoriteDTO } from "../favorite/Favorite";
 import { NadeDTO } from "../nade/Nade";
+import { ReportDTO } from "../reports/Report";
 import { UserDTO } from "../user/UserDTOs";
 
 const FavoriteEventType = "@@favorite/NEW";
@@ -10,6 +11,7 @@ const NadeNew = "@@nade/NEW";
 const NadeAccepted = "@@nade/ACCEPTED";
 const NadeDeclined = "@@nade/DECLINED";
 const NewUser = "@@user/NEW";
+const NewReport = "@@report/NEW";
 
 export class EventBus {
   private eventEmitter: EventEmitter;
@@ -47,15 +49,21 @@ export class EventBus {
     this.eventEmitter.on(NewUser, (value: UserDTO) => cb(value));
   };
 
+  subNewReport = (cb: (report: ReportDTO) => void) => {
+    this.eventEmitter.on(NewReport, (value: ReportDTO) => cb(value));
+  };
+
   emitNewUser = (user: UserDTO) => {
     this.eventEmitter.emit(NewUser, user);
   };
 
   emitNewFavorite = (fav: FavoriteDTO) => {
+    console.log("> Emit fav", fav);
     this.eventEmitter.emit(FavoriteEventType, fav);
   };
 
   emitUnFavorite = (fav: FavoriteDTO) => {
+    console.log("> Emit unfav", fav);
     this.eventEmitter.emit(UnfavoriteEventType, fav);
   };
 
@@ -73,5 +81,9 @@ export class EventBus {
 
   emitNadeDeclined = (nade: NadeDTO) => {
     this.eventEmitter.emit(NadeDeclined, nade);
+  };
+
+  emitNewReport = (report: ReportDTO) => {
+    this.eventEmitter.emit(NewReport, report);
   };
 }

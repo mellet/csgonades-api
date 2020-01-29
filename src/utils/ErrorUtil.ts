@@ -5,14 +5,7 @@ type ApiError = {
   message: string;
 };
 
-class ErrorNotFound extends CustomError {
-  constructor(public code: number, message?: string) {
-    super(message);
-    this.code = code;
-  }
-}
-
-class ErrorBadRequest extends CustomError {
+class CustomErr extends CustomError {
   constructor(public code: number, message?: string) {
     super(message);
     this.code = code;
@@ -21,15 +14,23 @@ class ErrorBadRequest extends CustomError {
 
 export class ErrorFactory {
   static NotFound(message: string) {
-    return new ErrorNotFound(404, message);
+    return new CustomErr(404, message);
   }
 
   static BadRequest(message: string) {
-    return new ErrorBadRequest(400, message);
+    return new CustomErr(400, message);
   }
 
   static Forbidden(message: string) {
-    return new ErrorBadRequest(403, message);
+    return new CustomErr(403, message);
+  }
+
+  static ExternalError(message: string) {
+    return new CustomErr(500, message);
+  }
+
+  static InternalServerError(message: string) {
+    return new CustomErr(500, message);
   }
 }
 

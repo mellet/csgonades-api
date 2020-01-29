@@ -48,8 +48,6 @@ export class NotificationRouter {
       const user = userFromRequest(req);
       const id = req.params.id;
 
-      console.log("Marking notification as viewed", id, user);
-
       await this.notificationService.markAsRead(id, user);
 
       return res.status(202).send();
