@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/node";
 import { FavoriteDTO } from "../favorite/Favorite";
 import { NadeDTO } from "../nade/Nade";
 import { NadeService } from "../nade/NadeService";
@@ -87,7 +88,6 @@ export class NotificationService {
   };
 
   private addFavoriteNotification = async (favorite: FavoriteDTO) => {
-    console.log("> addFavoriteNotification", favorite);
     try {
       const nade = await this.nadeService.byId(favorite.nadeId);
 
@@ -97,17 +97,16 @@ export class NotificationService {
         nadeId: nade.id
       });
     } catch (error) {
-      console.error(error);
+      Sentry.captureException(error);
     }
   };
 
   private onRemoveFavorite = async (favorite: FavoriteDTO) => {
-    console.log("> onRemoveFavorite", favorite);
     try {
       const nade = await this.nadeService.byId(favorite.nadeId);
       this.notiRepo.removeFavoriteNotification(nade.id);
     } catch (error) {
-      console.error(error);
+      Sentry.captureException(error);
     }
   };
 }

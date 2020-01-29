@@ -54,13 +54,17 @@ export class NotificationRepo {
   };
 
   removeFavoriteNotification = async (nadeId: string) => {
+    // See if there is a excisting notifciation for this nade that has not been viewed
     const foundNotification = await query<FavoriteNotification>(
       this.collection,
-      [where("type", "==", "favorite"), where("nadeId", "==", nadeId)]
+      [
+        where("type", "==", "favorite"),
+        where("nadeId", "==", nadeId),
+        where("viewed", "==", false)
+      ]
     );
 
     if (!foundNotification.length) {
-      console.error("Trying to remove favorite notification, but none found");
       return;
     }
 
@@ -127,7 +131,8 @@ export class NotificationRepo {
 
     const duplicateSearch = await query<FavoriteNotification>(this.collection, [
       where("type", "==", "favorite"),
-      where("subjectSteamId", "==", noti.subjectSteamId)
+      where("subjectSteamId", "==", noti.subjectSteamId),
+      where("viewed", "==", false)
     ]);
 
     // If found, increment counter, otherwise add new document
