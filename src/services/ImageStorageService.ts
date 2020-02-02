@@ -72,7 +72,7 @@ export class ImageStorageRepo implements IImageStorageService {
     );
 
     return {
-      id: fileName,
+      id: bucketPathAndName,
       url: fireBaseStorageUrl
     };
   };
