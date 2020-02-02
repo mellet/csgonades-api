@@ -5,14 +5,7 @@ import { errorCatchConverter } from "../utils/ErrorUtil";
 import { userFromRequest } from "../utils/RouterUtils";
 import { sanitizeIt } from "../utils/Sanitize";
 import { getSessionId } from "../utils/SessionRoute";
-import {
-  CsgoMap,
-  GfycatData,
-  NadeCreateDTO,
-  NadeGfycatValidateDTO,
-  NadeStatusDTO,
-  NadeUpdateDTO
-} from "./Nade";
+import { CsgoMap, GfycatData, NadeCreateDTO, NadeGfycatValidateDTO, NadeStatusDTO, NadeUpdateDTO } from "./Nade";
 import { validateNade } from "./NadeMiddleware";
 import { NadeService } from "./NadeService";
 
@@ -290,6 +283,7 @@ export class NadeRouter {
 
   private deleteNade: RequestHandler<IdParam> = async (req, res) => {
     try {
+      console.log("Delete requested")
       const id = sanitizeIt(req.params.id);
 
       await this.nadeService.delete(id);

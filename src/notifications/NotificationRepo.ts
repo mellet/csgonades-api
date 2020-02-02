@@ -73,11 +73,11 @@ export class NotificationRepo {
     const notificationId = notification.ref.id;
     const notificationCount = notification.data.count;
 
-    if (notificationCount === 1) {
+    if (notificationCount <= 1) {
       await remove(this.collection, notificationId);
     } else {
       await update(this.collection, notificationId, {
-        count: value("increment", -1)
+        count: notificationCount - 1
       });
     }
   };
@@ -139,7 +139,7 @@ export class NotificationRepo {
     if (duplicateSearch.length) {
       const duplicate = duplicateSearch[0];
       await update(this.collection, duplicate.ref.id, {
-        count: value("increment", 1),
+        count: duplicate.data.count + 1,
         createdAt: value("serverDate")
       });
 
