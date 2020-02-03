@@ -331,7 +331,13 @@ export class NadeService {
     }
 
     const updatedNadeViews: Partial<NadeModel> = {
-      viewCount: gfycat.gfyItem.views
+      viewCount: gfycat.gfyItem.views,
+      gfycat: {
+        gfyId: gfycat.gfyItem.gfyId,
+        smallVideoUrl: gfycat.gfyItem.mobileUrl,
+        largeVideoUrl: gfycat.gfyItem.mp4Url,
+        largeVideoWebm: gfycat.gfyItem.webmUrl
+      }
     };
 
     const viewCountDidDiffer = gfycat.gfyItem.views !== nade.viewCount;
