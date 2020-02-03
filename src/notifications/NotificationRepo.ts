@@ -11,6 +11,7 @@ import {
   value,
   where
 } from "typesaurus";
+import { ModelUpdate } from "typesaurus/update";
 import { assertNever } from "../utils/Common";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import {
@@ -138,10 +139,17 @@ export class NotificationRepo {
     // If found, increment counter, otherwise add new document
     if (duplicateSearch.length) {
       const duplicate = duplicateSearch[0];
-      await update(this.collection, duplicate.ref.id, {
+
+      const modelUpdate: ModelUpdate<FavoriteNotification> = {
         count: duplicate.data.count + 1,
         createdAt: value("serverDate")
-      });
+      };
+
+      await update<FavoriteNotification>(
+        this.collection,
+        duplicate.ref.id,
+        modelUpdate
+      );
 
       const updatedModel = await get(this.collection, duplicate.ref.id);
 

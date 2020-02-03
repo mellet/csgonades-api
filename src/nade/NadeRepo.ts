@@ -184,7 +184,7 @@ export class NadeRepo {
       1
     );
 
-    const averageViewsPerWeek = this.viewsPerView(nade.viewCount, addedDaysAgo);
+    const averageViewsPerWeek = this.viewsPerWeek(nade.viewCount, addedDaysAgo);
 
     const ageScore = Math.round(Math.log(1500 - addedDaysAgo) * 100) / 2;
 
@@ -201,7 +201,7 @@ export class NadeRepo {
     return Math.round(hotScore);
   };
 
-  private viewsPerView(views: number, daysAgo: number) {
+  private viewsPerWeek(views: number, daysAgo: number) {
     const weeksAgoAdded = Math.max(daysAgo / 7, 1);
 
     return Math.round(views / weeksAgoAdded);

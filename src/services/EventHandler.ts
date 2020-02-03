@@ -58,12 +58,10 @@ export class EventBus {
   };
 
   emitNewFavorite = (fav: FavoriteDTO) => {
-    console.log("> Emit fav", fav);
     this.eventEmitter.emit(FavoriteEventType, fav);
   };
 
   emitUnFavorite = (fav: FavoriteDTO) => {
-    console.log("> Emit unfav", fav);
     this.eventEmitter.emit(UnfavoriteEventType, fav);
   };
 
