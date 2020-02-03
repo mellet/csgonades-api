@@ -10,6 +10,7 @@ import {
   value,
   where
 } from "typesaurus";
+import { ErrorFactory } from "../utils/ErrorUtil";
 import { FavoriteCreateModel, FavoriteDTO, FavoriteModel } from "./Favorite";
 
 export class FavoriteRepo {
@@ -20,6 +21,15 @@ export class FavoriteRepo {
   }
 
   set = async (favorite: FavoriteCreateModel): Promise<FavoriteDTO> => {
+    const duplicate = await query(this.collection, [
+      where("nadeId", "==", favorite.nadeId),
+      where("userId", "==", favorite.userId)
+    ]);
+
+    if (duplicate.length) {
+      throw ErrorFactory.BadRequest("This nade is allready duplicated by you.");
+    }
+
     const newFavorite: FavoriteModel = {
       ...favorite,
       createdAt: value("serverDate")
