@@ -191,7 +191,8 @@ export class NadeService {
       newGfyData = {
         gfyId: gfycatData.gfyItem.gfyId,
         smallVideoUrl: gfycatData.gfyItem.mobileUrl,
-        largeVideoUrl: gfycatData.gfyItem.mp4Url
+        largeVideoUrl: gfycatData.gfyItem.mp4Url,
+        largeVideoWebm: gfycatData.gfyItem.webmUrl
       };
 
       viewCount = gfycatData.gfyItem.views;

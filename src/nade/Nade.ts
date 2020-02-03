@@ -17,6 +17,7 @@ export type GfycatData = {
   gfyId: string;
   smallVideoUrl: string;
   largeVideoUrl: string;
+  largeVideoWebm?: string;
 };
 
 type Technique =
@@ -129,7 +130,8 @@ export const makeNadeFromBody = (
     gfycat: {
       gfyId: gfycatData.gfyItem.gfyId,
       smallVideoUrl: gfycatData.gfyItem.mobileUrl,
-      largeVideoUrl: gfycatData.gfyItem.mp4Url
+      largeVideoUrl: gfycatData.gfyItem.mp4Url,
+      largeVideoWebm: gfycatData.gfyItem.webmUrl
     },
     images,
     user,

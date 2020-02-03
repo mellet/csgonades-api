@@ -278,7 +278,8 @@ export class NadeRouter {
       const gfyData: GfycatData = {
         gfyId: gfyItem.gfyId,
         smallVideoUrl: gfyItem.mobileUrl,
-        largeVideoUrl: gfyItem.mp4Url
+        largeVideoUrl: gfyItem.mp4Url,
+        largeVideoWebm: gfyItem.webmUrl
       };
 
       return res.status(200).send(gfyData);
