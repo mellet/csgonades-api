@@ -192,7 +192,8 @@ export class NadeService {
         gfyId: gfycatData.gfyItem.gfyId,
         smallVideoUrl: gfycatData.gfyItem.mobileUrl,
         largeVideoUrl: gfycatData.gfyItem.mp4Url,
-        largeVideoWebm: gfycatData.gfyItem.webmUrl
+        largeVideoWebm: gfycatData.gfyItem.webmUrl,
+        avgColor: gfycatData.gfyItem.avgColor
       };
 
       viewCount = gfycatData.gfyItem.views;
@@ -336,7 +337,8 @@ export class NadeService {
         gfyId: gfycat.gfyItem.gfyId,
         smallVideoUrl: gfycat.gfyItem.mobileUrl,
         largeVideoUrl: gfycat.gfyItem.mp4Url,
-        largeVideoWebm: gfycat.gfyItem.webmUrl
+        largeVideoWebm: gfycat.gfyItem.webmUrl,
+        avgColor: gfycat.gfyItem.avgColor
       }
     };
 
