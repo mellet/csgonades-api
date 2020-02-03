@@ -193,14 +193,17 @@ export class NadeRepo {
 
     const hotScore = ageScore + averageViewsPerWeek + favoriteScore;
 
-    return hotScore;
+    if (addedDaysAgo <= 7) {
+      // Artificially boost new nade to front
+      return 5000 + ageScore;
+    }
+
+    return Math.round(hotScore);
   };
 
   private viewsPerView(views: number, daysAgo: number) {
-    // Give new nades some initial news to keep them highly rated for the initial week
-    const viewScore = Math.max(3000, views);
     const weeksAgoAdded = Math.max(daysAgo / 7, 1);
 
-    return Math.round(viewScore / weeksAgoAdded);
+    return Math.round(views / weeksAgoAdded);
   }
 }
