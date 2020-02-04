@@ -7,8 +7,12 @@ export const validateUserUpdateDTO = (req: Request): UserUpdateDTO => {
   const body = req.body as UserUpdateDTO;
   const articleUpdateSchema = Joi.object<UserUpdateDTO>({
     nickname: Joi.string().optional(),
-    bio: Joi.string().optional(),
-    email: Joi.string().optional(),
+    bio: Joi.string()
+      .allow("")
+      .optional(),
+    email: Joi.string()
+      .allow("")
+      .optional(),
     createdAt: Joi.string().optional()
   }).unknown(false);
 
