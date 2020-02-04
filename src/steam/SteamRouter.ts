@@ -3,7 +3,6 @@ import { CookieOptions, Router } from "express";
 import { PassportStatic } from "passport";
 import SteamStrategy from "passport-steam";
 import { CSGNConfig } from "../config/enironment";
-import { UserModel } from "../user/UserModel";
 import { UserService } from "../user/UserService";
 import {
   createAccessToken,
@@ -40,7 +39,7 @@ export const makeSteamRouter = (
     )
   );
 
-  router.get("/auth/steam", passport.authenticate("steam"), (req, res) => {
+  router.get("/auth/steam", passport.authenticate("steam"), () => {
     // no-op
   });
 
@@ -54,8 +53,6 @@ export const makeSteamRouter = (
 
         const user = await userService.getOrCreate(steamId);
 
-        let isFirstSignIn = checkIsFirstSignIn(user);
-
         const refreshToken = createRefreshToken(
           config.secrets.server_key,
           user
@@ -63,11 +60,10 @@ export const makeSteamRouter = (
 
         res.cookie("csgonadestoken", refreshToken, makeCookieOptions(config));
 
-        res.redirect(
-          `${config.client.baseUrl}/auth?isFirstSignIn=${isFirstSignIn}`
-        );
+        res.redirect(`${config.client.baseUrl}/auth`);
       } catch (error) {
         Sentry.captureException(error);
+        res.redirect(config.client.baseUrl);
       }
     }
   );
@@ -104,18 +100,6 @@ export const makeSteamRouter = (
 
   return router;
 };
-
-function checkIsFirstSignIn(user: UserModel): boolean {
-  const ONE_MINUTE = 60 * 1000;
-  const now = Date.now();
-  const createdAt = user.createdAt.getTime() / 1000;
-
-  if (now - createdAt < ONE_MINUTE) {
-    return true;
-  }
-
-  return false;
-}
 
 function makeCookieOptions(config: CSGNConfig): CookieOptions {
   const oneDay = 1000 * 60 * 60 * 24;
