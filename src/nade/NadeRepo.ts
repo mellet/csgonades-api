@@ -29,7 +29,7 @@ export class NadeRepo {
     this.collection = collection("nades");
   }
 
-  getAll = async (nadeLimit: number = 0): Promise<NadeDTO[]> => {
+  getAll = async (nadeLimit?: number): Promise<NadeDTO[]> => {
     const queryBuilder: Query<NadeModel, keyof NadeModel>[] = [
       where("status", "==", "accepted"),
       order("createdAt", "desc")

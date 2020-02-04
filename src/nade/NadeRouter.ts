@@ -72,16 +72,18 @@ export class NadeRouter {
     try {
       const limitParam = req?.query?.limit;
       let limit: number | undefined = undefined;
+      let noCache = false;
 
       if (!limitParam) {
         limit = 12;
       } else if (limitParam === "all") {
         limit = undefined;
+        noCache = true;
       } else {
         limit = Number(limit);
       }
 
-      const nades = await this.nadeService.fetchNades(limit);
+      const nades = await this.nadeService.fetchNades(limit, noCache);
 
       return res.status(200).send(nades);
     } catch (error) {

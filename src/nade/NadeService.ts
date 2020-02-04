@@ -60,16 +60,21 @@ export class NadeService {
     this.eventBus.subUnFavorite(this.decrementFavoriteCount);
   }
 
-  fetchNades = async (limit?: number): Promise<NadeLightDTO[]> => {
+  fetchNades = async (
+    limit?: number,
+    noCache?: boolean
+  ): Promise<NadeLightDTO[]> => {
     const cachedNades = this.cache.getRecentNades();
 
-    if (cachedNades) {
+    if (cachedNades && !noCache) {
       return cachedNades.map(this.toLightDTO);
     }
 
     const nades = await this.nadeRepo.getAll(limit);
 
-    this.cache.setRecentNades(nades);
+    if (!noCache) {
+      this.cache.setRecentNades(nades);
+    }
 
     return nades.map(this.toLightDTO);
   };
