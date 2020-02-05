@@ -1,3 +1,4 @@
+import moment from "moment";
 import {
   add,
   batch,
@@ -35,7 +36,9 @@ export class NotificationRepo {
 
     const notisForUser = notisForUserDocs.map(this.toDto);
 
-    return notisForUser;
+    const notifications = await this.removeOldViewedNotification(notisForUser);
+
+    return notifications;
   };
 
   byId = async (id: string) => {
@@ -192,6 +195,36 @@ export class NotificationRepo {
     }
 
     await commit();
+  };
+
+  private removeOldViewedNotification = async (
+    shouldRemove: NotificationDTO[]
+  ): Promise<NotificationDTO[]> => {
+    const removableNotification = shouldRemove.filter(this.shouldRemove);
+    const okNotifications = shouldRemove.filter(n => !this.shouldRemove(n));
+
+    if (removableNotification.length) {
+      const { remove, commit } = batch();
+
+      for (let staleNotification of removableNotification) {
+        remove(this.collection, staleNotification.id);
+      }
+
+      await commit();
+    }
+
+    return okNotifications;
+  };
+
+  private shouldRemove = (notification: NotificationDTO) => {
+    const hoursAddedAgo = moment().diff(
+      moment(notification.createdAt),
+      "hours",
+      false
+    );
+    const isOld = hoursAddedAgo > 24;
+
+    return isOld && notification.viewed;
   };
 
   private toDto = (doc: Doc<NotificationModel>): NotificationDTO => {
