@@ -20,12 +20,9 @@ export class FavoriteService {
     eventBus.subNadeDelete(this.deleteFavoritesForNade);
   }
 
-  getTodaysFavorites = () => {
-    return this.favoriteRepo.newToday();
-  };
-
   getFavoritesForUser = async (steamId: string) => {
     const favorites = await this.favoriteRepo.byUser(steamId);
+
     return favorites;
   };
 
@@ -33,7 +30,10 @@ export class FavoriteService {
     const newFavorite = makeFavorite(nadeId, steamId);
     const favorite = await this.favoriteRepo.set(newFavorite);
 
-    this.eventBus.emitNewFavorite(favorite);
+    if (favorite) {
+      this.eventBus.emitNewFavorite(favorite);
+    }
+
     return favorite;
   };
 
@@ -50,7 +50,10 @@ export class FavoriteService {
       throw ErrorFactory.NotFound("Favorite not found.");
     }
 
-    this.eventBus.emitUnFavorite(favorite);
+    if (favorite) {
+      this.eventBus.emitUnFavorite(favorite);
+    }
+
     return;
   };
 

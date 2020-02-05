@@ -39,7 +39,7 @@ export const makeSteamRouter = (
     )
   );
 
-  router.get("/auth/steam", passport.authenticate("steam"), () => {
+  router.get("/auth/steam", passport.authenticate("steam"), (req, res) => {
     // no-op
   });
 

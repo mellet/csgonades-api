@@ -27,7 +27,7 @@ export class FavoriteRepo {
     ]);
 
     if (duplicate.length) {
-      throw ErrorFactory.BadRequest("This nade is allready duplicated by you.");
+      throw ErrorFactory.BadRequest("This nade is allready favorited by you.");
     }
 
     const newFavorite: FavoriteModel = {
@@ -42,7 +42,10 @@ export class FavoriteRepo {
 
   unSet = async (favoriteId: string): Promise<FavoriteDTO | null> => {
     const favorite = this.byId(favoriteId);
-    await remove(this.collection, favoriteId);
+
+    if (favorite) {
+      await remove(this.collection, favoriteId);
+    }
 
     return favorite;
   };
@@ -79,22 +82,10 @@ export class FavoriteRepo {
     return favorites;
   };
 
-  byNadeId = async (nadeId: string): Promise<FavoriteDTO[]> => {
+  private byNadeId = async (nadeId: string): Promise<FavoriteDTO[]> => {
     const docs = await query(this.collection, [where("nadeId", "==", nadeId)]);
     const favs = docs.map(this.docToDto);
     return favs;
-  };
-
-  newToday = async (): Promise<FavoriteDTO[]> => {
-    // Get all between yesterday 6AM and today 6AM
-    const date = new Date();
-    date.setDate(date.getDate() - 1);
-    date.setHours(6, 0, 0, 0);
-
-    const docs = await query(this.collection, [where("createdAt", ">", date)]);
-    const favorites = docs.map(this.docToDto);
-
-    return favorites;
   };
 
   private docToDto = (doc: Doc<FavoriteModel>): FavoriteDTO => {
