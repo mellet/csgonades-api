@@ -45,6 +45,11 @@ export const makeSteamRouter = (
 
   router.get(
     "/auth/steam/return",
+    // Fix url
+    function(req, res, next) {
+      req.url = req.originalUrl;
+      next();
+    },
     passport.authenticate("steam", { session: false, failureRedirect: "/" }),
     async (req, res) => {
       try {
