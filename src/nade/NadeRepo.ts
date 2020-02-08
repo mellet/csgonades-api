@@ -177,26 +177,18 @@ export class NadeRepo {
   };
 
   private calcScore = (nade: NadeModel): number => {
-    const FAVORITE_WEIGHT = 300;
+    const FAVORITE_WEIGHT = 200;
 
-    const addedDaysAgo = Math.max(
-      moment().diff(moment(nade.createdAt), "days", false),
-      1
-    );
+    const addedDaysAgo = moment().diff(moment(nade.createdAt), "days", true);
 
     const averageViewsPerWeek = this.viewsPerWeek(nade.viewCount, addedDaysAgo);
 
-    const ageScore = Math.round(Math.log(1500 - addedDaysAgo) * 100) / 2;
+    const newAgeScore = Math.round(10000 * Math.exp(-addedDaysAgo / 2));
 
     const favoriteScore =
       Math.max(nade.favoriteCount || 0, 1) * FAVORITE_WEIGHT;
 
-    const hotScore = ageScore + averageViewsPerWeek + favoriteScore;
-
-    if (addedDaysAgo <= 7) {
-      // Artificially boost new nade to front
-      return 5000 + ageScore;
-    }
+    const hotScore = newAgeScore + averageViewsPerWeek + favoriteScore;
 
     return Math.round(hotScore);
   };
