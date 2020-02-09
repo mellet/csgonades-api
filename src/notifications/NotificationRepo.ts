@@ -22,6 +22,11 @@ import {
   NotificationModel
 } from "./Notification";
 
+type RemoveFavNotiOpts = {
+  nadeId: string;
+  favoriterUserId: string;
+};
+
 export class NotificationRepo {
   private collection: Collection<NotificationModel>;
 
@@ -57,7 +62,8 @@ export class NotificationRepo {
     return this.toDto(res);
   };
 
-  removeFavoriteNotification = async (nadeId: string) => {
+  removeFavoriteNotification = async (opts: RemoveFavNotiOpts) => {
+    const { favoriterUserId, nadeId } = opts;
     // See if there is a excisting notifciation for this nade that has not been viewed
     const foundNotification = await query<FavoriteNotification>(
       this.collection,
@@ -81,7 +87,8 @@ export class NotificationRepo {
       await remove(this.collection, notificationId);
     } else {
       await update(this.collection, notificationId, {
-        count: notificationCount - 1
+        count: value("increment", -1),
+        favoritedBy: value("arrayRemove", [favoriterUserId])
       });
     }
   };
@@ -144,8 +151,9 @@ export class NotificationRepo {
       const duplicate = duplicateSearch[0];
 
       const modelUpdate: ModelUpdate<FavoriteNotification> = {
-        count: duplicate.data.count + 1,
-        createdAt: value("serverDate")
+        count: value("increment", 1),
+        createdAt: value("serverDate"),
+        favoritedBy: value("arrayUnion", noti.favoritedBy || [])
       };
 
       await update<FavoriteNotification>(
@@ -170,7 +178,8 @@ export class NotificationRepo {
         createdAt: value("serverDate"),
         nadeId: noti.nadeId,
         subjectSteamId: noti.subjectSteamId,
-        viewed: false
+        viewed: false,
+        favoritedBy: noti.favoritedBy || []
       });
     }
   };

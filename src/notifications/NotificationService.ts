@@ -94,7 +94,8 @@ export class NotificationService {
       this.notiRepo.add({
         type: "favorite",
         subjectSteamId: nade.steamId,
-        nadeId: nade.id
+        nadeId: nade.id,
+        favoritedBy: [favorite.userId]
       });
     } catch (error) {
       Sentry.captureException(error);
@@ -104,7 +105,10 @@ export class NotificationService {
   private onRemoveFavorite = async (favorite: FavoriteDTO) => {
     try {
       const nade = await this.nadeService.byId(favorite.nadeId);
-      this.notiRepo.removeFavoriteNotification(nade.id);
+      this.notiRepo.removeFavoriteNotification({
+        nadeId: nade.id,
+        favoriterUserId: favorite.userId
+      });
     } catch (error) {
       Sentry.captureException(error);
     }

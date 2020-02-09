@@ -18,6 +18,7 @@ export interface FavoriteNotification extends CommonNotificationValues {
   type: "favorite";
   nadeId: string;
   count: number;
+  favoritedBy?: string[];
 }
 
 interface ReportNotification extends CommonNotificationValues {
