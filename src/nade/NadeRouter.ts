@@ -15,6 +15,7 @@ import {
 } from "./Nade";
 import { validateNade } from "./NadeMiddleware";
 import { NadeService } from "./NadeService";
+import { validateNadeUpdateResultImage } from "./NadeValidators";
 
 type IdParam = {
   id: string;
@@ -66,6 +67,38 @@ export class NadeRouter {
     this.router.post("/nades/validateGfycat", this.validateGfy);
     this.router.delete("/nades/:id", adminOrModHandler, this.deleteNade);
     this.router.post("/nades/list", this.getByIdList);
+    this.router.patch(
+      "/nades/:id/image",
+      authOnlyHandler,
+      this.handleUpdateImage
+    );
+  };
+
+  private handleUpdateImage: RequestHandler = async (req, res) => {
+    try {
+      const id = sanitizeIt(req.params.id);
+      const user = userFromRequest(req);
+      const nadeUpdateImageDto = validateNadeUpdateResultImage(req.body);
+
+      const isAllowedEdit = await this.nadeService.isAllowedEdit(
+        id,
+        user.steamId
+      );
+
+      if (!isAllowedEdit) {
+        return res.status(401).send({ error: "Not allowed to edit this nade" });
+      }
+
+      const updatedNadeResult = await this.nadeService.replaceResultImage(
+        id,
+        nadeUpdateImageDto.imageBase64
+      );
+
+      return res.status(202).send(updatedNadeResult);
+    } catch (error) {
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
+    }
   };
 
   private getNades: RequestHandler = async (req, res) => {

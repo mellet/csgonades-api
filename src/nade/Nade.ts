@@ -98,6 +98,10 @@ export type NadeCreateDTO = {
   imageBase64: string;
 };
 
+export type NadeUpdateResultImageDto = {
+  imageBase64: string;
+};
+
 export type NadeStatusDTO = {
   status: NadeStatus;
   statusInfo?: StatusInfo;
@@ -116,6 +120,7 @@ export type NadeUpdateDTO = {
   createdAt?: string;
   mapStartCoord?: MapCoordinates;
   mapEndCoord?: MapCoordinates;
+  images?: NadeImages;
 };
 
 export type NadeGfycatValidateDTO = {
@@ -165,7 +170,8 @@ export function updatedNadeMerge(
     mapEndCoord: updateFields.mapEndCoord,
     createdAt: updateFields.createdAt
       ? new Date(updateFields.createdAt)
-      : undefined
+      : undefined,
+    images: updateFields.images
   };
 
   return removeUndefines(newNade);

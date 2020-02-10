@@ -175,10 +175,10 @@ export class NadeService {
     this.cache.invalidateNade(nadeId);
   };
 
-  async update(
+  update = async (
     nadeId: string,
     updateFields: NadeUpdateDTO
-  ): Promise<NadeDTO | null> {
+  ): Promise<NadeDTO | null> => {
     let newGfyData: GfycatData | undefined;
     let newUser: UserModel | undefined;
     let viewCount: number | undefined;
@@ -218,12 +218,36 @@ export class NadeService {
     }
 
     return updatedNade;
-  }
+  };
 
-  async updateNadeStatus(
+  replaceResultImage = async (nadeId: string, imageBase64: string) => {
+    const nade = await this.byId(nadeId);
+
+    this.imageStorageService.deleteImage(nade.images.thumbnailId);
+
+    const imageResult = await this.imageStorageService.saveImage(
+      imageBase64,
+      "nades"
+    );
+
+    const updatedNade = await this.update(nade.id, {
+      images: {
+        thumbnailId: imageResult.id,
+        thumbnailUrl: imageResult.url
+      }
+    });
+
+    if (!updatedNade) {
+      throw ErrorFactory.InternalServerError("Failed to update nade.");
+    }
+
+    return updatedNade;
+  };
+
+  updateNadeStatus = async (
     nadeId: string,
     updatedStatus: NadeStatusDTO
-  ): Promise<NadeDTO | null> {
+  ): Promise<NadeDTO | null> => {
     const oldNade = await this.nadeRepo.byId(nadeId);
 
     const nade = await this.nadeRepo.update(nadeId, updatedStatus);
@@ -247,19 +271,19 @@ export class NadeService {
     this.cache.invalidateNade(nadeId);
 
     return nade;
-  }
+  };
 
-  async updateNadesWithUser(
+  updateNadesWithUser = async (
     steamId: string,
     user: UserLightModel
-  ): Promise<void> {
+  ): Promise<void> => {
     await this.nadeRepo.updateUserOnNades(steamId, user);
 
     // Clear cache on update
     this.cache.flushAll();
 
     return;
-  }
+  };
 
   private incrementFavoriteCount = async (favorite: FavoriteDTO) => {
     await this.nadeRepo.incrementFavoriteCount(favorite.nadeId);
@@ -271,7 +295,7 @@ export class NadeService {
     this.cache.invalidateNade(favorite.nadeId);
   };
 
-  private shouldUpdateStats(nade: NadeDTO) {
+  private shouldUpdateStats = (nade: NadeDTO) => {
     if (!nade.lastGfycatUpdate) {
       return true;
     }
@@ -297,7 +321,7 @@ export class NadeService {
     const shouldUpdate = hoursSinceUpdate > hoursToWaitForUpdate;
 
     return shouldUpdate;
-  }
+  };
 
   isAllowedEdit = async (nadeId: string, steamId: string): Promise<boolean> => {
     try {
