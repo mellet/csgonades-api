@@ -94,6 +94,12 @@ export class NotificationService {
   private addFavoriteNotification = async (favorite: FavoriteDTO) => {
     try {
       const nade = await this.nadeService.byId(favorite.nadeId);
+
+      // Ignore sending notification if favoriting own nade
+      if (favorite.userId === nade.steamId) {
+        return;
+      }
+
       const favoritingUser = await this.userService.byId(favorite.userId);
 
       this.notiRepo.add({
@@ -110,6 +116,12 @@ export class NotificationService {
   private onRemoveFavorite = async (favorite: FavoriteDTO) => {
     try {
       const nade = await this.nadeService.byId(favorite.nadeId);
+
+      // Ignore sending removeing notification if unfavoriting own nade
+      if (favorite.userId === nade.steamId) {
+        return;
+      }
+
       this.notiRepo.removeFavoriteNotification({
         nadeId: nade.id,
         favoriterUserId: favorite.userId
