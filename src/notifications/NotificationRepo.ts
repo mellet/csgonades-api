@@ -81,13 +81,12 @@ export class NotificationRepo {
     const notification = foundNotification[0];
 
     const notificationId = notification.ref.id;
-    const notificationCount = notification.data.count;
+    const notificationCount = notification.data.favoritedBy.length;
 
     if (notificationCount <= 1) {
       await remove(this.collection, notificationId);
     } else {
       await update(this.collection, notificationId, {
-        count: value("increment", -1),
         favoritedBy: value("arrayRemove", [favoriterUserId])
       });
     }
@@ -151,9 +150,8 @@ export class NotificationRepo {
       const duplicate = duplicateSearch[0];
 
       const modelUpdate: ModelUpdate<FavoriteNotification> = {
-        count: value("increment", 1),
         createdAt: value("serverDate"),
-        favoritedBy: value("arrayUnion", noti.favoritedBy || [])
+        favoritedBy: value("arrayUnion", noti.favoritedBy)
       };
 
       await update<FavoriteNotification>(
@@ -174,12 +172,11 @@ export class NotificationRepo {
     } else {
       return add(this.collection, {
         type: "favorite",
-        count: 1,
         createdAt: value("serverDate"),
         nadeId: noti.nadeId,
         subjectSteamId: noti.subjectSteamId,
         viewed: false,
-        favoritedBy: noti.favoritedBy || []
+        favoritedBy: noti.favoritedBy
       });
     }
   };

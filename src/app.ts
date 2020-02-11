@@ -133,7 +133,8 @@ export const AppServer = (config: CSGNConfig) => {
   const notificationService = new NotificationService({
     eventBus,
     notificationRepo,
-    nadeService
+    nadeService,
+    userService
   });
 
   const contactService = new ContactService({

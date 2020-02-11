@@ -3,6 +3,7 @@ import { FavoriteDTO } from "../favorite/Favorite";
 import { NadeDTO } from "../nade/Nade";
 import { NadeService } from "../nade/NadeService";
 import { EventBus } from "../services/EventHandler";
+import { UserService } from "../user/UserService";
 import { RequestUser } from "../utils/AuthUtils";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import { NotificationRepo } from "./NotificationRepo";
@@ -11,18 +12,21 @@ type NotificationServiceDeps = {
   notificationRepo: NotificationRepo;
   eventBus: EventBus;
   nadeService: NadeService;
+  userService: UserService;
 };
 
 export class NotificationService {
   private notiRepo: NotificationRepo;
   private eventBus: EventBus;
   private nadeService: NadeService;
+  private userService: UserService;
   private adminId = "76561198026064832";
 
   constructor(deps: NotificationServiceDeps) {
     this.eventBus = deps.eventBus;
     this.notiRepo = deps.notificationRepo;
     this.nadeService = deps.nadeService;
+    this.userService = deps.userService;
 
     this.eventBus.subAcceptedNade(this.nadeAccepted);
     this.eventBus.subDeclinedNade(this.nadeDeclined);
@@ -90,12 +94,13 @@ export class NotificationService {
   private addFavoriteNotification = async (favorite: FavoriteDTO) => {
     try {
       const nade = await this.nadeService.byId(favorite.nadeId);
+      const favoritingUser = await this.userService.byId(favorite.userId);
 
       this.notiRepo.add({
         type: "favorite",
         subjectSteamId: nade.steamId,
         nadeId: nade.id,
-        favoritedBy: [favorite.userId]
+        favoritedBy: [favoritingUser.steamId]
       });
     } catch (error) {
       Sentry.captureException(error);

@@ -101,7 +101,9 @@ export class UserRepo {
     updateFields: UserUpdateDTO
   ): Promise<UserModel | null> => {
     let updateModel: ModelUpdate<UserModel> = {
-      nickname: updateFields.nickname,
+      nickname: updateFields.nickname
+        ? updateFields.nickname.replace(/[^A-Za-z0-9]/g, "")
+        : undefined,
       email: updateFields.email,
       bio: updateFields.bio,
       createdAt: updateFields.createdAt
