@@ -119,8 +119,12 @@ export class UserRepo {
   };
 
   updateActivity = async (steamId: string) => {
+    const user = await this.byId(steamId);
     await update(this.collection, steamId, {
-      lastActive: value("serverDate")
+      lastActive: value("serverDate"),
+      // Clean up nicknames for users who registered before we started
+      // cleaning up. Can probably be removed some time in the future
+      nickname: user.nickname.replace(/[^A-Za-z0-9]/g, "")
     });
   };
 }
