@@ -306,8 +306,8 @@ export class NadeService {
       false
     );
 
-    const MIN_HOURS_TO_UPDATE = 1;
-    const MAX_HOURS_TO_UPDATE = 48;
+    const MIN_HOURS_TO_UPDATE = 6;
+    const MAX_HOURS_TO_UPDATE = 72;
 
     const hoursToWaitForUpdate = clamp(
       daysAgoSubmitted,
