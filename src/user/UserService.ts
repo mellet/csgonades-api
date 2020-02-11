@@ -47,7 +47,7 @@ export class UserService {
 
       const newUser: UserCreateDTO = {
         steamId: player.steamID,
-        nickname: cleanNickname,
+        nickname: cleanNickname.length ? cleanNickname : "NoNickname",
         avatar: player.avatar.medium,
         role: "user"
       };
