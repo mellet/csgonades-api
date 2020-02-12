@@ -121,13 +121,24 @@ export class UserRepo {
   updateActivity = async (steamId: string) => {
     const user = await this.byId(steamId);
 
-    const cleanNickName = user.nickname.replace(/[^A-Za-z0-9]/g, "");
-
     await update(this.collection, steamId, {
       lastActive: value("serverDate"),
       // Clean up nicknames for users who registered before we started
       // cleaning up. Can probably be removed some time in the future
-      nickname: cleanNickName.length ? cleanNickName : "NoNickname"
+      nickname: this.nicknameCleaner(user.nickname)
     });
+  };
+
+  private nicknameCleaner = (nickname: string, realname?: string) => {
+    const cleanNickname = nickname.replace(/[^A-Za-z0-9]/g, "");
+    const cleanRealname = realname?.replace(/[^A-Za-z0-9]/g, "");
+
+    if (cleanNickname.length) {
+      return cleanNickname;
+    } else if (cleanRealname && cleanRealname.length) {
+      return cleanRealname;
+    } else {
+      return "Unknown nickname";
+    }
   };
 }

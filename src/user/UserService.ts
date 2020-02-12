@@ -43,11 +43,9 @@ export class UserService {
     } catch (error) {
       const player = await this.steamService.getPlayerBySteamID(steamId);
 
-      const cleanNickname = player.nickname.replace(/[^A-Za-z0-9]/g, "");
-
       const newUser: UserCreateDTO = {
         steamId: player.steamID,
-        nickname: cleanNickname.length ? cleanNickname : "NoNickname",
+        nickname: this.nicknameCleaner(player.nickname, player.realName),
         avatar: player.avatar.medium,
         role: "user"
       };
@@ -65,5 +63,18 @@ export class UserService {
 
   updateActivity = (steamId: string) => {
     return this.userRepo.updateActivity(steamId);
+  };
+
+  private nicknameCleaner = (nickname?: string, realname?: string) => {
+    const cleanNickname = nickname?.replace(/[^A-Za-z0-9]/g, "");
+    const cleanRealname = realname?.replace(/[^A-Za-z0-9]/g, "");
+
+    if (cleanNickname && cleanNickname.length) {
+      return cleanNickname;
+    } else if (cleanRealname && cleanRealname.length) {
+      return cleanRealname;
+    } else {
+      return "Unknown nickname";
+    }
   };
 }
