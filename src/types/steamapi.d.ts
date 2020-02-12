@@ -10,11 +10,13 @@ declare module "steamapi" {
     created: number;
     lastLogOff: number;
     nickname: string;
+    realName: string;
     primaryGroupID: string;
     personaState: number;
     personaStateFlags: number;
     commentPermission: number;
     visibilityState: number;
+    countryCode: string;
   };
 
   export default class SteamApi {
