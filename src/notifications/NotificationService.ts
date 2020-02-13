@@ -106,7 +106,7 @@ export class NotificationService {
         type: "favorite",
         subjectSteamId: nade.steamId,
         nadeId: nade.id,
-        favoritedBy: [favoritingUser.steamId]
+        favoritedBy: [favoritingUser.nickname]
       });
     } catch (error) {
       Sentry.captureException(error);
