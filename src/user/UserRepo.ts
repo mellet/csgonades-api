@@ -1,6 +1,6 @@
 import { collection, Collection, get, set, update, value } from "typesaurus";
 import { ModelUpdate } from "typesaurus/update";
-import { removeUndefines } from "../utils/Common";
+import { nicknameCleaner, removeUndefines } from "../utils/Common";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import { UserCreateDTO, UserDTO, UserUpdateDTO } from "./UserDTOs";
 import { UserModel } from "./UserModel";
@@ -102,7 +102,7 @@ export class UserRepo {
   ): Promise<UserModel | null> => {
     let updateModel: ModelUpdate<UserModel> = {
       nickname: updateFields.nickname
-        ? updateFields.nickname.replace(/[^A-Za-z0-9]/g, "")
+        ? nicknameCleaner(updateFields.nickname)
         : undefined,
       email: updateFields.email,
       bio: updateFields.bio,
@@ -125,20 +125,7 @@ export class UserRepo {
       lastActive: value("serverDate"),
       // Clean up nicknames for users who registered before we started
       // cleaning up. Can probably be removed some time in the future
-      nickname: this.nicknameCleaner(user.nickname)
+      nickname: nicknameCleaner(user.nickname)
     });
-  };
-
-  private nicknameCleaner = (nickname: string, realname?: string) => {
-    const cleanNickname = nickname.replace(/[^A-Za-z0-9]/g, "");
-    const cleanRealname = realname?.replace(/[^A-Za-z0-9]/g, "");
-
-    if (cleanNickname.length) {
-      return cleanNickname;
-    } else if (cleanRealname && cleanRealname.length) {
-      return cleanRealname;
-    } else {
-      return "Unknown nickname";
-    }
   };
 }

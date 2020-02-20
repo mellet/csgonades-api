@@ -1,5 +1,6 @@
 import { EventBus } from "../services/EventHandler";
 import { ISteamService } from "../steam/SteamService";
+import { nicknameCleaner } from "../utils/Common";
 import { UserCreateDTO, UserUpdateDTO } from "./UserDTOs";
 import { UserModel, UserModelAnon } from "./UserModel";
 import { UserFilter, UserRepo } from "./UserRepo";
@@ -45,7 +46,7 @@ export class UserService {
 
       const newUser: UserCreateDTO = {
         steamId: player.steamID,
-        nickname: this.nicknameCleaner(player.nickname, player.realName),
+        nickname: nicknameCleaner(player.nickname, player.realName),
         avatar: player.avatar.medium,
         role: "user"
       };
@@ -63,18 +64,5 @@ export class UserService {
 
   updateActivity = (steamId: string) => {
     return this.userRepo.updateActivity(steamId);
-  };
-
-  private nicknameCleaner = (nickname?: string, realname?: string) => {
-    const cleanNickname = nickname?.replace(/[^A-Za-z0-9]/g, "");
-    const cleanRealname = realname?.replace(/[^A-Za-z0-9]/g, "");
-
-    if (cleanNickname && cleanNickname.length) {
-      return cleanNickname;
-    } else if (cleanRealname && cleanRealname.length) {
-      return cleanRealname;
-    } else {
-      return "Unknown nickname";
-    }
   };
 }
