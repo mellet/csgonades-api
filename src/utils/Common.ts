@@ -26,18 +26,18 @@ export function assertNever(never: never) {
 }
 
 export const nicknameCleaner = (nickname?: string, realname?: string) => {
-  const cleanNickname = nickname?.replace(/[^A-Za-z0-9]/g, "");
-  const cleanRealname = realname?.replace(/[^A-Za-z0-9]/g, "");
-  const cleanTransliterate = nickname ? transliterate(nickname) : "";
+  const latinNickname = nickname ? transliterate(nickname) : "";
+  const latinRealname = realname ? transliterate(realname) : "";
+
+  const cleanNickname = latinNickname?.replace(/[^A-Za-z0-9]/g, "");
+  const cleanRealname = latinRealname?.replace(/[^A-Za-z0-9]/g, "");
 
   if (cleanNickname && cleanNickname.length) {
     return cleanNickname;
   } else if (cleanRealname && cleanRealname.length) {
     return cleanRealname;
-  } else if (cleanTransliterate && cleanTransliterate.length) {
-    return cleanTransliterate;
   } else {
-    return "Unknown nickname";
+    return "UnknownNickname";
   }
 };
 
