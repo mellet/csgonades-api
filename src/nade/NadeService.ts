@@ -1,9 +1,9 @@
 import moment from "moment";
 import { FavoriteDTO } from "../favorite/Favorite";
+import { ImageGalleryService } from "../imageGallery/ImageGalleryService";
 import { CachingService } from "../services/CachingService";
 import { EventBus } from "../services/EventHandler";
 import { GfycatService } from "../services/GfycatService";
-import { IImageStorageService } from "../services/ImageStorageService";
 import { UserLightModel, UserModel } from "../user/UserModel";
 import { UserService } from "../user/UserService";
 import { clamp } from "../utils/Common";
@@ -25,7 +25,7 @@ import { NadeRepo } from "./NadeRepo";
 type NadeServiceDeps = {
   nadeRepo: NadeRepo;
   userService: UserService;
-  imageStorageService: IImageStorageService;
+  galleryService: ImageGalleryService;
   gfycatService: GfycatService;
   cache: CachingService;
   eventBus: EventBus;
@@ -34,7 +34,7 @@ type NadeServiceDeps = {
 export class NadeService {
   private nadeRepo: NadeRepo;
   private userService: UserService;
-  private imageStorageService: IImageStorageService;
+  private galleryService: ImageGalleryService;
   private gfycatService: GfycatService;
   private cache: CachingService;
   private eventBus: EventBus;
@@ -43,7 +43,7 @@ export class NadeService {
     const {
       cache,
       gfycatService,
-      imageStorageService,
+      galleryService,
       nadeRepo,
       userService,
       eventBus
@@ -51,7 +51,7 @@ export class NadeService {
 
     this.nadeRepo = nadeRepo;
     this.userService = userService;
-    this.imageStorageService = imageStorageService;
+    this.galleryService = galleryService;
     this.gfycatService = gfycatService;
     this.cache = cache;
     this.eventBus = eventBus;
@@ -146,13 +146,13 @@ export class NadeService {
       );
     }
 
-    const resultImage = await this.imageStorageService.saveImage(
+    const resultImage = await this.galleryService.createThumbnail(
       body.imageBase64,
       "nades"
     );
 
     const tmpNade = makeNadeFromBody(userLight, gfycatData, {
-      thumbnailId: resultImage.id,
+      thumbnailId: resultImage.internalPath,
       thumbnailUrl: resultImage.url
     });
 
@@ -168,7 +168,7 @@ export class NadeService {
 
     await Promise.all([
       this.nadeRepo.delete(nade.id),
-      this.imageStorageService.deleteImage(nade.images.thumbnailId)
+      this.galleryService.deleteImage(nade.images.thumbnailId)
     ]);
 
     this.eventBus.emitNadeDelete(nade);
@@ -223,16 +223,16 @@ export class NadeService {
   replaceResultImage = async (nadeId: string, imageBase64: string) => {
     const nade = await this.byId(nadeId);
 
-    this.imageStorageService.deleteImage(nade.images.thumbnailId);
+    this.galleryService.deleteImage(nade.images.thumbnailId);
 
-    const imageResult = await this.imageStorageService.saveImage(
+    const imageResult = await this.galleryService.createThumbnail(
       imageBase64,
       "nades"
     );
 
     const updatedNade = await this.update(nade.id, {
       images: {
-        thumbnailId: imageResult.id,
+        thumbnailId: imageResult.internalPath,
         thumbnailUrl: imageResult.url
       }
     });

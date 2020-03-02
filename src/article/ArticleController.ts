@@ -1,7 +1,7 @@
 import { RequestHandler, Router } from "express";
 import { adminOrModHandler } from "../utils/AuthUtils";
 import { errorCatchConverter } from "../utils/ErrorUtil";
-import { ArticleRepo } from "./ArticleRepo";
+import { ArticleService } from "./ArticleService";
 import {
   validateArticleCreateDTO,
   validateArticleId,
@@ -10,11 +10,11 @@ import {
 
 export class ArticleController {
   private router: Router;
-  private articleRepo: ArticleRepo;
+  private articleService: ArticleService;
 
-  constructor(articleRepo: ArticleRepo) {
+  constructor(articleService: ArticleService) {
     this.router = Router();
-    this.articleRepo = articleRepo;
+    this.articleService = articleService;
     this.setUpRoutes();
   }
 
@@ -31,7 +31,7 @@ export class ArticleController {
 
   getArticles: RequestHandler = async (_, res) => {
     try {
-      const articles = await this.articleRepo.getAll();
+      const articles = await this.articleService.getAll();
 
       return res.status(200).send(articles);
     } catch (error) {
@@ -44,7 +44,7 @@ export class ArticleController {
     try {
       const articleId = validateArticleId(req);
 
-      const article = await this.articleRepo.get(articleId);
+      const article = await this.articleService.get(articleId);
 
       return res.status(200).send(article);
     } catch (error) {
@@ -57,7 +57,7 @@ export class ArticleController {
     try {
       const articleCreateDto = validateArticleCreateDTO(req.body);
 
-      const article = await this.articleRepo.save(articleCreateDto);
+      const article = await this.articleService.save(articleCreateDto);
 
       return res.status(201).send(article);
     } catch (error) {
@@ -71,7 +71,7 @@ export class ArticleController {
       const articleId = validateArticleId(req);
       const articleUpdateDto = validateArticleUpdateDTO(req);
 
-      const article = await this.articleRepo.update(
+      const article = await this.articleService.update(
         articleId,
         articleUpdateDto
       );

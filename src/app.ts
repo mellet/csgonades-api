@@ -2,11 +2,12 @@ import { RewriteFrames } from "@sentry/integrations";
 import * as Sentry from "@sentry/node";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import express from "express";
+import express, { ErrorRequestHandler, RequestHandler } from "express";
 import helmet from "helmet";
 import passport from "passport";
 import { ArticleController } from "./article/ArticleController";
 import { ArticleRepo } from "./article/ArticleRepo";
+import { ArticleService } from "./article/ArticleService";
 import { CSGNConfig } from "./config/enironment";
 import { ContactRepo } from "./contact/ContactRepo";
 import { ContactRouter } from "./contact/ContactRouter";
@@ -14,6 +15,8 @@ import { ContactService } from "./contact/ContactService";
 import { FavoriteRepo } from "./favorite/FavoriteRepo";
 import { FavoriteRouter } from "./favorite/FavoriteRouter";
 import { FavoriteService } from "./favorite/FavoriteService";
+import { ImageGalleryService } from "./imageGallery/ImageGalleryService";
+import { ImageStorageRepo } from "./imageGallery/ImageStorageService";
 import { NadeRepo } from "./nade/NadeRepo";
 import { NadeRouter } from "./nade/NadeRouter";
 import { NadeService } from "./nade/NadeService";
@@ -26,7 +29,6 @@ import { ReportService } from "./reports/ReportService";
 import { CachingService } from "./services/CachingService";
 import { EventBus } from "./services/EventHandler";
 import { makeGfycatService } from "./services/GfycatService";
-import { ImageStorageRepo } from "./services/ImageStorageService";
 import { StatsRepo } from "./stats/StatsRepo";
 import { makeStatsRouter } from "./stats/StatsRouter";
 import { StatsService } from "./stats/StatsService";
@@ -99,6 +101,7 @@ export const AppServer = (config: CSGNConfig) => {
   const articleRepo = new ArticleRepo();
   const tournamentRepo = new TournamentRepo();
   const reportRepo = new ReportRepo();
+  const imageRepo = new ImageStorageRepo(bucket);
 
   // Event bus so services can send events that others can subscribe to
   const eventBus = new EventBus();
@@ -110,7 +113,10 @@ export const AppServer = (config: CSGNConfig) => {
     eventBus,
     statsRepo
   });
-  const imageStorageService = new ImageStorageRepo(config, bucket);
+  const galleryService = new ImageGalleryService({
+    config,
+    imageRepo
+  });
   const gfycatService = makeGfycatService(config);
 
   const reporService = new ReportService({ eventBus, reportRepo });
@@ -122,7 +128,7 @@ export const AppServer = (config: CSGNConfig) => {
   const nadeService = new NadeService({
     cache: cacheService,
     gfycatService,
-    imageStorageService,
+    galleryService,
     nadeRepo,
     userService,
     eventBus
@@ -142,6 +148,11 @@ export const AppServer = (config: CSGNConfig) => {
     notificationService
   });
 
+  const articleService = new ArticleService({
+    articleRepo,
+    galleryService
+  });
+
   // Routers
   const statusRouter = new StatusRouter({ cache: cacheService });
   const nadeRouter = new NadeRouter({ gfycatService, nadeService });
@@ -150,7 +161,7 @@ export const AppServer = (config: CSGNConfig) => {
   const favoriteRouter = new FavoriteRouter({ favoriteService });
   const statsRouter = makeStatsRouter(statsService);
   const contactRouter = new ContactRouter(contactService).getRouter();
-  const articleRouter = new ArticleController(articleRepo).getRouter();
+  const articleRouter = new ArticleController(articleService).getRouter();
   const tournamentRouter = new TournamentController(
     tournamentService
   ).getRouter();
@@ -177,6 +188,18 @@ export const AppServer = (config: CSGNConfig) => {
 
   // Called by client to set up session
   app.post("/initSession", sessionRoute);
+
+  const notFoundHandler: RequestHandler = (req, res, next) => {
+    return res.status(404).send({
+      error: "Not found"
+    });
+  };
+
+  const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+    return res.status(500).send({
+      error: err.message
+    });
+  };
 
   app.use(Sentry.Handlers.errorHandler());
 

@@ -1,3 +1,5 @@
+import { ImageRes } from "../imageGallery/ImageStorageService";
+
 type ArticleStatus = "draft" | "published" | "unpublished";
 
 export type ArticleModelDoc = {
@@ -5,13 +7,27 @@ export type ArticleModelDoc = {
   slug: string;
   body: string;
   status: ArticleStatus;
+  images: {
+    thumbnail: ImageRes;
+    large: ImageRes;
+  };
   createdAt: Date;
   updatedAt: Date;
 };
 
 export type ArticleCreateDTO = {
   title: string;
+  images: {
+    thumbnail: ImageRes;
+    large: ImageRes;
+  };
   body: string;
+};
+
+export type ArticleCreateBodyDTO = {
+  title: string;
+  body: string;
+  imageBase64Data: string;
 };
 
 export type ArticleUpdateDTO = {
@@ -23,8 +39,13 @@ export type ArticleUpdateDTO = {
 export type ArticleDTO = {
   id: string;
   title: string;
+  slug: string;
   body: string;
   status: ArticleStatus;
+  images: {
+    thumbnail: ImageRes;
+    large: ImageRes;
+  };
   createdAt: Date;
   updatedAt: Date;
 };
@@ -32,7 +53,12 @@ export type ArticleDTO = {
 export type ArticleLightDTO = {
   id: string;
   title: string;
-  excerpt: string;
+  slug: string;
   status: ArticleStatus;
+  images: {
+    thumbnail: ImageRes;
+    large: ImageRes;
+  };
   createdAt: Date;
+  updatedAt: Date;
 };

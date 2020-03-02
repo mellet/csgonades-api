@@ -1,7 +1,11 @@
 import { GfycatDetailsResponse } from "gfycat-sdk";
-import { NadeImages } from "../services/ImageStorageService";
 import { UserLightModel, UserModel } from "../user/UserModel";
 import { removeUndefines } from "../utils/Common";
+
+type NadeImages = {
+  thumbnailId: string;
+  thumbnailUrl: string;
+};
 
 export type CsgoMap = "notset" | "dust2" | "mirage" | "nuke" | "inferno";
 

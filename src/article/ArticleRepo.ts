@@ -1,3 +1,4 @@
+import slugify from "slugify";
 import {
   add,
   collection,
@@ -9,7 +10,8 @@ import {
   query,
   Query,
   update,
-  value
+  value,
+  where
 } from "typesaurus";
 import { removeUndefines } from "../utils/Common";
 import { ErrorFactory } from "../utils/ErrorUtil";
@@ -41,6 +43,29 @@ export class ArticleRepo {
     };
   };
 
+  getBySlug = async (slug: string): Promise<ArticleDTO> => {
+    const articleDocs = await query(this.collection, [
+      where("slug", "==", slug)
+    ]);
+
+    if (articleDocs.length === 0) {
+      throw ErrorFactory.NotFound("Article not found");
+    }
+
+    if (articleDocs.length !== 1) {
+      throw ErrorFactory.InternalServerError(
+        "Found duplicate articles for slug"
+      );
+    }
+
+    const article = articleDocs[0];
+
+    return {
+      ...article.data,
+      id: article.ref.id
+    };
+  };
+
   getAll = async (articleLimit: number = 0): Promise<ArticleLightDTO[]> => {
     const queryBuilder: Query<ArticleModelDoc, keyof ArticleModelDoc>[] = [
       order("createdAt", "desc")
@@ -56,9 +81,11 @@ export class ArticleRepo {
       return {
         id: doc.ref.id,
         title: doc.data.title,
-        excerpt: doc.data.body.substring(0, 100),
+        slug: doc.data.slug,
+        status: doc.data.status,
+        updatedAt: doc.data.updatedAt,
         createdAt: doc.data.createdAt,
-        status: doc.data.status
+        images: doc.data.images
       };
     }
 
@@ -71,8 +98,12 @@ export class ArticleRepo {
     const res = await add(this.collection, {
       title: articleModel.title,
       body: articleModel.body,
-      slug: "",
+      slug: slugify(articleModel.title, {
+        replacement: "-",
+        lower: true
+      }),
       status: "draft",
+      images: articleModel.images,
       createdAt: value("serverDate"),
       updatedAt: value("serverDate")
     });
