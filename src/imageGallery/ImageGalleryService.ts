@@ -9,7 +9,7 @@ type ImageGalleryDeps = {
   config: CSGNConfig;
 };
 
-type ImageFolders = "nades" | "gallery";
+export type ImageCollection = "nades" | "articles";
 
 export class ImageGalleryService {
   private IMAGE_LARGE_SIZE = 1240;
@@ -22,17 +22,29 @@ export class ImageGalleryService {
     this.config = deps.config;
   }
 
-  createThumbnail = async (imageBase64: string, folder: ImageFolders) => {
-    return this.saveImage(imageBase64, folder, this.IMAGE_THUMB_SIZE, "_thumb");
+  getImagesInCollection = async (folder: ImageCollection) => {
+    return this.imageRepo.getImagesInCollection(folder);
   };
 
-  createLarge = async (imageBase64: string, folder: ImageFolders) => {
-    return this.saveImage(imageBase64, folder, this.IMAGE_LARGE_SIZE);
+  createThumbnail = async (
+    imageBase64: string,
+    collection: ImageCollection
+  ) => {
+    return this.saveImage(
+      imageBase64,
+      collection,
+      this.IMAGE_THUMB_SIZE,
+      "_thumb"
+    );
+  };
+
+  createLarge = async (imageBase64: string, collection: ImageCollection) => {
+    return this.saveImage(imageBase64, collection, this.IMAGE_LARGE_SIZE);
   };
 
   private saveImage = async (
     imageBase64: string,
-    folder: ImageFolders,
+    collection: ImageCollection,
     size: number,
     suffix?: string
   ) => {
@@ -41,7 +53,11 @@ export class ImageGalleryService {
 
     const tmpImage = await this.resizeImage(imageBase64, imageName, size);
 
-    const image = await this.imageRepo.saveImage(tmpImage, imageName, folder);
+    const image = await this.imageRepo.saveImage(
+      tmpImage,
+      imageName,
+      collection
+    );
 
     return image;
   };

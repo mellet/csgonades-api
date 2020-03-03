@@ -152,7 +152,7 @@ export class NadeService {
     );
 
     const tmpNade = makeNadeFromBody(userLight, gfycatData, {
-      thumbnailId: resultImage.internalPath,
+      thumbnailId: resultImage.id,
       thumbnailUrl: resultImage.url
     });
 
@@ -232,7 +232,8 @@ export class NadeService {
 
     const updatedNade = await this.update(nade.id, {
       images: {
-        thumbnailId: imageResult.internalPath,
+        thumbnailId: imageResult.id,
+        thumbnailCollection: imageResult.collection,
         thumbnailUrl: imageResult.url
       }
     });

@@ -4,6 +4,7 @@ import { removeUndefines } from "../utils/Common";
 
 type NadeImages = {
   thumbnailId: string;
+  thumbnailCollection?: string;
   thumbnailUrl: string;
 };
 

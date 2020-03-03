@@ -1,11 +1,11 @@
 import { Bucket } from "@google-cloud/storage";
 import * as Sentry from "@sentry/node";
 import { ErrorFactory } from "../utils/ErrorUtil";
-
-export type ImageFolders = "nades" | "gallery";
+import { ImageCollection } from "./ImageGalleryService";
 
 export type ImageRes = {
-  internalPath: string;
+  id: string;
+  collection: string;
   url: string;
 };
 
@@ -16,8 +16,10 @@ export class ImageStorageRepo {
     this.bucket = bucket;
   }
 
-  getImagesInFolder = async (folder: ImageFolders): Promise<ImageRes[]> => {
-    const res = await this.bucket.getFiles({ directory: folder });
+  getImagesInCollection = async (
+    collection: ImageCollection
+  ): Promise<ImageRes[]> => {
+    const res = await this.bucket.getFiles({ directory: collection });
     const files = res[0];
 
     const images: ImageRes[] = [];
@@ -27,9 +29,12 @@ export class ImageStorageRepo {
         continue;
       }
 
+      const [fileCollection, fileId] = file.name.split("/");
+
       images.push({
-        internalPath: file.id,
-        url: this.createPublicFileURL(this.bucket.name, file.id)
+        id: fileId,
+        collection: fileCollection,
+        url: this.createPublicFileURL(this.bucket.name, fileId, fileCollection)
       });
     }
 
@@ -39,19 +44,21 @@ export class ImageStorageRepo {
   saveImage = async (
     imageLocalPath: string,
     fileName: string,
-    imagaRemoteFolder: ImageFolders
+    collection: ImageCollection
   ): Promise<ImageRes> => {
-    const imageRemotePath = `${imagaRemoteFolder}/${fileName}`;
+    const imageRemotePath = `${collection}/${fileName}`;
 
     await this.uploadToBucket(imageLocalPath, imageRemotePath);
 
     const fireBaseStorageUrl = this.createPublicFileURL(
       this.bucket.name,
-      imageRemotePath
+      fileName,
+      collection
     );
 
     return {
-      internalPath: imageRemotePath,
+      id: fileName,
+      collection: collection,
       url: fireBaseStorageUrl
     };
   };
@@ -88,9 +95,19 @@ export class ImageStorageRepo {
     }
   };
 
-  private createPublicFileURL(bucketName: string, storageName: string) {
+  private createPublicFileURL(
+    bucketName: string,
+    imageId: string,
+    collection?: string
+  ) {
+    if (collection) {
+      return `https://storage.googleapis.com/${bucketName}/${collection}/${encodeURIComponent(
+        imageId
+      )}`;
+    }
+
     return `https://storage.googleapis.com/${bucketName}/${encodeURIComponent(
-      storageName
+      imageId
     )}`;
   }
 }

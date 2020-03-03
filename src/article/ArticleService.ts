@@ -32,11 +32,11 @@ export class ArticleService {
   save = async (articleBody: ArticleCreateBodyDTO): Promise<ArticleDTO> => {
     const thumbnail = await this.galleryService.createThumbnail(
       articleBody.imageBase64Data,
-      "gallery"
+      "articles"
     );
     const large = await this.galleryService.createLarge(
       articleBody.imageBase64Data,
-      "gallery"
+      "articles"
     );
 
     return this.articleRepo.save({

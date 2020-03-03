@@ -1,6 +1,5 @@
 import { EventBus } from "../services/EventHandler";
 import { ISteamService } from "../steam/SteamService";
-import { nicknameCleaner } from "../utils/Common";
 import { UserCreateDTO, UserUpdateDTO } from "./UserDTOs";
 import { UserModel, UserModelAnon } from "./UserModel";
 import { UserFilter, UserRepo } from "./UserRepo";
@@ -46,7 +45,7 @@ export class UserService {
 
       const newUser: UserCreateDTO = {
         steamId: player.steamID,
-        nickname: nicknameCleaner(player.nickname, player.realName),
+        nickname: player.nickname,
         avatar: player.avatar.medium,
         role: "user"
       };

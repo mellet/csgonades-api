@@ -15,6 +15,7 @@ import { ContactService } from "./contact/ContactService";
 import { FavoriteRepo } from "./favorite/FavoriteRepo";
 import { FavoriteRouter } from "./favorite/FavoriteRouter";
 import { FavoriteService } from "./favorite/FavoriteService";
+import { ImageGalleryController } from "./imageGallery/ImageGalleryController";
 import { ImageGalleryService } from "./imageGallery/ImageGalleryService";
 import { ImageStorageRepo } from "./imageGallery/ImageStorageService";
 import { NadeRepo } from "./nade/NadeRepo";
@@ -169,6 +170,7 @@ export const AppServer = (config: CSGNConfig) => {
   const notificationRouter = new NotificationRouter(
     notificationService
   ).getRouter();
+  const imageGalleryRouter = new ImageGalleryController(galleryService);
 
   app.use(nadeRouter.getRouter());
   app.use(steamRouter);
@@ -181,6 +183,7 @@ export const AppServer = (config: CSGNConfig) => {
   app.use(tournamentRouter);
   app.use(reportRouter);
   app.use(notificationRouter);
+  app.use(imageGalleryRouter.getRouter());
 
   app.get("/", (_, res) => {
     res.send("");

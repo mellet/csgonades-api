@@ -1,6 +1,6 @@
 import { collection, Collection, get, set, update, value } from "typesaurus";
 import { ModelUpdate } from "typesaurus/update";
-import { nicknameCleaner, removeUndefines } from "../utils/Common";
+import { removeUndefines } from "../utils/Common";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import { UserCreateDTO, UserDTO, UserUpdateDTO } from "./UserDTOs";
 import { UserModel } from "./UserModel";
@@ -101,9 +101,7 @@ export class UserRepo {
     updateFields: UserUpdateDTO
   ): Promise<UserModel | null> => {
     let updateModel: ModelUpdate<UserModel> = {
-      nickname: updateFields.nickname
-        ? nicknameCleaner(updateFields.nickname)
-        : undefined,
+      nickname: updateFields.nickname,
       email: updateFields.email,
       bio: updateFields.bio,
       createdAt: updateFields.createdAt
@@ -119,13 +117,8 @@ export class UserRepo {
   };
 
   updateActivity = async (steamId: string) => {
-    const user = await this.byId(steamId);
-
     await update(this.collection, steamId, {
-      lastActive: value("serverDate"),
-      // Clean up nicknames for users who registered before we started
-      // cleaning up. Can probably be removed some time in the future
-      nickname: nicknameCleaner(user.nickname)
+      lastActive: value("serverDate")
     });
   };
 }
