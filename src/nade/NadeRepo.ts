@@ -177,7 +177,7 @@ export class NadeRepo {
   };
 
   private calcScore = (nade: NadeModel): number => {
-    const FAVORITE_WEIGHT = 300;
+    const FAVORITE_WEIGHT = 200;
 
     const addedDaysAgo = moment().diff(moment(nade.createdAt), "days", true);
 
