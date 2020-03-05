@@ -1,7 +1,7 @@
 import Joi from "@hapi/joi";
 import { Request } from "express";
 import { sanitizeIt } from "../utils/Sanitize";
-import { ArticleCreateBodyDTO, ArticleUpdateDTO } from "./Article";
+import { ArticleCreateDTO, ArticleUpdateDTO } from "./Article";
 
 export const validateArticleUpdateDTO = (req: Request): ArticleUpdateDTO => {
   const body = req.body as ArticleUpdateDTO;
@@ -16,17 +16,17 @@ export const validateArticleUpdateDTO = (req: Request): ArticleUpdateDTO => {
   return value;
 };
 
-export const validateArticleCreateDTO = (
-  req: Request
-): ArticleCreateBodyDTO => {
-  const body = req.body as ArticleCreateBodyDTO;
+export const validateArticleCreateDTO = (req: Request): ArticleCreateDTO => {
+  const body = req.body as ArticleCreateDTO;
+
   const articleUpdateSchema = Joi.object({
     title: Joi.string().required(),
     body: Joi.string().required(),
-    imageData: Joi.string().required()
+    thumbnailImagelUrl: Joi.string().required(),
+    largeImageUrl: Joi.string().required()
   }).unknown(false);
 
-  const value = Joi.attempt(body, articleUpdateSchema) as ArticleCreateBodyDTO;
+  const value = Joi.attempt(body, articleUpdateSchema) as ArticleCreateDTO;
 
   return value;
 };

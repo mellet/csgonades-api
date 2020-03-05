@@ -103,7 +103,10 @@ export class ArticleRepo {
         lower: true
       }),
       status: "draft",
-      images: articleModel.images,
+      images: {
+        thumbnailUrl: articleModel.thumbnailImagelUrl,
+        largeUrl: articleModel.largeImageUrl
+      },
       createdAt: value("serverDate"),
       updatedAt: value("serverDate")
     });

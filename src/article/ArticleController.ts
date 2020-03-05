@@ -55,7 +55,7 @@ export class ArticleController {
 
   createArticle: RequestHandler = async (req, res) => {
     try {
-      const articleCreateDto = validateArticleCreateDTO(req.body);
+      const articleCreateDto = validateArticleCreateDTO(req);
 
       const article = await this.articleService.save(articleCreateDto);
 

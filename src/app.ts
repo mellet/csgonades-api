@@ -150,8 +150,7 @@ export const AppServer = (config: CSGNConfig) => {
   });
 
   const articleService = new ArticleService({
-    articleRepo,
-    galleryService
+    articleRepo
   });
 
   // Routers

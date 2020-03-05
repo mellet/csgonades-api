@@ -1,6 +1,5 @@
-import { ImageGalleryService } from "../imageGallery/ImageGalleryService";
 import {
-  ArticleCreateBodyDTO,
+  ArticleCreateDTO,
   ArticleDTO,
   ArticleLightDTO,
   ArticleUpdateDTO
@@ -9,16 +8,13 @@ import { ArticleRepo } from "./ArticleRepo";
 
 type ArticleServiceDeps = {
   articleRepo: ArticleRepo;
-  galleryService: ImageGalleryService;
 };
 
 export class ArticleService {
   private articleRepo: ArticleRepo;
-  private galleryService: ImageGalleryService;
 
   constructor(deps: ArticleServiceDeps) {
     this.articleRepo = deps.articleRepo;
-    this.galleryService = deps.galleryService;
   }
 
   get = async (articleId: string): Promise<ArticleDTO> => {
@@ -29,24 +25,8 @@ export class ArticleService {
     return this.articleRepo.getAll(articleLimit);
   };
 
-  save = async (articleBody: ArticleCreateBodyDTO): Promise<ArticleDTO> => {
-    const thumbnail = await this.galleryService.createThumbnail(
-      articleBody.imageBase64Data,
-      "articles"
-    );
-    const large = await this.galleryService.createLarge(
-      articleBody.imageBase64Data,
-      "articles"
-    );
-
-    return this.articleRepo.save({
-      title: articleBody.title,
-      body: articleBody.body,
-      images: {
-        large,
-        thumbnail
-      }
-    });
+  save = async (articleBody: ArticleCreateDTO): Promise<ArticleDTO> => {
+    return this.articleRepo.save(articleBody);
   };
 
   update = async (
