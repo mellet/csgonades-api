@@ -196,7 +196,6 @@ export class NotificationRepo {
     const { remove, commit } = batch();
 
     for (let staleNoti of staleNotification) {
-      console.log("> Remove stale", staleNoti.data);
       remove(this.collection, staleNoti.ref.id);
     }
 
