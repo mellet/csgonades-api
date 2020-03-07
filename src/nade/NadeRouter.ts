@@ -108,7 +108,7 @@ export class NadeRouter {
       let noCache = false;
 
       if (!limitParam) {
-        limit = 12;
+        limit = 8;
       } else if (limitParam === "all") {
         limit = undefined;
         noCache = true;
