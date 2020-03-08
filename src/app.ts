@@ -80,7 +80,8 @@ export const AppServer = (config: CSGNConfig) => {
       origin: [
         "http://localhost:3000",
         "http://www.csgonades.com",
-        "https://www.csgonades.com"
+        "https://www.csgonades.com",
+        "https://csgonades-client-lgljtzmn9.now.sh"
       ],
       credentials: true
     })
