@@ -92,6 +92,7 @@ export type NadeLightDTO = {
   technique?: Technique;
   movement?: Movement;
   createdAt: Date;
+  updatedAt: Date;
   viewCount: number;
   favoriteCount: number;
   mapEndCoord?: MapCoordinates;

@@ -399,7 +399,8 @@ export class NadeService {
       mapEndCoord: nadeDto.mapEndCoord,
       score: nadeDto.score,
       movement: nadeDto.movement,
-      technique: nadeDto.technique
+      technique: nadeDto.technique,
+      updatedAt: nadeDto.updatedAt
     };
   };
 }
