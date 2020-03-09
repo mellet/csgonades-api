@@ -68,7 +68,7 @@ export const AppServer = (config: CSGNConfig) => {
     ]
   });
 
-  // Express dependencies
+  // Express dependencies.
   app.use(Sentry.Handlers.requestHandler());
   app.use(express.json({ limit: "3mb" }));
   app.use(express.urlencoded({ extended: true }));
