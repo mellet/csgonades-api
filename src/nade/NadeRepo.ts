@@ -180,10 +180,11 @@ export class NadeRepo {
     const FAVORITE_WEIGHT = 200;
 
     const addedDaysAgo = moment().diff(moment(nade.createdAt), "days", true);
+    const addedWeeksAgo = moment().diff(moment(nade.createdAt), "weeks", true);
 
     const viewScore = this.viewsPerWeek(nade.viewCount, addedDaysAgo);
 
-    const ageScore = Math.round(10000 * Math.exp(-addedDaysAgo / 4));
+    const ageScore = Math.round(10000 * Math.exp(-addedWeeksAgo));
 
     const favoriteScore =
       Math.max(nade.favoriteCount || 0, 1) * FAVORITE_WEIGHT;
