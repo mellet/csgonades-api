@@ -191,6 +191,11 @@ export const AppServer = (config: CSGNConfig) => {
     res.send("");
   });
 
+  app.use("/robots.txt", function(req, res, next) {
+    res.type("text/plain");
+    res.send("User-agent: *\nDisallow: /");
+  });
+
   // Called by client to set up session
   app.post("/initSession", sessionRoute);
 
