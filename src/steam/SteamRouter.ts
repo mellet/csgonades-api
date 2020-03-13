@@ -113,7 +113,7 @@ function makeCookieOptions(config: CSGNConfig): CookieOptions {
     return {
       httpOnly: true,
       secure: true,
-      maxAge: oneDay * 30,
+      maxAge: oneDay * 60,
       signed: true,
       path: "/",
       domain: ".csgonades.com"
