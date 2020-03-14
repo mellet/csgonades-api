@@ -44,6 +44,7 @@ type MapCoordinates = {
 
 export interface NadeModel {
   title?: string;
+  slug?: string;
   gfycat: GfycatData;
   images: NadeImages;
   steamId: string;
@@ -84,6 +85,7 @@ export type NadeLightDTO = {
   id: string;
   status: NadeStatus;
   title?: string;
+  slug?: string;
   gfycat: GfycatData;
   images: NadeImages;
   type?: NadeType;

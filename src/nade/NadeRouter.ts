@@ -9,6 +9,7 @@ import {
   CsgoMap,
   GfycatData,
   NadeCreateDTO,
+  NadeDTO,
   NadeGfycatValidateDTO,
   NadeStatusDTO,
   NadeUpdateDTO
@@ -140,7 +141,13 @@ export class NadeRouter {
     try {
       const id = sanitizeIt(req.params.id);
 
-      const nade = await this.nadeService.byId(id);
+      let nade: NadeDTO | null = null;
+
+      if (this.isSlug(id)) {
+        nade = await this.nadeService.bySlug(id);
+      } else {
+        nade = await this.nadeService.byId(id);
+      }
 
       if (!nade) {
         return res.status(404).send({
@@ -336,5 +343,9 @@ export class NadeRouter {
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
+  };
+
+  private isSlug = (value: string) => {
+    return value.includes("-");
   };
 }

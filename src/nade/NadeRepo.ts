@@ -1,4 +1,5 @@
 import moment from "moment";
+import slugify from "slugify";
 import {
   add,
   batch,
@@ -70,6 +71,22 @@ export class NadeRepo {
     };
   };
 
+  bySlug = async (slug: string): Promise<NadeDTO> => {
+    const nadeDocs = await query(this.collection, [where("slug", "==", slug)]);
+
+    if (!nadeDocs.length) {
+      throw ErrorFactory.NotFound("Nade not found");
+    }
+
+    const nade = nadeDocs[0];
+
+    return {
+      ...nade.data,
+      id: nade.ref.id,
+      score: this.calcScore(nade.data)
+    };
+  };
+
   byMap = async (csgoMap: CsgoMap): Promise<NadeDTO[]> => {
     const queryBuilder: Query<NadeModel, keyof NadeModel>[] = [
       where("status", "==", "accepted"),
@@ -132,7 +149,37 @@ export class NadeRepo {
 
     const nade = await this.byId(nadeId);
 
+    await this.tryCreateUnqieuSlug(nade);
+
     return nade;
+  };
+
+  tryCreateUnqieuSlug = async (nade: NadeDTO) => {
+    const { slug, title, map, type } = nade;
+    if (slug || !title || !map || !type) {
+      return;
+    }
+
+    const fullTitle = `${map} ${type} ${title}`;
+
+    const createdSlug = slugify(fullTitle, { replacement: "-", lower: true });
+
+    const findSameSlug = await query(this.collection, [
+      where("slug", "==", createdSlug)
+    ]);
+
+    if (findSameSlug.length) {
+      // TODO: Make unique slug
+      return;
+    }
+
+    let modelUpdates: ModelUpdate<NadeModel> = {
+      slug: createdSlug
+    };
+
+    console.log("> Created slug", createdSlug);
+
+    await update(this.collection, nade.id, modelUpdates);
   };
 
   delete = async (nadeId: string) => {

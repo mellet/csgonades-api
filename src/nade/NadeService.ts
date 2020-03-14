@@ -100,6 +100,21 @@ export class NadeService {
     return nade;
   };
 
+  bySlug = async (slug: string): Promise<NadeDTO> => {
+    const cachedNade = this.cache.getNade(slug);
+
+    if (cachedNade && !this.shouldUpdateStats(cachedNade)) {
+      return cachedNade;
+    }
+
+    let nade = await this.nadeRepo.bySlug(slug);
+    nade = await this.tryUpdateViewCounter(nade);
+
+    this.cache.setNade(slug, nade);
+
+    return nade;
+  };
+
   list = async (ids: string[]): Promise<NadeLightDTO[]> => {
     const nades = await this.nadeRepo.list(ids);
     return nades.map(this.toLightDTO);
@@ -386,6 +401,7 @@ export class NadeService {
   private toLightDTO = (nadeDto: NadeDTO): NadeLightDTO => {
     return {
       id: nadeDto.id,
+      slug: nadeDto.slug,
       createdAt: nadeDto.createdAt,
       favoriteCount: nadeDto.favoriteCount,
       gfycat: nadeDto.gfycat,
