@@ -164,7 +164,11 @@ export class NadeRepo {
 
     const fullTitle = `${map} ${type} ${title}`;
 
-    const createdSlug = slugify(fullTitle, { replacement: "-", lower: true });
+    const createdSlug = slugify(fullTitle, {
+      replacement: "-",
+      lower: true,
+      remove: /[*+~.()'`"!:@]/g
+    });
 
     const findSameSlug = await query(this.collection, [
       where("slug", "==", createdSlug)
