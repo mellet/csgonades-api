@@ -366,6 +366,7 @@ export class NadeService {
 
   private tryUpdateViewCounter = async (nade: NadeDTO): Promise<NadeDTO> => {
     const shouldUpdate = this.shouldUpdateStats(nade);
+
     if (!shouldUpdate) {
       return nade;
     }
@@ -385,7 +386,8 @@ export class NadeService {
         largeVideoUrl: gfycat.gfyItem.mp4Url,
         largeVideoWebm: gfycat.gfyItem.webmUrl,
         avgColor: gfycat.gfyItem.avgColor
-      }
+      },
+      lastGfycatUpdate: new Date()
     };
 
     const viewCountDidDiffer = gfycat.gfyItem.views !== nade.viewCount;
