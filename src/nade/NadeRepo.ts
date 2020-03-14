@@ -151,14 +151,13 @@ export class NadeRepo {
 
     const nade = await this.byId(nadeId);
 
-    await this.tryCreateUnqieuSlug(nade);
-
     return nade;
   };
 
   tryCreateUnqieuSlug = async (nade: NadeDTO) => {
-    const { slug, title, map, type } = nade;
-    if (slug || !title || !map || !type) {
+    const { title, map, type } = nade;
+
+    if (!title || !map || !type) {
       return;
     }
 
@@ -186,12 +185,16 @@ export class NadeRepo {
           slug: uniqueSlug
         };
 
+        console.log("> Slug", uniqueSlug);
+
         await update(this.collection, nade.id, modelUpdates);
       }
     } else {
       let modelUpdates: ModelUpdate<NadeModel> = {
         slug: createdSlug
       };
+
+      console.log("> Slug", createdSlug);
 
       await update(this.collection, nade.id, modelUpdates);
     }
