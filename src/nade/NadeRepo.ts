@@ -177,8 +177,6 @@ export class NadeRepo {
       slug: createdSlug
     };
 
-    console.log("> Created slug", createdSlug);
-
     await update(this.collection, nade.id, modelUpdates);
   };
 
