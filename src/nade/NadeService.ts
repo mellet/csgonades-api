@@ -272,11 +272,10 @@ export class NadeService {
       throw ErrorFactory.NotFound("Nade not found.");
     }
 
-    await this.nadeRepo.tryCreateUnqieuSlug(nade);
-
     // Keep pending counter in sync on status change
     if (oldNade.status === "pending" && nade.status === "accepted") {
       this.eventBus.emitNadeAccepted(nade);
+      await this.nadeRepo.tryCreateUnqieuSlug(nade);
     }
 
     // Send notification if nade status changed to declined
