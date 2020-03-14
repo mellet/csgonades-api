@@ -1,4 +1,6 @@
 import moment from "moment";
+// @ts-ignore
+import ShortUniqueId from "short-unique-id";
 import slugify from "slugify";
 import {
   add,
@@ -169,15 +171,26 @@ export class NadeRepo {
     ]);
 
     if (findSameSlug.length) {
-      // TODO: Make unique slug
-      return;
+      const uid = new ShortUniqueId();
+      const uniqueSlug = `${createdSlug}-${uid.randomUUID(3)}`;
+      const findSameUniqueSlug = await query(this.collection, [
+        where("slug", "==", uniqueSlug)
+      ]);
+
+      if (!findSameUniqueSlug.length) {
+        let modelUpdates: ModelUpdate<NadeModel> = {
+          slug: uniqueSlug
+        };
+
+        await update(this.collection, nade.id, modelUpdates);
+      }
+    } else {
+      let modelUpdates: ModelUpdate<NadeModel> = {
+        slug: createdSlug
+      };
+
+      await update(this.collection, nade.id, modelUpdates);
     }
-
-    let modelUpdates: ModelUpdate<NadeModel> = {
-      slug: createdSlug
-    };
-
-    await update(this.collection, nade.id, modelUpdates);
   };
 
   delete = async (nadeId: string) => {

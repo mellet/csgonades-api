@@ -38,6 +38,7 @@
     "passport-steam": "^1.0.12",
     "sanitizer": "^0.1.3",
     "sharp": "^0.24.0",
+    "short-unique-id": "^2.0.6",
     "slugify": "^1.3.6",
     "steamapi": "^2.0.7",
     "ts-custom-error": "^3.1.1",
