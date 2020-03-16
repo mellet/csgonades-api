@@ -5,9 +5,21 @@ export class StatsRepo {
   private collection: Collection<SiteStats>;
   private siteDocId = "siteStats";
 
+  private configDoc = "clientConfig";
+
   constructor() {
     this.collection = collection<SiteStats>("stats");
   }
+
+  getClientConfig = async () => {
+    const clientConfig = await get(this.collection, this.configDoc);
+
+    if (!clientConfig) {
+      return null;
+    }
+
+    return clientConfig.data;
+  };
 
   getStats = async () => {
     const stats = await get(this.collection, this.siteDocId);

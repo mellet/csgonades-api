@@ -20,5 +20,20 @@ export const makeStatsRouter = (statsService: StatsService): Router => {
     }
   });
 
+  StatsRouter.get("/client-config", async (_, res) => {
+    try {
+      const clientConfig = await statsService.getClientConfig();
+
+      if (!clientConfig) {
+        return res.status(404).send();
+      }
+
+      return res.status(200).send(clientConfig);
+    } catch (error) {
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
+    }
+  });
+
   return StatsRouter;
 };

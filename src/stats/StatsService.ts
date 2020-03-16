@@ -26,6 +26,10 @@ export class StatsService {
     return this.statsRepo.getStats();
   }
 
+  getClientConfig = () => {
+    return this.statsRepo.getClientConfig();
+  };
+
   private incrementUserCounter = () => {
     return this.statsRepo.incrementUserCounter();
   };
