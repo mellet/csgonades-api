@@ -1,4 +1,5 @@
 import { NadeDTO } from "../nade/Nade";
+import { CachingService } from "../services/CachingService";
 import { EventBus } from "../services/EventHandler";
 import { SiteStats } from "./SiteStats";
 import { StatsRepo } from "./StatsRepo";
@@ -6,14 +7,18 @@ import { StatsRepo } from "./StatsRepo";
 type StatsServiceDeps = {
   statsRepo: StatsRepo;
   eventBus: EventBus;
+  cacheService: CachingService;
 };
 
 export class StatsService {
   private statsRepo: StatsRepo;
 
+  private cacheService: CachingService;
+
   constructor(deps: StatsServiceDeps) {
-    const { eventBus, statsRepo } = deps;
+    const { eventBus, statsRepo, cacheService } = deps;
     this.statsRepo = statsRepo;
+    this.cacheService = cacheService;
 
     eventBus.subNewNade(this.onNewNade);
     eventBus.subNadeDelete(this.onNadeDelete);
@@ -26,8 +31,19 @@ export class StatsService {
     return this.statsRepo.getStats();
   }
 
-  getClientConfig = () => {
-    return this.statsRepo.getClientConfig();
+  getClientConfig = async () => {
+    const cachedConfig = this.cacheService.getGeneric("clientConfig");
+    if (cachedConfig) {
+      return cachedConfig;
+    }
+
+    const clientConfig = await this.statsRepo.getClientConfig();
+
+    if (clientConfig) {
+      this.cacheService.setGeneric("clientConfig", clientConfig);
+    }
+
+    return clientConfig;
   };
 
   private incrementUserCounter = () => {

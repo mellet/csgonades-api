@@ -115,7 +115,8 @@ export const AppServer = (config: CSGNConfig) => {
   const steamService = new SteamService(config);
   const statsService = new StatsService({
     eventBus,
-    statsRepo
+    statsRepo,
+    cacheService
   });
   const galleryService = new ImageGalleryService({
     config,

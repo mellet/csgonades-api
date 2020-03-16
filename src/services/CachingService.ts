@@ -4,12 +4,21 @@ import { TournamentModel } from "../tournament/Tournament";
 
 export class CachingService {
   private cache: NodeCache;
-  private defaultTTL = 1000 * 60 * 60 * 48; // 48 hours
+  private defaultTTL = 1000 * 60 * 60 * 24; // 24 hours
   private recentKey = "recent";
 
   constructor() {
     this.cache = new NodeCache({ stdTTL: this.defaultTTL });
   }
+
+  setGeneric = (key: string, value: any) => {
+    const ttl5min = 1000 * 60 * 5;
+    this.cache.set(key, value, ttl5min);
+  };
+
+  getGeneric = (key: string): any => {
+    return this.cache.get(key);
+  };
 
   setTournaments = (tournaments: TournamentModel[]) => {
     this.cache.set("tournaments", tournaments);
