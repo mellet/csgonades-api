@@ -185,16 +185,12 @@ export class NadeRepo {
           slug: uniqueSlug
         };
 
-        console.log("> Slug", uniqueSlug);
-
         await update(this.collection, nade.id, modelUpdates);
       }
     } else {
       let modelUpdates: ModelUpdate<NadeModel> = {
         slug: createdSlug
       };
-
-      console.log("> Slug", createdSlug);
 
       await update(this.collection, nade.id, modelUpdates);
     }
