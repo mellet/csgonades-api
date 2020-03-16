@@ -385,7 +385,11 @@ export class NadeService {
         smallVideoUrl: gfycat.gfyItem.mobileUrl,
         largeVideoUrl: gfycat.gfyItem.mp4Url,
         largeVideoWebm: gfycat.gfyItem.webmUrl,
-        avgColor: gfycat.gfyItem.avgColor
+        avgColor: gfycat.gfyItem.avgColor,
+        duration: videoDuration(
+          gfycat.gfyItem.frameRate,
+          gfycat.gfyItem.numFrames
+        )
       },
       lastGfycatUpdate: new Date()
     };
@@ -422,4 +426,12 @@ export class NadeService {
       updatedAt: nadeDto.updatedAt
     };
   };
+}
+
+function videoDuration(framerate?: number, numFrames?: number) {
+  if (!framerate || !numFrames) {
+    return undefined;
+  }
+  const seconds = Math.floor(numFrames / framerate);
+  return `PT0M${seconds}S`;
 }

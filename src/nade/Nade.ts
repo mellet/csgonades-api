@@ -24,6 +24,7 @@ export type GfycatData = {
   largeVideoUrl: string;
   largeVideoWebm?: string;
   avgColor?: string;
+  duration?: string;
 };
 
 type Technique =
