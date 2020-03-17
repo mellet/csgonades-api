@@ -27,6 +27,10 @@ export class StatsService {
     eventBus.subNewUser(this.incrementUserCounter);
   }
 
+  nukeCache = () => {
+    this.cacheService.flushAll();
+  };
+
   getStats(): Promise<SiteStats | null> {
     return this.statsRepo.getStats();
   }

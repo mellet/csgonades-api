@@ -20,6 +20,11 @@ export const makeStatsRouter = (statsService: StatsService): Router => {
     }
   });
 
+  StatsRouter.get("/flush-all", async (_, res) => {
+    statsService.nukeCache();
+    return res.status(200).send({});
+  });
+
   StatsRouter.get("/client-config", async (_, res) => {
     try {
       const clientConfig = await statsService.getClientConfig();
