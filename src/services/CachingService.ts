@@ -8,7 +8,7 @@ export class CachingService {
   private recentKey = "recent";
 
   constructor() {
-    this.cache = new NodeCache({ stdTTL: this.defaultTTL });
+    this.cache = new NodeCache({ stdTTL: this.defaultTTL, checkperiod: 300 });
   }
 
   setGeneric = (key: string, value: any) => {
