@@ -423,7 +423,8 @@ export class NadeService {
       score: nadeDto.score,
       movement: nadeDto.movement,
       technique: nadeDto.technique,
-      updatedAt: nadeDto.updatedAt
+      updatedAt: nadeDto.updatedAt,
+      youtubeId: nadeDto.youtubeId
     };
   };
 }

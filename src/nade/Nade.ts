@@ -66,6 +66,7 @@ export interface NadeModel {
   mapEndCoord?: MapCoordinates;
   viewCount: number;
   favoriteCount: number;
+  youtubeId?: string;
 }
 
 export interface NadeDTO extends NadeModel {
@@ -100,6 +101,7 @@ export type NadeLightDTO = {
   favoriteCount: number;
   mapEndCoord?: MapCoordinates;
   score: number;
+  youtubeId?: string;
 };
 
 export type NadeCreateDTO = {
