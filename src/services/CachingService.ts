@@ -4,7 +4,7 @@ import { TournamentModel } from "../tournament/Tournament";
 
 export class CachingService {
   private cache: NodeCache;
-  private defaultTTL = 1000 * 60 * 60 * 24; // 24 hours
+  private defaultTTL = 60 * 60 * 24; // 24 hours
   private recentKey = "recent";
 
   constructor() {
