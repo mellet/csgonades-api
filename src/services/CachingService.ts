@@ -8,11 +8,11 @@ export class CachingService {
   private recentKey = "recent";
 
   constructor() {
-    this.cache = new NodeCache({ stdTTL: this.defaultTTL, checkperiod: 300 });
+    this.cache = new NodeCache({ stdTTL: this.defaultTTL });
   }
 
   setGeneric = (key: string, value: any) => {
-    const ttl5min = 1000 * 60 * 5;
+    const ttl5min = 60 * 10;
     this.cache.set(key, value, ttl5min);
   };
 
