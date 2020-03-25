@@ -21,6 +21,9 @@ import { ImageStorageRepo } from "./imageGallery/ImageStorageService";
 import { NadeRepo } from "./nade/NadeRepo";
 import { NadeRouter } from "./nade/NadeRouter";
 import { NadeService } from "./nade/NadeService";
+import { NadeCommentRepo } from "./nadecomment/NadeCommentRepo";
+import { NadeCommentRouter } from "./nadecomment/NadeCommentRouter";
+import { NadeCommentService } from "./nadecomment/NadeCommentService";
 import { NotificationRepo } from "./notifications/NotificationRepo";
 import { NotificationRouter } from "./notifications/NotificationRouter";
 import { NotificationService } from "./notifications/NotificationService";
@@ -106,6 +109,7 @@ export const AppServer = (config: CSGNConfig) => {
   const tournamentRepo = new TournamentRepo();
   const reportRepo = new ReportRepo();
   const imageRepo = new ImageStorageRepo(bucket);
+  const nadeCommentRepo = new NadeCommentRepo();
 
   // Event bus so services can send events that others can subscribe to
   const eventBus = new EventBus();
@@ -157,6 +161,12 @@ export const AppServer = (config: CSGNConfig) => {
     articleRepo
   });
 
+  const nadeCommentService = new NadeCommentService({
+    nadeCommentRepo,
+    userService,
+    eventBus
+  });
+
   // Routers
   const statusRouter = new StatusRouter({ cache: cacheService });
   const nadeRouter = new NadeRouter({ gfycatService, nadeService });
@@ -174,6 +184,7 @@ export const AppServer = (config: CSGNConfig) => {
     notificationService
   ).getRouter();
   const imageGalleryRouter = new ImageGalleryController(galleryService);
+  const nadeCommentRouter = new NadeCommentRouter({ nadeCommentService });
 
   app.use(nadeRouter.getRouter());
   app.use(steamRouter);
@@ -187,6 +198,7 @@ export const AppServer = (config: CSGNConfig) => {
   app.use(reportRouter);
   app.use(notificationRouter);
   app.use(imageGalleryRouter.getRouter());
+  app.use(nadeCommentRouter.getRouter());
 
   app.get("/", (_, res) => {
     res.send("");

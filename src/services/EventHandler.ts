@@ -1,6 +1,7 @@
 import { EventEmitter } from "events";
 import { FavoriteDTO } from "../favorite/Favorite";
 import { NadeDTO } from "../nade/Nade";
+import { NadeCommentDto } from "../nadecomment/NadeComment";
 import { ReportDTO } from "../reports/Report";
 import { UserDTO } from "../user/UserDTOs";
 
@@ -12,12 +13,34 @@ const NadeAccepted = "@@nade/ACCEPTED";
 const NadeDeclined = "@@nade/DECLINED";
 const NewUser = "@@user/NEW";
 const NewReport = "@@report/NEW";
+const OnNadeCommentCreate = "@@nadecomment/NEW";
+const OnNadeCommentDelete = "@@nadecomment/DELETE";
 
 export class EventBus {
   private eventEmitter: EventEmitter;
   constructor() {
     this.eventEmitter = new EventEmitter();
   }
+
+  subNadeCommentDelete = (cb: (comment: NadeCommentDto) => void) => {
+    this.eventEmitter.on(OnNadeCommentDelete, (value: NadeCommentDto) =>
+      cb(value)
+    );
+  };
+
+  emitNadeCommentDelete = (comment: NadeCommentDto) => {
+    this.eventEmitter.emit(OnNadeCommentDelete, comment);
+  };
+
+  subNadeCommentCreate = (cb: (comment: NadeCommentDto) => void) => {
+    this.eventEmitter.on(OnNadeCommentCreate, (value: NadeCommentDto) =>
+      cb(value)
+    );
+  };
+
+  emitNadeCommentCreate = (comment: NadeCommentDto) => {
+    this.eventEmitter.emit(OnNadeCommentCreate, comment);
+  };
 
   subNewFavorites = (cb: (fav: FavoriteDTO) => void) => {
     this.eventEmitter.on(FavoriteEventType, (value: FavoriteDTO) => cb(value));

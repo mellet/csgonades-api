@@ -66,6 +66,7 @@ export interface NadeModel {
   mapEndCoord?: MapCoordinates;
   viewCount: number;
   favoriteCount: number;
+  commentCount: number;
   youtubeId?: string;
 }
 
@@ -81,6 +82,7 @@ export type NadeCreateModel = {
   user: UserLightModel;
   viewCount: number;
   favoriteCount: number;
+  commentCount: number;
 };
 
 export type NadeLightDTO = {
@@ -98,6 +100,7 @@ export type NadeLightDTO = {
   createdAt: Date;
   updatedAt: Date;
   viewCount: number;
+  commentCount: number;
   favoriteCount: number;
   mapEndCoord?: MapCoordinates;
   score: number;
@@ -155,7 +158,8 @@ export const makeNadeFromBody = (
     user,
     steamId: user.steamId,
     viewCount: gfycatData.gfyItem.views,
-    favoriteCount: 0
+    favoriteCount: 0,
+    commentCount: 0
   };
 };
 

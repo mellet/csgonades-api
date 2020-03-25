@@ -1,5 +1,4 @@
 import moment from "moment";
-// @ts-ignore
 import ShortUniqueId from "short-unique-id";
 import slugify from "slugify";
 import {
@@ -226,6 +225,18 @@ export class NadeRepo {
   decrementFavoriteCount = async (nadeId: string) => {
     return update(this.collection, nadeId, {
       favoriteCount: value("increment", -1)
+    });
+  };
+
+  incrementCommentCount = async (nadeId: string) => {
+    return update(this.collection, nadeId, {
+      commentCount: value("increment", 1)
+    });
+  };
+
+  decrementCommentCount = async (nadeId: string) => {
+    return update(this.collection, nadeId, {
+      commentCount: value("increment", -1)
     });
   };
 

@@ -1,6 +1,7 @@
 import moment from "moment";
 import { FavoriteDTO } from "../favorite/Favorite";
 import { ImageGalleryService } from "../imageGallery/ImageGalleryService";
+import { NadeCommentDto } from "../nadecomment/NadeComment";
 import { CachingService } from "../services/CachingService";
 import { EventBus } from "../services/EventHandler";
 import { GfycatService } from "../services/GfycatService";
@@ -58,6 +59,8 @@ export class NadeService {
 
     this.eventBus.subNewFavorites(this.incrementFavoriteCount);
     this.eventBus.subUnFavorite(this.decrementFavoriteCount);
+    this.eventBus.subNadeCommentCreate(this.incrementCommentCount);
+    this.eventBus.subNadeCommentDelete(this.decrementCommentCount);
   }
 
   fetchNades = async (
@@ -312,6 +315,16 @@ export class NadeService {
     this.cache.invalidateNade(favorite.nadeId);
   };
 
+  private incrementCommentCount = async (comment: NadeCommentDto) => {
+    await this.nadeRepo.incrementCommentCount(comment.nadeId);
+    this.cache.invalidateNade(comment.nadeId);
+  };
+
+  private decrementCommentCount = async (comment: NadeCommentDto) => {
+    await this.nadeRepo.decrementCommentCount(comment.nadeId);
+    this.cache.invalidateNade(comment.nadeId);
+  };
+
   private shouldUpdateStats = (nade: NadeDTO) => {
     if (!nade.lastGfycatUpdate) {
       return true;
@@ -424,7 +437,8 @@ export class NadeService {
       movement: nadeDto.movement,
       technique: nadeDto.technique,
       updatedAt: nadeDto.updatedAt,
-      youtubeId: nadeDto.youtubeId
+      youtubeId: nadeDto.youtubeId,
+      commentCount: nadeDto.commentCount
     };
   };
 }
