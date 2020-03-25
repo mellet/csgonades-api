@@ -171,7 +171,7 @@ export const AppServer = (config: CSGNConfig) => {
   const statusRouter = new StatusRouter({ cache: cacheService });
   const nadeRouter = new NadeRouter({ gfycatService, nadeService });
   const steamRouter = makeSteamRouter(userService, passport, config);
-  const userRouter = makeUserRouter(userService, nadeService);
+  const userRouter = makeUserRouter(userService);
   const favoriteRouter = new FavoriteRouter({ favoriteService });
   const statsRouter = makeStatsRouter(statsService);
   const contactRouter = new ContactRouter(contactService).getRouter();

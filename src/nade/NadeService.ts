@@ -5,6 +5,7 @@ import { NadeCommentDto } from "../nadecomment/NadeComment";
 import { CachingService } from "../services/CachingService";
 import { EventBus } from "../services/EventHandler";
 import { GfycatService } from "../services/GfycatService";
+import { UserDTO } from "../user/UserDTOs";
 import { UserLightModel, UserModel } from "../user/UserModel";
 import { UserService } from "../user/UserService";
 import { clamp } from "../utils/Common";
@@ -61,7 +62,19 @@ export class NadeService {
     this.eventBus.subUnFavorite(this.decrementFavoriteCount);
     this.eventBus.subNadeCommentCreate(this.incrementCommentCount);
     this.eventBus.subNadeCommentDelete(this.decrementCommentCount);
+    this.eventBus.subUserDetailsUpdate(this.onUserDetailsUpdated);
   }
+
+  onUserDetailsUpdated = async (user: UserDTO) => {
+    await this.nadeRepo.updateUserOnNades(user.steamId, {
+      avatar: user.avatar,
+      nickname: user.nickname,
+      steamId: user.steamId
+    });
+
+    // Clear cache on update
+    this.cache.flushAll();
+  };
 
   fetchNades = async (
     limit?: number,
@@ -291,18 +304,6 @@ export class NadeService {
     this.cache.invalidateNade(nadeId);
 
     return nade;
-  };
-
-  updateNadesWithUser = async (
-    steamId: string,
-    user: UserLightModel
-  ): Promise<void> => {
-    await this.nadeRepo.updateUserOnNades(steamId, user);
-
-    // Clear cache on update
-    this.cache.flushAll();
-
-    return;
   };
 
   private incrementFavoriteCount = async (favorite: FavoriteDTO) => {

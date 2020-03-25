@@ -1,4 +1,5 @@
 import { EventBus } from "../services/EventHandler";
+import { UserDTO } from "../user/UserDTOs";
 import { UserService } from "../user/UserService";
 import { RequestUser } from "../utils/AuthUtils";
 import { ErrorFactory } from "../utils/ErrorUtil";
@@ -24,7 +25,13 @@ export class NadeCommentService {
     this.nadeCommentRepo = deps.nadeCommentRepo;
     this.userService = deps.userService;
     this.eventBus = deps.eventBus;
+
+    this.eventBus.subUserDetailsUpdate(this.updateUserDetailsOnComments);
   }
+
+  private updateUserDetailsOnComments = async (user: UserDTO) => {
+    this.nadeCommentRepo.updateUserDetailsForComments(user);
+  };
 
   getForNade = async (nadeId: string): Promise<NadeCommentDto[]> => {
     return this.nadeCommentRepo.getForNade(nadeId);

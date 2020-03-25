@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { NadeService } from "../nade/NadeService";
 import {
   adminOrModHandler,
   authOnlyHandler,
@@ -11,10 +10,7 @@ import { UserFilter } from "./UserRepo";
 import { UserService } from "./UserService";
 import { validateSteamId, validateUserUpdateDTO } from "./UserValidators";
 
-export const makeUserRouter = (
-  userService: UserService,
-  nadeService: NadeService
-): Router => {
+export const makeUserRouter = (userService: UserService): Router => {
   const UserRouter = Router();
 
   UserRouter.get("/users/self", authOnlyHandler, async (req, res) => {
@@ -91,12 +87,6 @@ export const makeUserRouter = (
           message: "No user found"
         });
       }
-
-      await nadeService.updateNadesWithUser(user.steamId, {
-        nickname: user.nickname,
-        avatar: user.avatar,
-        steamId: user.steamId
-      });
 
       return res.status(202).send(user);
     } catch (error) {

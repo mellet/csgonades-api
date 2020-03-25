@@ -57,8 +57,14 @@ export class UserService {
     }
   };
 
-  update = (steamId: string, update: UserUpdateDTO) => {
-    return this.userRepo.update(steamId, update);
+  update = async (steamId: string, update: UserUpdateDTO) => {
+    const res = await this.userRepo.update(steamId, update);
+
+    if (res) {
+      this.eventBus.emitUserDetailsUpdate(res);
+    }
+
+    return res;
   };
 
   updateActivity = (steamId: string) => {

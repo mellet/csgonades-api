@@ -15,12 +15,21 @@ const NewUser = "@@user/NEW";
 const NewReport = "@@report/NEW";
 const OnNadeCommentCreate = "@@nadecomment/NEW";
 const OnNadeCommentDelete = "@@nadecomment/DELETE";
+const OnUserDetailsUpdate = "@@user/UPDATE";
 
 export class EventBus {
   private eventEmitter: EventEmitter;
   constructor() {
     this.eventEmitter = new EventEmitter();
   }
+
+  subUserDetailsUpdate = (cb: (user: UserDTO) => void) => {
+    this.eventEmitter.on(OnUserDetailsUpdate, (value: UserDTO) => cb(value));
+  };
+
+  emitUserDetailsUpdate = (user: UserDTO) => {
+    this.eventEmitter.emit(OnUserDetailsUpdate, user);
+  };
 
   subNadeCommentDelete = (cb: (comment: NadeCommentDto) => void) => {
     this.eventEmitter.on(OnNadeCommentDelete, (value: NadeCommentDto) =>

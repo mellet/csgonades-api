@@ -1,5 +1,6 @@
 import {
   add,
+  batch,
   collection,
   Collection,
   get,
@@ -9,6 +10,7 @@ import {
   value,
   where
 } from "typesaurus";
+import { UserDTO } from "../user/UserDTOs";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import {
   NadeCommentDoc,
@@ -74,5 +76,22 @@ export class NadeCommentRepo {
 
   delete = async (commentId: string) => {
     await remove(this.collection, commentId);
+  };
+
+  updateUserDetailsForComments = async (user: UserDTO) => {
+    const commentsByUser = await query(this.collection, [
+      where("steamId", "==", user.steamId)
+    ]);
+
+    const { update, commit } = batch();
+
+    commentsByUser.forEach(comment => {
+      update(this.collection, comment.ref.id, {
+        nickname: user.nickname,
+        avatar: user.avatar
+      });
+    });
+
+    await commit();
   };
 }
