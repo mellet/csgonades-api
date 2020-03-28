@@ -259,7 +259,8 @@ export class NadeRepo {
     const ageScore = Math.round(10000 * Math.exp(-addedWeeksAgo));
 
     const favoriteScore =
-      Math.max(nade.favoriteCount || 0, 1) * FAVORITE_WEIGHT;
+      Math.max(nade.favoriteCount + nade.commentCount || 0, 1) *
+      FAVORITE_WEIGHT;
 
     const hotScore = ageScore + viewScore + favoriteScore;
 
