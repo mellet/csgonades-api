@@ -16,7 +16,7 @@ import {
   remove,
   update,
   value,
-  where
+  where,
 } from "typesaurus";
 import { ModelUpdate } from "typesaurus/update";
 import { UserLightModel } from "../user/UserModel";
@@ -34,7 +34,7 @@ export class NadeRepo {
   getAll = async (nadeLimit?: number): Promise<NadeDTO[]> => {
     const queryBuilder: Query<NadeModel, keyof NadeModel>[] = [
       where("status", "==", "accepted"),
-      order("createdAt", "desc")
+      order("createdAt", "desc"),
     ];
 
     if (nadeLimit) {
@@ -51,7 +51,7 @@ export class NadeRepo {
   pending = async (): Promise<NadeDTO[]> => {
     const pendingDocs = await query(this.collection, [
       where("status", "==", "pending"),
-      order("createdAt", "desc")
+      order("createdAt", "desc"),
     ]);
 
     const pendingNades = pendingDocs.map(this.toNadeDTO);
@@ -68,7 +68,7 @@ export class NadeRepo {
     return {
       ...nadeDoc.data,
       id: nadeDoc.ref.id,
-      score: this.calcScore(nadeDoc.data)
+      score: this.calcScore(nadeDoc.data),
     };
   };
 
@@ -84,7 +84,7 @@ export class NadeRepo {
     return {
       ...nade.data,
       id: nade.ref.id,
-      score: this.calcScore(nade.data)
+      score: this.calcScore(nade.data),
     };
   };
 
@@ -92,7 +92,7 @@ export class NadeRepo {
     const queryBuilder: Query<NadeModel, keyof NadeModel>[] = [
       where("status", "==", "accepted"),
       where("map", "==", csgoMap),
-      order("createdAt", "desc")
+      order("createdAt", "desc"),
     ];
 
     const nadeDocs = await query(this.collection, queryBuilder);
@@ -105,7 +105,7 @@ export class NadeRepo {
   byUser = async (steamId: string): Promise<NadeDTO[]> => {
     const nadeDocs = await query(this.collection, [
       where("steamId", "==", steamId),
-      order("createdAt", "desc")
+      order("createdAt", "desc"),
     ]);
 
     const nades = nadeDocs.map(this.toNadeDTO);
@@ -125,7 +125,7 @@ export class NadeRepo {
       createdAt: value("serverDate"),
       updatedAt: value("serverDate"),
       lastGfycatUpdate: value("serverDate"),
-      status: "pending"
+      status: "pending",
     };
 
     const nade = await add(this.collection, nadeModel);
@@ -141,7 +141,7 @@ export class NadeRepo {
       ...updates,
       lastGfycatUpdate: updates.lastGfycatUpdate
         ? value("serverDate")
-        : undefined
+        : undefined,
     };
 
     modelUpdates = removeUndefines(modelUpdates);
@@ -160,35 +160,35 @@ export class NadeRepo {
       return;
     }
 
-    const fullTitle = `${map} ${type} ${title}`;
+    const fullTitle = `${type} ${title} ${map}`;
 
     const createdSlug = slugify(fullTitle, {
       replacement: "-",
       lower: true,
-      remove: /[*+~.()'`"!:@]/g
+      remove: /[*+~.()'`"!:@]/g,
     });
 
     const findSameSlug = await query(this.collection, [
-      where("slug", "==", createdSlug)
+      where("slug", "==", createdSlug),
     ]);
 
     if (findSameSlug.length) {
       const uid = new ShortUniqueId();
       const uniqueSlug = `${createdSlug}-${uid.randomUUID(3)}`;
       const findSameUniqueSlug = await query(this.collection, [
-        where("slug", "==", uniqueSlug)
+        where("slug", "==", uniqueSlug),
       ]);
 
       if (!findSameUniqueSlug.length) {
         let modelUpdates: ModelUpdate<NadeModel> = {
-          slug: uniqueSlug
+          slug: uniqueSlug,
         };
 
         await update(this.collection, nade.id, modelUpdates);
       }
     } else {
       let modelUpdates: ModelUpdate<NadeModel> = {
-        slug: createdSlug
+        slug: createdSlug,
       };
 
       await update(this.collection, nade.id, modelUpdates);
@@ -201,15 +201,15 @@ export class NadeRepo {
 
   updateUserOnNades = async (steamId: string, user: UserLightModel) => {
     const nadeDocsByUser = await query(this.collection, [
-      where("steamId", "==", steamId)
+      where("steamId", "==", steamId),
     ]);
 
     const { update, commit } = batch();
 
-    nadeDocsByUser.forEach(doc => {
+    nadeDocsByUser.forEach((doc) => {
       update(this.collection, doc.ref.id, {
         steamId: user.steamId,
-        user
+        user,
       });
     });
 
@@ -218,25 +218,25 @@ export class NadeRepo {
 
   incrementFavoriteCount = async (nadeId: string) => {
     return update(this.collection, nadeId, {
-      favoriteCount: value("increment", 1)
+      favoriteCount: value("increment", 1),
     });
   };
 
   decrementFavoriteCount = async (nadeId: string) => {
     return update(this.collection, nadeId, {
-      favoriteCount: value("increment", -1)
+      favoriteCount: value("increment", -1),
     });
   };
 
   incrementCommentCount = async (nadeId: string) => {
     return update(this.collection, nadeId, {
-      commentCount: value("increment", 1)
+      commentCount: value("increment", 1),
     });
   };
 
   decrementCommentCount = async (nadeId: string) => {
     return update(this.collection, nadeId, {
-      commentCount: value("increment", -1)
+      commentCount: value("increment", -1),
     });
   };
 
@@ -244,7 +244,7 @@ export class NadeRepo {
     return {
       ...doc.data,
       id: doc.ref.id,
-      score: this.calcScore(doc.data)
+      score: this.calcScore(doc.data),
     };
   };
 
@@ -256,7 +256,7 @@ export class NadeRepo {
 
     const viewScore = this.viewsPerWeek(nade.viewCount, addedDaysAgo);
 
-    const ageScore = Math.round(10000 * Math.exp(-addedWeeksAgo));
+    const ageScore = Math.round(20000 * Math.exp(-addedWeeksAgo));
 
     const favoriteScore =
       Math.max(nade.favoriteCount + nade.commentCount || 0, 1) *
