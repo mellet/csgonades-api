@@ -256,7 +256,11 @@ export class NadeRepo {
 
     const viewScore = this.viewsPerWeek(nade.viewCount, addedDaysAgo);
 
-    const ageScore = Math.round(20000 * Math.exp(-addedWeeksAgo));
+    let ageScore = Math.round(10000 * Math.exp(-addedWeeksAgo));
+
+    if (addedWeeksAgo < 1) {
+      ageScore += 5000;
+    }
 
     const favoriteScore =
       Math.max(nade.favoriteCount + nade.commentCount || 0, 1) *
