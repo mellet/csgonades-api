@@ -8,7 +8,15 @@ type NadeImages = {
   thumbnailUrl: string;
 };
 
-export type CsgoMap = "notset" | "dust2" | "mirage" | "nuke" | "inferno";
+export type CsgoMap =
+  | "notset"
+  | "dust2"
+  | "mirage"
+  | "nuke"
+  | "inferno"
+  | "anubis"
+  | "overpass"
+  | "cobblestone";
 
 type Movement = "notset" | "stationary" | "running" | "walking" | "crouching";
 
@@ -152,14 +160,14 @@ export const makeNadeFromBody = (
       smallVideoUrl: gfycatData.gfyItem.mobileUrl,
       largeVideoUrl: gfycatData.gfyItem.mp4Url,
       largeVideoWebm: gfycatData.gfyItem.webmUrl,
-      avgColor: gfycatData.gfyItem.avgColor
+      avgColor: gfycatData.gfyItem.avgColor,
     },
     images,
     user,
     steamId: user.steamId,
     viewCount: gfycatData.gfyItem.views,
     favoriteCount: 0,
-    commentCount: 0
+    commentCount: 0,
   };
 };
 
@@ -186,7 +194,7 @@ export function updatedNadeMerge(
     createdAt: updateFields.createdAt
       ? new Date(updateFields.createdAt)
       : undefined,
-    images: updateFields.images
+    images: updateFields.images,
   };
 
   return removeUndefines(newNade);
