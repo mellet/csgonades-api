@@ -8,7 +8,6 @@ type NadeImages = {
   thumbnailUrl: string;
 };
 
-
 export type CsgoMap =
   | "notset"
   | "dust2"
@@ -113,7 +112,7 @@ export type NadeLightDTO = {
   favoriteCount: number;
   mapEndCoord?: MapCoordinates;
   score: number;
-  youtubeId?: string;
+  user: UserLightModel;
 };
 
 export type NadeCreateDTO = {

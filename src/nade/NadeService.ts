@@ -20,7 +20,7 @@ import {
   NadeModel,
   NadeStatusDTO,
   NadeUpdateDTO,
-  updatedNadeMerge
+  updatedNadeMerge,
 } from "./Nade";
 import { NadeRepo } from "./NadeRepo";
 
@@ -48,7 +48,7 @@ export class NadeService {
       galleryService,
       nadeRepo,
       userService,
-      eventBus
+      eventBus,
     } = deps;
 
     this.nadeRepo = nadeRepo;
@@ -69,7 +69,7 @@ export class NadeService {
     await this.nadeRepo.updateUserOnNades(user.steamId, {
       avatar: user.avatar,
       nickname: user.nickname,
-      steamId: user.steamId
+      steamId: user.steamId,
     });
 
     // Clear cache on update
@@ -164,7 +164,7 @@ export class NadeService {
     const userLight: UserLightModel = {
       nickname: user.nickname,
       avatar: user.avatar,
-      steamId: user.steamId
+      steamId: user.steamId,
     };
 
     const gfycatData = await this.gfycatService.getGfycatData(
@@ -184,7 +184,7 @@ export class NadeService {
 
     const tmpNade = makeNadeFromBody(userLight, gfycatData, {
       thumbnailId: resultImage.id,
-      thumbnailUrl: resultImage.url
+      thumbnailUrl: resultImage.url,
     });
 
     const nade = await this.nadeRepo.save(tmpNade);
@@ -199,7 +199,7 @@ export class NadeService {
 
     await Promise.all([
       this.nadeRepo.delete(nade.id),
-      this.galleryService.deleteImage(nade.images.thumbnailId)
+      this.galleryService.deleteImage(nade.images.thumbnailId),
     ]);
 
     this.eventBus.emitNadeDelete(nade);
@@ -229,7 +229,7 @@ export class NadeService {
         smallVideoUrl: gfycatData.gfyItem.mobileUrl,
         largeVideoUrl: gfycatData.gfyItem.mp4Url,
         largeVideoWebm: gfycatData.gfyItem.webmUrl,
-        avgColor: gfycatData.gfyItem.avgColor
+        avgColor: gfycatData.gfyItem.avgColor,
       };
 
       viewCount = gfycatData.gfyItem.views;
@@ -265,8 +265,8 @@ export class NadeService {
       images: {
         thumbnailId: imageResult.id,
         thumbnailCollection: imageResult.collection,
-        thumbnailUrl: imageResult.url
-      }
+        thumbnailUrl: imageResult.url,
+      },
     });
 
     if (!updatedNade) {
@@ -403,9 +403,9 @@ export class NadeService {
         duration: videoDuration(
           gfycat.gfyItem.frameRate,
           gfycat.gfyItem.numFrames
-        )
+        ),
       },
-      lastGfycatUpdate: new Date()
+      lastGfycatUpdate: new Date(),
     };
 
     const viewCountDidDiffer = gfycat.gfyItem.views !== nade.viewCount;
@@ -438,8 +438,8 @@ export class NadeService {
       movement: nadeDto.movement,
       technique: nadeDto.technique,
       updatedAt: nadeDto.updatedAt,
-      youtubeId: nadeDto.youtubeId,
-      commentCount: nadeDto.commentCount
+      commentCount: nadeDto.commentCount,
+      user: nadeDto.user,
     };
   };
 }
