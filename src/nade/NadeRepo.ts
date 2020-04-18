@@ -156,11 +156,11 @@ export class NadeRepo {
   tryCreateUnqieuSlug = async (nade: NadeDTO) => {
     const { title, map, type } = nade;
 
-    if (!title || !map || !type) {
+    if (!title || !type) {
       return;
     }
 
-    const fullTitle = `${type} ${title} ${map}`;
+    const fullTitle = `${type} ${title}`;
 
     const createdSlug = slugify(fullTitle, {
       replacement: "-",
