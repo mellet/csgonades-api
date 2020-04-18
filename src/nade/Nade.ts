@@ -8,6 +8,7 @@ type NadeImages = {
   thumbnailUrl: string;
 };
 
+
 export type CsgoMap =
   | "notset"
   | "dust2"
