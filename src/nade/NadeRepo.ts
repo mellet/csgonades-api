@@ -250,13 +250,14 @@ export class NadeRepo {
 
   private calcScore = (nade: NadeModel): number => {
     const addedDays = moment().diff(moment(nade.createdAt), "days", false);
-    const viewScore = nade.viewCount < 2000 ? 200 : Math.log(nade.viewCount);
+    const viewScore = nade.viewCount < 1000 ? 200 : Math.log(nade.viewCount);
     const interactionScore = Math.log(
       nade.commentCount + nade.favoriteCount || 1
     );
     const normalizedInteractionScore = viewScore + interactionScore;
 
-    const normalizedAgeScore = Math.log(3000 - addedDays);
+    const normalizedAgeScore =
+      addedDays < 4 ? 3000 - addedDays : Math.log(3000 - addedDays);
 
     const hotScore = normalizedAgeScore + normalizedInteractionScore;
 
