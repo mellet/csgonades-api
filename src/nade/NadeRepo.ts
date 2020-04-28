@@ -261,6 +261,6 @@ export class NadeRepo {
 
     const hotScore = normalizedAgeScore + normalizedInteractionScore;
 
-    return Math.round(hotScore);
+    return hotScore;
   };
 }
