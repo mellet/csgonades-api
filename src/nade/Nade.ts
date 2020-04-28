@@ -53,6 +53,8 @@ type MapCoordinates = {
 
 export interface NadeModel {
   title?: string;
+  startPosition?: string;
+  endPosition?: string;
   slug?: string;
   gfycat: GfycatData;
   images: NadeImages;

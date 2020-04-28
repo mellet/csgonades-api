@@ -249,31 +249,18 @@ export class NadeRepo {
   };
 
   private calcScore = (nade: NadeModel): number => {
-    const FAVORITE_WEIGHT = 150;
+    const addedDays = moment().diff(moment(nade.createdAt), "days", true);
+    const ageScore = 3000 - addedDays;
+    const viewScore = nade.viewCount < 2000 ? 200 : Math.log(nade.viewCount);
+    const interactionScore = Math.log(
+      nade.commentCount + nade.favoriteCount || 10
+    );
+    const normalizedInteractionScore = viewScore + interactionScore;
 
-    const addedDaysAgo = moment().diff(moment(nade.createdAt), "days", true);
-    const addedWeeksAgo = moment().diff(moment(nade.createdAt), "weeks", true);
+    const normalizedAgeScore = Math.log(ageScore);
 
-    const viewScore = this.viewsPerWeek(nade.viewCount, addedDaysAgo);
-
-    let ageScore = Math.round(10000 * Math.exp(-addedWeeksAgo));
-
-    if (addedWeeksAgo < 1) {
-      ageScore += 5000;
-    }
-
-    const favoriteScore =
-      Math.max(nade.favoriteCount + nade.commentCount || 0, 1) *
-      FAVORITE_WEIGHT;
-
-    const hotScore = ageScore + viewScore + favoriteScore;
+    const hotScore = normalizedAgeScore + normalizedInteractionScore;
 
     return Math.round(hotScore);
   };
-
-  private viewsPerWeek(views: number, daysAgo: number) {
-    const weeksAgoAdded = Math.max(daysAgo / 7, 1);
-
-    return Math.round(views / weeksAgoAdded);
-  }
 }
