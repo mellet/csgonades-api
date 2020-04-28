@@ -252,7 +252,7 @@ export class NadeRepo {
     const addedDays = moment().diff(moment(nade.createdAt), "days", false);
     const viewScore = nade.viewCount < 2000 ? 200 : Math.log(nade.viewCount);
     const interactionScore = Math.log(
-      nade.commentCount + nade.favoriteCount || 10
+      nade.commentCount + nade.favoriteCount || 1
     );
     const normalizedInteractionScore = viewScore + interactionScore;
 
