@@ -264,10 +264,11 @@ export class NadeRepo {
   };
 
   private freshScore(addedHoursAgo: number) {
+    const freshPeriod = 24 * 4; // 4 days
     if (addedHoursAgo < 24) {
-      return 170 - addedHoursAgo;
-    } else if (addedHoursAgo > 24 && addedHoursAgo < 168) {
-      return Math.log(170 - addedHoursAgo);
+      return 100 - addedHoursAgo;
+    } else if (addedHoursAgo < freshPeriod) {
+      return Math.log(freshPeriod - addedHoursAgo || 1);
     } else {
       return 0;
     }
