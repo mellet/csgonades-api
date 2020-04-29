@@ -249,21 +249,27 @@ export class NadeRepo {
   };
 
   private calcScore = (nade: NadeModel): number => {
-    const commentCount = (nade.commentCount || 1) * 10000;
-    const favoriteCount = (nade.favoriteCount || 1) * 10000;
-    const viewCount = nade.viewCount;
-    const addedDays = moment().diff(moment(nade.createdAt), "days", false);
+    const commentCount = (nade.commentCount || 1) * 1000;
+    const favoriteCount = (nade.favoriteCount || 1) * 1000;
     const addedHoursAgo = moment().diff(moment(nade.createdAt), "hours", false);
 
-    const viewScore = Math.log(viewCount) / 4;
     const interactionScore = Math.log(commentCount + favoriteCount);
-    const ageScore = Math.log(50000 - addedHoursAgo);
+    const ageScore = Math.log(50000 - addedHoursAgo) / 2;
 
     // Inflate new nades to allow them to get views
-    const newBuffer = addedDays < 4 ? 200 : 0;
-
-    const hotScore = newBuffer + ageScore + viewScore + interactionScore;
+    const freshScore = this.freshScore(addedHoursAgo);
+    const hotScore = freshScore + ageScore + interactionScore;
 
     return hotScore;
   };
+
+  private freshScore(addedHoursAgo: number) {
+    if (addedHoursAgo < 24) {
+      return 170 - addedHoursAgo;
+    } else if (addedHoursAgo > 24 && addedHoursAgo < 168) {
+      return Math.log(170 - addedHoursAgo);
+    } else {
+      return 0;
+    }
+  }
 }
