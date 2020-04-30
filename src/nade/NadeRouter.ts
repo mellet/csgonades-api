@@ -12,7 +12,7 @@ import {
   NadeDTO,
   NadeGfycatValidateDTO,
   NadeStatusDTO,
-  NadeUpdateDTO
+  NadeUpdateDTO,
 } from "./Nade";
 import { validateNade } from "./NadeMiddleware";
 import { NadeService } from "./NadeService";
@@ -54,6 +54,11 @@ export class NadeRouter {
   private setUpRoutes = () => {
     this.router.get("/nades", this.getNades);
     this.router.get("/nades/pending", adminOrModHandler, this.getPendingNades);
+    this.router.get(
+      "/nades/declined",
+      adminOrModHandler,
+      this.getDeclinedNades
+    );
     this.router.get("/nades/:id", this.getById);
     this.router.get("/nades/map/:mapname", this.getByMap);
     this.router.get("/nades/user/:steamId", this.getByUser);
@@ -137,6 +142,17 @@ export class NadeRouter {
     }
   };
 
+  private getDeclinedNades: RequestHandler = async (_, res) => {
+    try {
+      const declinedNades = await this.nadeService.declined();
+
+      return res.status(200).send(declinedNades);
+    } catch (error) {
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
+    }
+  };
+
   private getById: RequestHandler<IdParam> = async (req, res) => {
     try {
       const id = sanitizeIt(req.params.id);
@@ -152,7 +168,7 @@ export class NadeRouter {
       if (!nade) {
         return res.status(404).send({
           status: 404,
-          message: "Nade not found."
+          message: "Nade not found.",
         });
       }
 
@@ -216,7 +232,7 @@ export class NadeRouter {
       const dirtyNadeBody = req.body as NadeCreateDTO;
       const nadeBody: NadeCreateDTO = {
         gfycatIdOrUrl: sanitizeIt(dirtyNadeBody.gfycatIdOrUrl),
-        imageBase64: dirtyNadeBody.imageBase64
+        imageBase64: dirtyNadeBody.imageBase64,
       };
 
       const nade = await this.nadeService.save(nadeBody, user.steamId);
@@ -236,7 +252,7 @@ export class NadeRouter {
       const dirtyNadeBody = req.body as NadeUpdateDTO; // TODO: Validate NadeUpdateBody
       const nadeBody: NadeUpdateDTO = {
         ...sanitizeIt(dirtyNadeBody),
-        description: dirtyNadeBody.description // TODO: Sanitize markdown
+        description: dirtyNadeBody.description, // TODO: Sanitize markdown
       };
 
       if (nadeBody.createdAt && user.role === "user") {
@@ -288,7 +304,7 @@ export class NadeRouter {
       if (user.role !== "moderator" && user.role !== "administrator") {
         return res.status(403).send({
           error:
-            "Only administrator or administrator are allowed to update nade status."
+            "Only administrator or administrator are allowed to update nade status.",
         });
       }
 
@@ -311,7 +327,7 @@ export class NadeRouter {
 
       if (!gfyDataResponse) {
         return res.status(500).send({
-          message: "Gfycat seems to be down."
+          message: "Gfycat seems to be down.",
         });
       }
 
@@ -322,7 +338,7 @@ export class NadeRouter {
         smallVideoUrl: gfyItem.mobileUrl,
         largeVideoUrl: gfyItem.mp4Url,
         largeVideoWebm: gfyItem.webmUrl,
-        avgColor: gfyItem.avgColor
+        avgColor: gfyItem.avgColor,
       };
 
       return res.status(200).send(gfyData);

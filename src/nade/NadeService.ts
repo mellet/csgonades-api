@@ -101,6 +101,12 @@ export class NadeService {
     return pending;
   };
 
+  declined = async (): Promise<NadeLightDTO[]> => {
+    const declinedDTOS = await this.nadeRepo.declined();
+    const pending = declinedDTOS.map(this.toLightDTO);
+    return pending;
+  };
+
   byId = async (nadeId: string): Promise<NadeDTO> => {
     const cachedNade = this.cache.getNade(nadeId);
 

@@ -58,6 +58,16 @@ export class NadeRepo {
     return pendingNades;
   };
 
+  declined = async (): Promise<NadeDTO[]> => {
+    const declinedDocs = await query(this.collection, [
+      where("status", "==", "declined"),
+      order("createdAt", "desc"),
+    ]);
+
+    const declinedNades = declinedDocs.map(this.toNadeDTO);
+    return declinedNades;
+  };
+
   byId = async (nadeId: string): Promise<NadeDTO> => {
     const nadeDoc = await get(this.collection, nadeId);
 
