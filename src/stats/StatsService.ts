@@ -36,7 +36,9 @@ export class StatsService {
   }
 
   getClientConfig = async () => {
-    const cachedConfig = this.cacheService.getGeneric("clientConfig");
+    const cachedConfig = this.cacheService.getGeneric<SiteStats>(
+      "clientConfig"
+    );
     if (cachedConfig) {
       return cachedConfig;
     }
