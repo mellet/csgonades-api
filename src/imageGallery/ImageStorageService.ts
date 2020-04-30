@@ -65,14 +65,17 @@ export class ImageStorageRepo {
 
   async deleteImage(imagePath: string) {
     try {
-      console.log("Trying to delete", imagePath);
       const path = imagePath.includes("/") ? imagePath : `nades/${imagePath}`;
       const image = this.bucket.file(path);
-
       await image.delete();
     } catch (error) {
-      Sentry.captureException(error);
-      throw ErrorFactory.ExternalError("Failed to delete image.");
+      try {
+        const image = this.bucket.file(imagePath);
+        await image.delete();
+      } catch (error) {
+        Sentry.captureException(error);
+        throw ErrorFactory.ExternalError("Failed to delete image.");
+      }
     }
   }
 

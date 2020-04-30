@@ -62,7 +62,7 @@ export class NadeCommentRouter {
       const dirtyBody = req.body as NadeCommentCreateDTO;
       const nadeCommentBody: NadeCommentCreateDTO = {
         nadeId: sanitizeIt(dirtyBody.nadeId),
-        message: sanitizeIt(dirtyBody.message)
+        message: sanitizeIt(dirtyBody.message),
       };
 
       if (!nadeCommentBody.message || !nadeCommentBody.nadeId) {
@@ -82,7 +82,6 @@ export class NadeCommentRouter {
   };
 
   private updateComment: RequestHandler = async (req, res) => {
-    console.log("> Update comment");
     try {
       const user = userFromRequest(req);
       const commentId = sanitizeIt(req.params.commentId);
@@ -90,7 +89,7 @@ export class NadeCommentRouter {
 
       const nadeCommentBody: NadeCommentUpdateDTO = {
         id: commentId,
-        message: sanitizeIt(dirtyBody.message)
+        message: sanitizeIt(dirtyBody.message),
       };
 
       if (!nadeCommentBody.message || !nadeCommentBody.id) {

@@ -8,7 +8,7 @@ import {
   query,
   remove,
   value,
-  where
+  where,
 } from "typesaurus";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import { FavoriteCreateModel, FavoriteDTO, FavoriteModel } from "./Favorite";
@@ -23,7 +23,7 @@ export class FavoriteRepo {
   set = async (favorite: FavoriteCreateModel): Promise<FavoriteDTO> => {
     const duplicate = await query(this.collection, [
       where("nadeId", "==", favorite.nadeId),
-      where("userId", "==", favorite.userId)
+      where("userId", "==", favorite.userId),
     ]);
 
     if (duplicate.length) {
@@ -32,7 +32,7 @@ export class FavoriteRepo {
 
     const newFavorite: FavoriteModel = {
       ...favorite,
-      createdAt: value("serverDate")
+      createdAt: value("serverDate"),
     };
 
     const favDoc = await add(this.collection, newFavorite);
@@ -53,11 +53,11 @@ export class FavoriteRepo {
   deleteByNadeId = async (nadeId: string) => {
     const favsForNadeId = await this.byNadeId(nadeId);
 
-    const idsToRemove = favsForNadeId.map(f => f.id);
+    const idsToRemove = favsForNadeId.map((f) => f.id);
 
     const { commit, remove } = batch();
 
-    idsToRemove.forEach(id => {
+    idsToRemove.forEach((id) => {
       remove(this.collection, id);
     });
 
@@ -91,7 +91,7 @@ export class FavoriteRepo {
   private docToDto = (doc: Doc<FavoriteModel>): FavoriteDTO => {
     return {
       ...doc.data,
-      id: doc.ref.id
+      id: doc.ref.id,
     };
   };
 }
