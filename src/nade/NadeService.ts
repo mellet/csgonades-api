@@ -157,17 +157,9 @@ export class NadeService {
   };
 
   byUser = async (steamId: string): Promise<NadeLightDTO[]> => {
-    const cacheKey = `user-nades-${steamId}`;
-    const cachedUserNades = this.cache.getGeneric<NadeLightDTO[]>(cacheKey);
-
-    if (cachedUserNades) {
-      return cachedUserNades;
-    }
-
     const nadesByUse = await this.nadeRepo.byUser(steamId);
 
     const nadesDto = nadesByUse.map(this.toLightDTO);
-    this.cache.setGeneric(cacheKey, nadesDto);
 
     return nadesDto;
   };
