@@ -10,18 +10,7 @@ import { UserLightModel, UserModel } from "../user/UserModel";
 import { UserService } from "../user/UserService";
 import { clamp } from "../utils/Common";
 import { ErrorFactory } from "../utils/ErrorUtil";
-import {
-  CsgoMap,
-  GfycatData,
-  makeNadeFromBody,
-  NadeCreateDTO,
-  NadeDTO,
-  NadeLightDTO,
-  NadeModel,
-  NadeStatusDTO,
-  NadeUpdateDTO,
-  updatedNadeMerge,
-} from "./Nade";
+import { CsgoMap, GfycatData, makeNadeFromBody, NadeCreateDTO, NadeDTO, NadeLightDTO, NadeModel, NadeStatusDTO, NadeUpdateDTO, updatedNadeMerge } from "./Nade";
 import { NadeRepo } from "./NadeRepo";
 
 type NadeServiceDeps = {
@@ -151,8 +140,19 @@ export class NadeService {
   };
 
   byUser = async (steamId: string): Promise<NadeLightDTO[]> => {
+    const cacheKey = `user-nades-${steamId}`;
+    const cachedUserNades = this.cache.getGeneric<NadeLightDTO[]>(cacheKey);
+
+    if (cachedUserNades) {
+      return cachedUserNades;
+    }
+
     const nadesByUse = await this.nadeRepo.byUser(steamId);
-    return nadesByUse.map(this.toLightDTO);
+
+    const nadesDto = nadesByUse.map(this.toLightDTO);
+    this.cache.setGeneric(cacheKey, nadesDto);
+
+    return nadesDto;
   };
 
   save = async (

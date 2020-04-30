@@ -16,7 +16,8 @@ export class CachingService {
     this.cache.set(key, value, ttl5min);
   };
 
-  getGeneric = (key: string): any => {
+  getGeneric = <T>(key: string): T => {
+    // @ts-ignore
     return this.cache.get(key);
   };
 
@@ -96,7 +97,7 @@ export class CachingService {
     const recentNades = this.cache.get<NadeDTO[]>(this.recentKey);
 
     if (recentNades) {
-      const found = recentNades.find(n => n.id === nadeId);
+      const found = recentNades.find((n) => n.id === nadeId);
       if (found) {
         this.cache.del(this.recentKey);
       }
