@@ -1,3 +1,4 @@
+import { NadeDTO } from "../nade/Nade";
 import { EventBus } from "../services/EventHandler";
 import { UserDTO } from "../user/UserDTOs";
 import { UserService } from "../user/UserService";
@@ -6,7 +7,7 @@ import { ErrorFactory } from "../utils/ErrorUtil";
 import {
   NadeCommentCreateDTO,
   NadeCommentDto,
-  NadeCommentUpdateDTO
+  NadeCommentUpdateDTO,
 } from "./NadeComment";
 import { NadeCommentRepo } from "./NadeCommentRepo";
 
@@ -27,7 +28,12 @@ export class NadeCommentService {
     this.eventBus = deps.eventBus;
 
     this.eventBus.subUserDetailsUpdate(this.updateUserDetailsOnComments);
+    this.eventBus.subNadeDelete(this.handleNadeDelete);
   }
+
+  private handleNadeDelete = async (nade: NadeDTO) => {
+    this.nadeCommentRepo.deleteForNadeId(nade.id);
+  };
 
   private updateUserDetailsOnComments = async (user: UserDTO) => {
     this.nadeCommentRepo.updateUserDetailsForComments(user);
@@ -50,7 +56,7 @@ export class NadeCommentService {
       steamId: user.steamId,
       avatar: user.avatar,
       createdAt: new Date(),
-      updatedAt: null
+      updatedAt: null,
     });
 
     this.eventBus.emitNadeCommentCreate(res);
@@ -59,10 +65,6 @@ export class NadeCommentService {
   };
 
   update = async (updateModel: NadeCommentUpdateDTO, user: RequestUser) => {
-    console.log("> update", {
-      updateModel,
-      user
-    });
     const originalComment = await this.nadeCommentRepo.getById(updateModel.id);
 
     if (user.steamId !== originalComment.steamId && user.role === "user") {

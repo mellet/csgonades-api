@@ -8,14 +8,14 @@ import {
   remove,
   update,
   value,
-  where
+  where,
 } from "typesaurus";
 import { UserDTO } from "../user/UserDTOs";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import {
   NadeCommentDoc,
   NadeCommentDto,
-  NadeCommentUpdateDTO
+  NadeCommentUpdateDTO,
 } from "./NadeComment";
 
 export class NadeCommentRepo {
@@ -27,12 +27,12 @@ export class NadeCommentRepo {
 
   getForNade = async (nadeId: string): Promise<NadeCommentDto[]> => {
     const nadeCommentDocs = await query(this.collection, [
-      where("nadeId", "==", nadeId)
+      where("nadeId", "==", nadeId),
     ]);
 
-    const nadeComments: NadeCommentDto[] = nadeCommentDocs.map(doc => ({
+    const nadeComments: NadeCommentDto[] = nadeCommentDocs.map((doc) => ({
       id: doc.ref.id,
-      ...doc.data
+      ...doc.data,
     }));
     return nadeComments;
   };
@@ -46,21 +46,21 @@ export class NadeCommentRepo {
 
     return {
       ...commentDoc.data,
-      id: commentDoc.ref.id
+      id: commentDoc.ref.id,
     };
   };
 
   save = async (articleModel: NadeCommentDoc): Promise<NadeCommentDto> => {
     const newComment: NadeCommentDoc = {
       ...articleModel,
-      createdAt: value("serverDate")
+      createdAt: value("serverDate"),
     };
 
     const res = await add(this.collection, newComment);
 
     return {
       ...res.data,
-      id: res.ref.id
+      id: res.ref.id,
     };
   };
 
@@ -68,7 +68,7 @@ export class NadeCommentRepo {
     updateModel: NadeCommentUpdateDTO
   ): Promise<NadeCommentDto> => {
     await update(this.collection, updateModel.id, {
-      message: updateModel.message
+      message: updateModel.message,
     });
 
     return this.getById(updateModel.id);
@@ -78,17 +78,31 @@ export class NadeCommentRepo {
     await remove(this.collection, commentId);
   };
 
+  deleteForNadeId = async (nadeId: string) => {
+    const commentsForNade = await query(this.collection, [
+      where("nadeId", "==", nadeId),
+    ]);
+
+    const { remove, commit } = batch();
+
+    commentsForNade.forEach((comment) => {
+      remove(this.collection, comment.ref.id);
+    });
+
+    await commit();
+  };
+
   updateUserDetailsForComments = async (user: UserDTO) => {
     const commentsByUser = await query(this.collection, [
-      where("steamId", "==", user.steamId)
+      where("steamId", "==", user.steamId),
     ]);
 
     const { update, commit } = batch();
 
-    commentsByUser.forEach(comment => {
+    commentsByUser.forEach((comment) => {
       update(this.collection, comment.ref.id, {
         nickname: user.nickname,
-        avatar: user.avatar
+        avatar: user.avatar,
       });
     });
 

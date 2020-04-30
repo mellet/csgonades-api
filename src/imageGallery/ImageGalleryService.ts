@@ -92,10 +92,7 @@ export class ImageGalleryService {
     const fileName = `${imageName}.jpg`;
     const imagePath = `${tmpFolderLocation}/${fileName}`;
 
-    await sharp(imgBuffer)
-      .resize(width, null)
-      .jpeg()
-      .toFile(imagePath);
+    await sharp(imgBuffer).resize(width, null).jpeg().toFile(imagePath);
 
     return imagePath;
   };

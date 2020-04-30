@@ -34,7 +34,7 @@ export class ImageStorageRepo {
       images.push({
         id: fileId,
         collection: fileCollection,
-        url: this.createPublicFileURL(this.bucket.name, fileId, fileCollection)
+        url: this.createPublicFileURL(this.bucket.name, fileId, fileCollection),
       });
     }
 
@@ -59,13 +59,15 @@ export class ImageStorageRepo {
     return {
       id: fileName,
       collection: collection,
-      url: fireBaseStorageUrl
+      url: fireBaseStorageUrl,
     };
   };
 
   async deleteImage(imagePath: string) {
     try {
-      const image = this.bucket.file(imagePath);
+      console.log("Trying to delete", imagePath);
+      const path = imagePath.includes("/") ? imagePath : `nades/${imagePath}`;
+      const image = this.bucket.file(path);
 
       await image.delete();
     } catch (error) {
@@ -86,8 +88,8 @@ export class ImageStorageRepo {
         contentType: `image/jpeg`,
         metadata: {
           contentType: `image/jpeg`,
-          cacheControl: "public, max-age=31536000"
-        }
+          cacheControl: "public, max-age=31536000",
+        },
       });
     } catch (error) {
       Sentry.captureException(error);

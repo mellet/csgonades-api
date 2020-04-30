@@ -10,7 +10,18 @@ import { UserLightModel, UserModel } from "../user/UserModel";
 import { UserService } from "../user/UserService";
 import { clamp } from "../utils/Common";
 import { ErrorFactory } from "../utils/ErrorUtil";
-import { CsgoMap, GfycatData, makeNadeFromBody, NadeCreateDTO, NadeDTO, NadeLightDTO, NadeModel, NadeStatusDTO, NadeUpdateDTO, updatedNadeMerge } from "./Nade";
+import {
+  CsgoMap,
+  GfycatData,
+  makeNadeFromBody,
+  NadeCreateDTO,
+  NadeDTO,
+  NadeLightDTO,
+  NadeModel,
+  NadeStatusDTO,
+  NadeUpdateDTO,
+  updatedNadeMerge,
+} from "./Nade";
 import { NadeRepo } from "./NadeRepo";
 
 type NadeServiceDeps = {
@@ -197,10 +208,19 @@ export class NadeService {
   delete = async (nadeId: string) => {
     const nade = await this.nadeRepo.byId(nadeId);
 
-    await Promise.all([
-      this.nadeRepo.delete(nade.id),
-      this.galleryService.deleteImage(nade.images.thumbnailId),
-    ]);
+    try {
+      await this.galleryService.deleteImage(nade.images.thumbnailId);
+    } catch (error) {
+      console.log("Failed to delete image for nade", nade.images.thumbnailId);
+      return;
+    }
+
+    try {
+      await this.nadeRepo.delete(nade.id);
+    } catch (error) {
+      console.log("Failed to delete nade", nade.id);
+      return;
+    }
 
     this.eventBus.emitNadeDelete(nade);
     this.cache.invalidateNade(nadeId);
