@@ -269,7 +269,7 @@ export class NadeRepo {
       return 100 - addedHoursAgo;
     }
     if (addedHoursAgo < freshDuration) {
-      return Math.log(50000 - addedHoursAgo);
+      return Math.log(freshDuration - addedHoursAgo || 1) / 1.5;
     } else {
       return 0;
     }
