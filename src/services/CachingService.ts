@@ -12,8 +12,8 @@ export class CachingService {
   }
 
   setGeneric = (key: string, value: any) => {
-    const ttl5min = 60 * 10;
-    this.cache.set(key, value, ttl5min);
+    const genericTtl = 60 * 10;
+    this.cache.set(key, value, genericTtl);
   };
 
   getGeneric = <T>(key: string): T => {
