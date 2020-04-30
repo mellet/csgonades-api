@@ -264,14 +264,12 @@ export class NadeRepo {
   };
 
   private freshScore(addedHoursAgo: number) {
-    const numDaysSuperFresh = 1;
-    const numDaysFresh = 3;
-    const freshPeriod = 24 * numDaysFresh;
-    const superFreshPeriod = 24 * numDaysSuperFresh;
-    if (addedHoursAgo < superFreshPeriod) {
+    const freshDuration = 24 * 7;
+    if (addedHoursAgo < 24) {
       return 100 - addedHoursAgo;
-    } else if (addedHoursAgo < freshPeriod) {
-      return Math.log(freshPeriod - addedHoursAgo || 1);
+    }
+    if (addedHoursAgo < freshDuration) {
+      return Math.log(50000 - addedHoursAgo);
     } else {
       return 0;
     }
