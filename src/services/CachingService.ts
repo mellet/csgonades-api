@@ -1,5 +1,5 @@
 import NodeCache from "node-cache";
-import { CsgoMap, NadeDTO } from "../nade/Nade";
+import { CsgoMap, NadeDTO, NadeLightDTO } from "../nade/Nade";
 import { TournamentModel } from "../tournament/Tournament";
 
 export class CachingService {
@@ -10,6 +10,18 @@ export class CachingService {
   constructor() {
     this.cache = new NodeCache({ stdTTL: this.defaultTTL });
   }
+
+  setUserNades = (steamId: string, nades: NadeLightDTO[]) => {
+    this.cache.set(`unades-${steamId}`, nades);
+  };
+
+  getUserNades = (steamId: string) => {
+    return this.cache.get<NadeLightDTO[]>(`unades-${steamId}`);
+  };
+
+  invalidateUserNades = (steamId: string) => {
+    this.cache.del(`unades-${steamId}`);
+  };
 
   setGeneric = (key: string, value: any) => {
     const genericTtl = 60 * 10;

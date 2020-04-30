@@ -157,9 +157,17 @@ export class NadeService {
   };
 
   byUser = async (steamId: string): Promise<NadeLightDTO[]> => {
+    const cachedNades = this.cache.getUserNades(steamId);
+
+    if (cachedNades) {
+      return cachedNades;
+    }
+
     const nadesByUse = await this.nadeRepo.byUser(steamId);
 
     const nadesDto = nadesByUse.map(this.toLightDTO);
+
+    this.cache.setUserNades(steamId, nadesDto);
 
     return nadesDto;
   };
@@ -199,6 +207,7 @@ export class NadeService {
     const nade = await this.nadeRepo.save(tmpNade);
 
     this.eventBus.emitNewNade(nade);
+    this.cache.invalidateUserNades(nade.steamId);
 
     return nade;
   };
@@ -222,6 +231,7 @@ export class NadeService {
 
     this.eventBus.emitNadeDelete(nade);
     this.cache.invalidateNade(nadeId);
+    this.cache.invalidateUserNades(nade.steamId);
   };
 
   update = async (
@@ -264,6 +274,7 @@ export class NadeService {
 
     if (updatedNade) {
       this.cache.invalidateNade(updatedNade.id);
+      this.cache.invalidateUserNades(updatedNade.steamId);
     }
 
     return updatedNade;
@@ -290,6 +301,9 @@ export class NadeService {
     if (!updatedNade) {
       throw ErrorFactory.InternalServerError("Failed to update nade.");
     }
+
+    this.cache.invalidateNade(updatedNade.id);
+    this.cache.invalidateUserNades(updatedNade.steamId);
 
     return updatedNade;
   };
@@ -320,28 +334,33 @@ export class NadeService {
     this.cache.invalidateRecent();
     this.cache.invalidateMap(nade.map);
     this.cache.invalidateNade(nadeId);
+    this.cache.invalidateUserNades(nade.steamId);
 
     return nade;
   };
 
   private incrementFavoriteCount = async (favorite: FavoriteDTO) => {
-    await this.nadeRepo.incrementFavoriteCount(favorite.nadeId);
-    this.cache.invalidateNade(favorite.nadeId);
+    const nade = await this.nadeRepo.incrementFavoriteCount(favorite.nadeId);
+    this.cache.invalidateNade(nade.id);
+    this.cache.invalidateUserNades(nade.steamId);
   };
 
   private decrementFavoriteCount = async (favorite: FavoriteDTO) => {
-    await this.nadeRepo.decrementFavoriteCount(favorite.nadeId);
-    this.cache.invalidateNade(favorite.nadeId);
+    const nade = await this.nadeRepo.decrementFavoriteCount(favorite.nadeId);
+    this.cache.invalidateNade(nade.id);
+    this.cache.invalidateUserNades(nade.steamId);
   };
 
   private incrementCommentCount = async (comment: NadeCommentDto) => {
-    await this.nadeRepo.incrementCommentCount(comment.nadeId);
-    this.cache.invalidateNade(comment.nadeId);
+    const nade = await this.nadeRepo.incrementCommentCount(comment.nadeId);
+    this.cache.invalidateNade(nade.id);
+    this.cache.invalidateUserNades(nade.steamId);
   };
 
   private decrementCommentCount = async (comment: NadeCommentDto) => {
-    await this.nadeRepo.decrementCommentCount(comment.nadeId);
-    this.cache.invalidateNade(comment.nadeId);
+    const nade = await this.nadeRepo.decrementCommentCount(comment.nadeId);
+    this.cache.invalidateNade(nade.id);
+    this.cache.invalidateUserNades(nade.steamId);
   };
 
   private shouldUpdateStats = (nade: NadeDTO) => {

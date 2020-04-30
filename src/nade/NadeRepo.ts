@@ -227,27 +227,35 @@ export class NadeRepo {
   };
 
   incrementFavoriteCount = async (nadeId: string) => {
-    return update(this.collection, nadeId, {
+    update(this.collection, nadeId, {
       favoriteCount: value("increment", 1),
     });
+
+    return this.byId(nadeId);
   };
 
   decrementFavoriteCount = async (nadeId: string) => {
-    return update(this.collection, nadeId, {
+    update(this.collection, nadeId, {
       favoriteCount: value("increment", -1),
     });
+
+    return this.byId(nadeId);
   };
 
   incrementCommentCount = async (nadeId: string) => {
-    return update(this.collection, nadeId, {
+    update(this.collection, nadeId, {
       commentCount: value("increment", 1),
     });
+
+    return this.byId(nadeId);
   };
 
   decrementCommentCount = async (nadeId: string) => {
-    return update(this.collection, nadeId, {
+    update(this.collection, nadeId, {
       commentCount: value("increment", -1),
     });
+
+    return this.byId(nadeId);
   };
 
   private toNadeDTO = (doc: Doc<NadeModel>): NadeDTO => {
