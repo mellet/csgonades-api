@@ -17,7 +17,9 @@ interface DeclinedNadeNotification extends CommonNotificationValues {
 export interface FavoriteNotification extends CommonNotificationValues {
   type: "favorite";
   nadeId: string;
-  favoritedBy: string[];
+  nadeSlug?: string;
+  bySteamId: string;
+  byNickname: string;
 }
 
 interface ReportNotification extends CommonNotificationValues {

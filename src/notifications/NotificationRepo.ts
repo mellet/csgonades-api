@@ -10,21 +10,20 @@ import {
   remove,
   update,
   value,
-  where
+  where,
 } from "typesaurus";
-import { ModelUpdate } from "typesaurus/update";
 import { assertNever } from "../utils/Common";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import {
   FavoriteNotification,
   NotificationCreate,
   NotificationDTO,
-  NotificationModel
+  NotificationModel,
 } from "./Notification";
 
 type RemoveFavNotiOpts = {
   nadeId: string;
-  favoriterUserId: string;
+  bySteamId: string;
 };
 
 export class NotificationRepo {
@@ -36,7 +35,7 @@ export class NotificationRepo {
 
   forUser = async (steamId: string) => {
     const notisForUserDocs = await query(this.collection, [
-      where("subjectSteamId", "==", steamId)
+      where("subjectSteamId", "==", steamId),
     ]);
 
     const notisForUser = notisForUserDocs.map(this.toDto);
@@ -63,14 +62,16 @@ export class NotificationRepo {
   };
 
   removeFavoriteNotification = async (opts: RemoveFavNotiOpts) => {
-    const { favoriterUserId, nadeId } = opts;
-    // See if there is a excisting notifciation for this nade that has not been viewed
+    const { bySteamId, nadeId } = opts;
+
+    // Look for the notification
     const foundNotification = await query<FavoriteNotification>(
       this.collection,
       [
         where("type", "==", "favorite"),
         where("nadeId", "==", nadeId),
-        where("viewed", "==", false)
+        where("bySteamId", "==", bySteamId),
+        where("viewed", "==", false),
       ]
     );
 
@@ -79,17 +80,9 @@ export class NotificationRepo {
     }
 
     const notification = foundNotification[0];
-
     const notificationId = notification.ref.id;
-    const notificationCount = notification.data.favoritedBy.length;
 
-    if (notificationCount <= 1) {
-      await remove(this.collection, notificationId);
-    } else {
-      await update(this.collection, notificationId, {
-        favoritedBy: value("arrayRemove", [favoriterUserId])
-      });
-    }
+    await remove(this.collection, notificationId);
   };
 
   private addOfType = (
@@ -98,14 +91,14 @@ export class NotificationRepo {
     const commonValues = {
       viewed: false,
       createdAt: value("serverDate"),
-      subjectSteamId: noti.subjectSteamId
+      subjectSteamId: noti.subjectSteamId,
     };
     switch (noti.type) {
       case "accepted-nade":
         return add(this.collection, {
           ...commonValues,
           type: noti.type,
-          nadeId: noti.nadeId
+          nadeId: noti.nadeId,
         });
       case "contact-msg":
         return add(this.collection, { ...commonValues, type: "contact-msg" });
@@ -113,24 +106,24 @@ export class NotificationRepo {
         return add(this.collection, {
           ...commonValues,
           type: "declined-nade",
-          nadeId: noti.nadeId
+          nadeId: noti.nadeId,
         });
       case "favorite":
-        return this.addOrUpdateFavoriteNotification(noti);
+        return this.addFavoriteNotification(noti);
       case "report":
         return add(this.collection, { ...commonValues, type: "report" });
       case "new-nade":
         return add(this.collection, {
           ...commonValues,
           type: "new-nade",
-          nadeId: noti.nadeId
+          nadeId: noti.nadeId,
         });
       default:
         throw assertNever(noti);
     }
   };
 
-  private addOrUpdateFavoriteNotification = async (
+  private addFavoriteNotification = async (
     noti: NotificationCreate
   ): Promise<Doc<NotificationModel>> => {
     if (noti.type !== "favorite") {
@@ -139,46 +132,16 @@ export class NotificationRepo {
       );
     }
 
-    const duplicateSearch = await query<FavoriteNotification>(this.collection, [
-      where("type", "==", "favorite"),
-      where("subjectSteamId", "==", noti.subjectSteamId),
-      where("viewed", "==", false)
-    ]);
-
-    // If found, increment counter, otherwise add new document
-    if (duplicateSearch.length) {
-      const duplicate = duplicateSearch[0];
-
-      const modelUpdate: ModelUpdate<FavoriteNotification> = {
-        createdAt: value("serverDate"),
-        favoritedBy: value("arrayUnion", noti.favoritedBy)
-      };
-
-      await update<FavoriteNotification>(
-        this.collection,
-        duplicate.ref.id,
-        modelUpdate
-      );
-
-      const updatedModel = await get(this.collection, duplicate.ref.id);
-
-      if (!updatedModel) {
-        throw ErrorFactory.InternalServerError(
-          "Could not find the updated notification"
-        );
-      }
-
-      return updatedModel;
-    } else {
-      return add(this.collection, {
-        type: "favorite",
-        createdAt: value("serverDate"),
-        nadeId: noti.nadeId,
-        subjectSteamId: noti.subjectSteamId,
-        viewed: false,
-        favoritedBy: noti.favoritedBy
-      });
-    }
+    return add(this.collection, {
+      type: "favorite",
+      createdAt: value("serverDate"),
+      nadeId: noti.nadeId,
+      subjectSteamId: noti.subjectSteamId,
+      viewed: false,
+      bySteamId: noti.bySteamId,
+      byNickname: noti.byNickname,
+      nadeSlug: noti.nadeSlug,
+    });
   };
 
   markAsViewed = async (id: string) => {
@@ -190,7 +153,7 @@ export class NotificationRepo {
     twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
 
     const staleNotification = await query(this.collection, [
-      where("createdAt", ">", twoMonthsAgo)
+      where("createdAt", ">", twoMonthsAgo),
     ]);
 
     const { remove, commit } = batch();
@@ -206,7 +169,7 @@ export class NotificationRepo {
     shouldRemove: NotificationDTO[]
   ): Promise<NotificationDTO[]> => {
     const removableNotification = shouldRemove.filter(this.shouldRemove);
-    const okNotifications = shouldRemove.filter(n => !this.shouldRemove(n));
+    const okNotifications = shouldRemove.filter((n) => !this.shouldRemove(n));
 
     if (removableNotification.length) {
       const { remove, commit } = batch();
@@ -237,7 +200,7 @@ export class NotificationRepo {
     const fav = doc.data;
     return {
       ...fav,
-      id: favId
+      id: favId,
     };
   };
 }

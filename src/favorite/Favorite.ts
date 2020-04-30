@@ -19,6 +19,6 @@ export const makeFavorite = (
 ): FavoriteCreateModel => {
   return {
     nadeId: forNadeId,
-    userId: byUserId
+    userId: byUserId,
   };
 };

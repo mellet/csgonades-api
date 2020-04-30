@@ -43,7 +43,7 @@ export class NotificationService {
     return this.notiRepo.add({
       type: "accepted-nade",
       nadeId: nade.id,
-      subjectSteamId: nade.steamId
+      subjectSteamId: nade.steamId,
     });
   };
 
@@ -51,21 +51,21 @@ export class NotificationService {
     return this.notiRepo.add({
       type: "declined-nade",
       nadeId: nade.id,
-      subjectSteamId: nade.steamId
+      subjectSteamId: nade.steamId,
     });
   };
 
   newReport = () => {
     return this.notiRepo.add({
       type: "report",
-      subjectSteamId: this.adminId
+      subjectSteamId: this.adminId,
     });
   };
 
   newContactMsg = () => {
     this.notiRepo.add({
       type: "contact-msg",
-      subjectSteamId: this.adminId
+      subjectSteamId: this.adminId,
     });
   };
 
@@ -73,7 +73,7 @@ export class NotificationService {
     this.notiRepo.add({
       type: "new-nade",
       subjectSteamId: this.adminId,
-      nadeId: nade.id
+      nadeId: nade.id,
     });
   };
 
@@ -96,9 +96,10 @@ export class NotificationService {
       const nade = await this.nadeService.byId(favorite.nadeId);
 
       // Ignore sending notification if favoriting own nade
-      if (favorite.userId === nade.steamId) {
+
+      /*if (favorite.userId === nade.steamId) {
         return;
-      }
+      }*/
 
       const favoritingUser = await this.userService.byId(favorite.userId);
 
@@ -106,7 +107,9 @@ export class NotificationService {
         type: "favorite",
         subjectSteamId: nade.steamId,
         nadeId: nade.id,
-        favoritedBy: [favoritingUser.nickname]
+        bySteamId: favoritingUser.steamId,
+        byNickname: favoritingUser.nickname,
+        nadeSlug: nade.slug,
       });
     } catch (error) {
       Sentry.captureException(error);
@@ -124,7 +127,7 @@ export class NotificationService {
 
       this.notiRepo.removeFavoriteNotification({
         nadeId: nade.id,
-        favoriterUserId: favorite.userId
+        bySteamId: favorite.userId,
       });
     } catch (error) {
       Sentry.captureException(error);
