@@ -287,7 +287,7 @@ export class NadeRepo {
       return 100 - addedHoursAgo;
     }
     if (addedHoursAgo < freshDuration) {
-      return Math.log(freshDuration - addedHoursAgo || 1) / 1.5;
+      return Math.log(freshDuration - addedHoursAgo || 1) / 1.7;
     } else {
       return 0;
     }
