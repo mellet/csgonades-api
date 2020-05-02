@@ -83,6 +83,7 @@ export interface NadeModel {
 export interface NadeDTO extends NadeModel {
   id: string;
   score: number;
+  nextUpdateInHours: number;
 }
 
 export type NadeCreateModel = {
@@ -115,6 +116,7 @@ export type NadeLightDTO = {
   mapEndCoord?: MapCoordinates;
   score: number;
   user: UserLightModel;
+  nextUpdateInHours: number;
 };
 
 export type NadeCreateDTO = {

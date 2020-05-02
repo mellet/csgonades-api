@@ -79,6 +79,7 @@ export class NadeRepo {
       ...nadeDoc.data,
       id: nadeDoc.ref.id,
       score: this.calcScore(nadeDoc.data),
+      nextUpdateInHours: 0,
     };
   };
 
@@ -95,6 +96,7 @@ export class NadeRepo {
       ...nade.data,
       id: nade.ref.id,
       score: this.calcScore(nade.data),
+      nextUpdateInHours: 0,
     };
   };
 
@@ -263,6 +265,7 @@ export class NadeRepo {
       ...doc.data,
       id: doc.ref.id,
       score: this.calcScore(doc.data),
+      nextUpdateInHours: 0,
     };
   };
 

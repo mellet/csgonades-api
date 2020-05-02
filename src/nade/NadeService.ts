@@ -386,9 +386,41 @@ export class NadeService {
     const lastUpdated = nade.lastGfycatUpdate;
     const hoursSinceUpdate = moment().diff(moment(lastUpdated), "hours", false);
 
-    const shouldUpdate = hoursSinceUpdate > hoursToWaitForUpdate;
+    const shouldUpdate = hoursSinceUpdate >= hoursToWaitForUpdate;
 
     return shouldUpdate;
+  };
+
+  private timeToNextUpdate = (nade: NadeDTO): number => {
+    if (!nade.lastGfycatUpdate) {
+      return 24;
+    }
+
+    const daysAgoSubmitted = moment().diff(
+      moment(nade.createdAt),
+      "days",
+      false
+    );
+
+    const MIN_HOURS_TO_UPDATE = 6;
+    const MAX_HOURS_TO_UPDATE = 72;
+
+    const hoursToWaitForUpdate = clamp(
+      daysAgoSubmitted,
+      MIN_HOURS_TO_UPDATE,
+      MAX_HOURS_TO_UPDATE
+    );
+
+    const lastUpdated = nade.lastGfycatUpdate;
+    const hoursSinceUpdate = moment().diff(moment(lastUpdated), "hours", false);
+
+    const nextUpdate = hoursToWaitForUpdate - hoursSinceUpdate;
+
+    if (nextUpdate < 0) {
+      return 0;
+    }
+
+    return nextUpdate;
   };
 
   isAllowedEdit = async (nadeId: string, steamId: string): Promise<boolean> => {
@@ -477,6 +509,7 @@ export class NadeService {
       updatedAt: nadeDto.updatedAt,
       commentCount: nadeDto.commentCount,
       user: nadeDto.user,
+      nextUpdateInHours: this.timeToNextUpdate(nadeDto),
     };
   };
 }
