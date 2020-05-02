@@ -97,9 +97,9 @@ export class NotificationService {
 
       // Ignore sending notification if favoriting own nade
 
-      /*if (favorite.userId === nade.steamId) {
+      if (favorite.userId === nade.steamId) {
         return;
-      }*/
+      }
 
       const favoritingUser = await this.userService.byId(favorite.userId);
 
