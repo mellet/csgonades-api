@@ -4,6 +4,15 @@ interface CommonNotificationValues {
   createdAt: Date;
 }
 
+interface NewCommentNotification extends CommonNotificationValues {
+  type: "new-comment";
+  nadeId: string;
+  nadeSlug?: string;
+  bySteamId: string;
+  byNickname: string;
+  thumnailUrl?: string;
+}
+
 interface AcceptedNadeNotification extends CommonNotificationValues {
   type: "accepted-nade";
   nadeId: string;
@@ -44,7 +53,8 @@ export type NotificationModel =
   | FavoriteNotification
   | ReportNotification
   | NewContactNotification
-  | NewNadeNotification;
+  | NewNadeNotification
+  | NewCommentNotification;
 
 export type NotificationDTO = NotificationModel & { id: string };
 

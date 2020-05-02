@@ -122,6 +122,19 @@ export class NotificationRepo {
           type: "new-nade",
           nadeId: noti.nadeId,
         });
+      case "new-comment":
+        return add(
+          this.collection,
+          removeUndefines({
+            ...commonValues,
+            nadeId: noti.nadeId,
+            type: "new-comment",
+            thumnailUrl: noti.thumnailUrl,
+            byNickname: noti.byNickname,
+            bySteamId: noti.bySteamId,
+            nadeSlug: noti.nadeSlug,
+          })
+        );
       default:
         throw assertNever(noti);
     }

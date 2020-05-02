@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/node";
 import { FavoriteDTO } from "../favorite/Favorite";
 import { NadeDTO } from "../nade/Nade";
 import { NadeService } from "../nade/NadeService";
+import { NadeCommentDto } from "../nadecomment/NadeComment";
 import { EventBus } from "../services/EventHandler";
 import { UserService } from "../user/UserService";
 import { RequestUser } from "../utils/AuthUtils";
@@ -33,6 +34,7 @@ export class NotificationService {
     this.eventBus.subNewNade(this.newNade);
     this.eventBus.subNewFavorites(this.addFavoriteNotification);
     this.eventBus.subUnFavorite(this.onRemoveFavorite);
+    this.eventBus.subNadeCommentCreate(this.addNewCommentNotification);
   }
 
   forUser = (steamId: string) => {
@@ -89,6 +91,29 @@ export class NotificationService {
     }
 
     return this.notiRepo.markAsViewed(id);
+  };
+
+  private addNewCommentNotification = async (comment: NadeCommentDto) => {
+    try {
+      const nade = await this.nadeService.byId(comment.nadeId);
+
+      // Ignore creating notifiation on own comment
+      if (comment.steamId === nade.steamId) {
+        return;
+      }
+
+      this.notiRepo.add({
+        type: "new-comment",
+        nadeId: comment.nadeId,
+        byNickname: comment.nickname,
+        bySteamId: comment.steamId,
+        subjectSteamId: nade.steamId,
+        nadeSlug: nade.slug,
+        thumnailUrl: nade.images.thumbnailUrl,
+      });
+    } catch (error) {
+      Sentry.captureException(error);
+    }
   };
 
   private addFavoriteNotification = async (favorite: FavoriteDTO) => {
