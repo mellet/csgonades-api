@@ -7,11 +7,13 @@ interface CommonNotificationValues {
 interface AcceptedNadeNotification extends CommonNotificationValues {
   type: "accepted-nade";
   nadeId: string;
+  thumnailUrl?: string;
 }
 
 interface DeclinedNadeNotification extends CommonNotificationValues {
   type: "declined-nade";
   nadeId: string;
+  thumnailUrl?: string;
 }
 
 export interface FavoriteNotification extends CommonNotificationValues {
@@ -20,6 +22,7 @@ export interface FavoriteNotification extends CommonNotificationValues {
   nadeSlug?: string;
   bySteamId: string;
   byNickname: string;
+  thumnailUrl?: string;
 }
 
 interface ReportNotification extends CommonNotificationValues {

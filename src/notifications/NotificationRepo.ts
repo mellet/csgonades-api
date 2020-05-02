@@ -12,7 +12,7 @@ import {
   value,
   where,
 } from "typesaurus";
-import { assertNever } from "../utils/Common";
+import { assertNever, removeUndefines } from "../utils/Common";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import {
   FavoriteNotification,
@@ -95,19 +95,23 @@ export class NotificationRepo {
     };
     switch (noti.type) {
       case "accepted-nade":
-        return add(this.collection, {
+        const acceptedModel: NotificationModel = {
           ...commonValues,
           type: noti.type,
           nadeId: noti.nadeId,
-        });
+          thumnailUrl: noti.thumnailUrl,
+        };
+        return add(this.collection, removeUndefines(acceptedModel));
       case "contact-msg":
         return add(this.collection, { ...commonValues, type: "contact-msg" });
       case "declined-nade":
-        return add(this.collection, {
+        const declinedModel: NotificationModel = {
           ...commonValues,
           type: "declined-nade",
           nadeId: noti.nadeId,
-        });
+          thumnailUrl: noti.thumnailUrl,
+        };
+        return add(this.collection, removeUndefines(declinedModel));
       case "favorite":
         return this.addFavoriteNotification(noti);
       case "report":
@@ -132,7 +136,7 @@ export class NotificationRepo {
       );
     }
 
-    return add(this.collection, {
+    const model: NotificationModel = {
       type: "favorite",
       createdAt: value("serverDate"),
       nadeId: noti.nadeId,
@@ -141,7 +145,10 @@ export class NotificationRepo {
       bySteamId: noti.bySteamId,
       byNickname: noti.byNickname,
       nadeSlug: noti.nadeSlug,
-    });
+      thumnailUrl: noti.thumnailUrl,
+    };
+
+    return add(this.collection, removeUndefines(model));
   };
 
   markAsViewed = async (id: string) => {

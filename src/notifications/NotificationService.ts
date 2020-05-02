@@ -97,9 +97,9 @@ export class NotificationService {
 
       // Ignore sending notification if favoriting own nade
 
-      if (favorite.userId === nade.steamId) {
+      /*if (favorite.userId === nade.steamId) {
         return;
-      }
+      }*/
 
       const favoritingUser = await this.userService.byId(favorite.userId);
 
@@ -110,6 +110,7 @@ export class NotificationService {
         bySteamId: favoritingUser.steamId,
         byNickname: favoritingUser.nickname,
         nadeSlug: nade.slug,
+        thumnailUrl: nade.images.thumbnailUrl,
       });
     } catch (error) {
       Sentry.captureException(error);
