@@ -40,9 +40,9 @@ export class NotificationRepo {
 
     const notisForUser = notisForUserDocs.map(this.toDto);
 
-    const notifications = await this.removeOldViewedNotification(notisForUser);
+    await this.removeOldViewedNotification(notisForUser);
 
-    return notifications;
+    return notisForUser;
   };
 
   byId = async (id: string) => {
