@@ -210,7 +210,7 @@ export class NotificationRepo {
       "hours",
       false
     );
-    const isOld = hoursAddedAgo > 24;
+    const isOld = hoursAddedAgo > 1;
 
     return isOld && notification.viewed;
   };
