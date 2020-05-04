@@ -13,7 +13,7 @@ export const makeGfycatService = (configContext: CSGNConfig): GfycatService => {
   const config = configContext;
   const gfycatSdk = new Gfycat({
     clientId: config.secrets.gfycat_id,
-    clientSecret: config.secrets.gfycat_secret
+    clientSecret: config.secrets.gfycat_secret,
   });
 
   async function getGfycatData(

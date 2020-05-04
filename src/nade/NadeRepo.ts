@@ -286,7 +286,7 @@ export class NadeRepo {
 
   private freshScore(addedHoursAgo: number) {
     const freshDuration = 24 * 7;
-    if (addedHoursAgo < 24) {
+    if (addedHoursAgo < 36) {
       return 100 - addedHoursAgo;
     }
     if (addedHoursAgo < freshDuration) {
