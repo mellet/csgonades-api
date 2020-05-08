@@ -154,6 +154,7 @@ export class NadeRepo {
       lastGfycatUpdate: updates.lastGfycatUpdate
         ? value("serverDate")
         : undefined,
+      updatedAt: value("serverDate"),
     };
 
     modelUpdates = removeUndefines(modelUpdates);
