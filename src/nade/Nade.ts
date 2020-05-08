@@ -82,7 +82,7 @@ export interface NadeModel {
   viewCount: number;
   favoriteCount: number;
   commentCount: number;
-  youtubeId?: string;
+  oneWay?: boolean;
 }
 
 export interface NadeDTO extends NadeModel {
@@ -108,6 +108,7 @@ export type NadeCreateModel = {
   technique: Technique;
   tickrate?: Tickrate;
   type: NadeType;
+  oneWay?: boolean;
 };
 
 export type NadeLightDTO = {
@@ -133,6 +134,7 @@ export type NadeLightDTO = {
   score: number;
   user: UserLightModel;
   nextUpdateInHours: number;
+  oneWay?: boolean;
 };
 
 export type NadeCreateDTO = {
@@ -147,6 +149,7 @@ export type NadeCreateDTO = {
   tickrate?: Tickrate;
   type: NadeType;
   mapEndCoord: MapCoordinates;
+  oneWay?: boolean;
 };
 
 export type NadeUpdateResultImageDto = {
@@ -172,6 +175,7 @@ export type NadeUpdateDTO = {
   mapEndCoord?: MapCoordinates;
   status?: NadeStatus;
   slug?: string;
+  oneWay?: boolean;
 };
 
 export type NadeGfycatValidateDTO = {

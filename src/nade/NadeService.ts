@@ -459,6 +459,7 @@ export class NadeService {
       commentCount: nadeDto.commentCount,
       user: nadeDto.user,
       nextUpdateInHours: this.timeToNextUpdate(nadeDto),
+      oneWay: nadeDto.oneWay,
     };
   };
 }
