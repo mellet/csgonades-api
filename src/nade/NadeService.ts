@@ -6,19 +6,18 @@ import { CachingService } from "../services/CachingService";
 import { EventBus } from "../services/EventHandler";
 import { GfycatService } from "../services/GfycatService";
 import { UserDTO } from "../user/UserDTOs";
-import { UserLightModel, UserModel } from "../user/UserModel";
+import { UserLightModel } from "../user/UserModel";
 import { UserService } from "../user/UserService";
 import { clamp } from "../utils/Common";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import {
   CsgoMap,
-  GfycatData,
-  makeNadeFromBody,
   NadeCreateDTO,
+  NadeCreateModel,
   NadeDTO,
+  NadeImages,
   NadeLightDTO,
   NadeModel,
-  NadeStatusDTO,
   NadeUpdateDTO,
   updatedNadeMerge,
 } from "./Nade";
@@ -185,7 +184,7 @@ export class NadeService {
     };
 
     const gfycatData = await this.gfycatService.getGfycatData(
-      body.gfycatIdOrUrl
+      body.gfycat.gfyId
     );
 
     if (!gfycatData) {
@@ -199,12 +198,29 @@ export class NadeService {
       "nades"
     );
 
-    const tmpNade = makeNadeFromBody(userLight, gfycatData, {
-      thumbnailId: resultImage.id,
-      thumbnailUrl: resultImage.url,
-    });
+    const nadeModel: NadeCreateModel = {
+      commentCount: 0,
+      favoriteCount: 0,
+      gfycat: body.gfycat,
+      images: {
+        thumbnailId: resultImage.id,
+        thumbnailUrl: resultImage.url,
+      },
+      steamId: userLight.steamId,
+      user: userLight,
+      viewCount: gfycatData.gfyItem.views,
+      description: body.description,
+      endPosition: body.endPosition,
+      startPosition: body.startPosition,
+      map: body.map,
+      mapEndCoord: body.mapEndCoord,
+      movement: body.movement,
+      technique: body.technique,
+      tickrate: body.tickrate,
+      type: body.type,
+    };
 
-    const nade = await this.nadeRepo.save(tmpNade);
+    const nade = await this.nadeRepo.save(nadeModel);
 
     this.eventBus.emitNewNade(nade);
     this.cache.invalidateUserNades(nade.steamId);
@@ -238,37 +254,27 @@ export class NadeService {
     nadeId: string,
     updateFields: NadeUpdateDTO
   ): Promise<NadeDTO | null> => {
-    let newGfyData: GfycatData | undefined;
-    let newUser: UserModel | undefined;
-    let viewCount: number | undefined;
+    const originalNade = await this.byId(nadeId);
 
-    if (updateFields.gfycatIdOrUrl) {
-      const gfycatData = await this.gfycatService.getGfycatData(
-        updateFields.gfycatIdOrUrl
+    let newImageData: NadeImages | undefined;
+
+    if (updateFields.imageBase64) {
+      // Delete old image
+      this.galleryService.deleteImage(originalNade.images.thumbnailId);
+
+      // Add new image
+      const imageData = await this.galleryService.createThumbnail(
+        updateFields.imageBase64,
+        "nades"
       );
 
-      if (!gfycatData) {
-        // TODO: Throw sensible error
-        return null;
-      }
-
-      newGfyData = {
-        gfyId: gfycatData.gfyItem.gfyId,
-        smallVideoUrl: gfycatData.gfyItem.mobileUrl,
-        largeVideoUrl: gfycatData.gfyItem.mp4Url,
-        largeVideoWebm: gfycatData.gfyItem.webmUrl,
-        avgColor: gfycatData.gfyItem.avgColor,
+      newImageData = {
+        thumbnailId: imageData.id,
+        thumbnailUrl: imageData.url,
       };
-
-      viewCount = gfycatData.gfyItem.views;
     }
 
-    const mergedNade = updatedNadeMerge(
-      updateFields,
-      viewCount,
-      newUser,
-      newGfyData
-    );
+    const mergedNade = updatedNadeMerge(updateFields, newImageData);
 
     const updatedNade = await this.nadeRepo.update(nadeId, mergedNade);
 
@@ -278,65 +284,6 @@ export class NadeService {
     }
 
     return updatedNade;
-  };
-
-  replaceResultImage = async (nadeId: string, imageBase64: string) => {
-    const nade = await this.byId(nadeId);
-
-    this.galleryService.deleteImage(nade.images.thumbnailId);
-
-    const imageResult = await this.galleryService.createThumbnail(
-      imageBase64,
-      "nades"
-    );
-
-    const updatedNade = await this.update(nade.id, {
-      images: {
-        thumbnailId: imageResult.id,
-        thumbnailCollection: imageResult.collection,
-        thumbnailUrl: imageResult.url,
-      },
-    });
-
-    if (!updatedNade) {
-      throw ErrorFactory.InternalServerError("Failed to update nade.");
-    }
-
-    this.cache.invalidateNade(updatedNade.id);
-    this.cache.invalidateUserNades(updatedNade.steamId);
-
-    return updatedNade;
-  };
-
-  updateNadeStatus = async (
-    nadeId: string,
-    updatedStatus: NadeStatusDTO
-  ): Promise<NadeDTO | null> => {
-    const oldNade = await this.nadeRepo.byId(nadeId);
-
-    const nade = await this.nadeRepo.update(nadeId, updatedStatus);
-
-    if (!nade || !oldNade) {
-      throw ErrorFactory.NotFound("Nade not found.");
-    }
-
-    // Keep pending counter in sync on status change
-    if (oldNade.status === "pending" && nade.status === "accepted") {
-      this.eventBus.emitNadeAccepted(nade);
-      await this.nadeRepo.tryCreateUnqieuSlug(nade);
-    }
-
-    // Send notification if nade status changed to declined
-    if (oldNade.status !== "declined" && nade.status === "declined") {
-      this.eventBus.emitNadeDeclined(nade);
-    }
-
-    this.cache.invalidateRecent();
-    this.cache.invalidateMap(nade.map);
-    this.cache.invalidateNade(nadeId);
-    this.cache.invalidateUserNades(nade.steamId);
-
-    return nade;
   };
 
   private incrementFavoriteCount = async (favorite: FavoriteDTO) => {
@@ -501,6 +448,8 @@ export class NadeService {
       mapSite: nadeDto.mapSite,
       tickrate: nadeDto.tickrate,
       title: nadeDto.title,
+      endPosition: nadeDto.endPosition,
+      startPosition: nadeDto.startPosition,
       type: nadeDto.type,
       mapEndCoord: nadeDto.mapEndCoord,
       score: nadeDto.score,

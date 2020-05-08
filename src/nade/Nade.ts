@@ -1,8 +1,7 @@
-import { GfycatDetailsResponse } from "gfycat-sdk";
-import { UserLightModel, UserModel } from "../user/UserModel";
+import { UserLightModel } from "../user/UserModel";
 import { removeUndefines } from "../utils/Common";
 
-type NadeImages = {
+export type NadeImages = {
   thumbnailId: string;
   thumbnailCollection?: string;
   thumbnailUrl: string;
@@ -18,7 +17,13 @@ export type CsgoMap =
   | "overpass"
   | "cobblestone";
 
-type Movement = "notset" | "stationary" | "running" | "walking" | "crouching";
+type Movement =
+  | "notset"
+  | "stationary"
+  | "running"
+  | "walking"
+  | "crouching"
+  | "crouchwalking";
 
 export type NadeStatus = "pending" | "accepted" | "declined" | "deleted";
 
@@ -42,7 +47,7 @@ type Technique =
   | "mouseboth"
   | "jumpthrow";
 
-type Tickrate = "64tick" | "128 tick" | "Any";
+type Tickrate = "tick64" | "tick128" | "any";
 
 type NadeType = "notset" | "smoke" | "flash" | "molotov" | "hegrenade";
 
@@ -94,12 +99,23 @@ export type NadeCreateModel = {
   viewCount: number;
   favoriteCount: number;
   commentCount: number;
+  description: string;
+  endPosition: string;
+  startPosition: string;
+  map: CsgoMap;
+  mapEndCoord: MapCoordinates;
+  movement: Movement;
+  technique: Technique;
+  tickrate?: Tickrate;
+  type: NadeType;
 };
 
 export type NadeLightDTO = {
   id: string;
   status: NadeStatus;
   title?: string;
+  startPosition?: string;
+  endPosition?: string;
   slug?: string;
   gfycat: GfycatData;
   images: NadeImages;
@@ -120,8 +136,17 @@ export type NadeLightDTO = {
 };
 
 export type NadeCreateDTO = {
-  gfycatIdOrUrl: string;
+  gfycat: GfycatData;
   imageBase64: string;
+  startPosition: string;
+  endPosition: string;
+  description: string;
+  map: CsgoMap;
+  movement: Movement;
+  technique: Technique;
+  tickrate?: Tickrate;
+  type: NadeType;
+  mapEndCoord: MapCoordinates;
 };
 
 export type NadeUpdateResultImageDto = {
@@ -134,71 +159,43 @@ export type NadeStatusDTO = {
 };
 
 export type NadeUpdateDTO = {
-  title?: string;
+  gfycat?: GfycatData;
+  imageBase64?: string;
+  startPosition?: string;
+  endPosition?: string;
   description?: string;
-  gfycatIdOrUrl?: string;
   map?: CsgoMap;
   movement?: Movement;
   technique?: Technique;
   tickrate?: Tickrate;
   type?: NadeType;
-  mapSite?: MapSite;
-  createdAt?: string;
-  mapStartCoord?: MapCoordinates;
   mapEndCoord?: MapCoordinates;
-  images?: NadeImages;
+  status?: NadeStatus;
+  slug?: string;
 };
 
 export type NadeGfycatValidateDTO = {
   gfycatIdOrUrl: string;
 };
 
-export const makeNadeFromBody = (
-  user: UserLightModel,
-  gfycatData: GfycatDetailsResponse,
-  images: NadeImages
-): NadeCreateModel => {
-  return {
-    gfycat: {
-      gfyId: gfycatData.gfyItem.gfyId,
-      smallVideoUrl: gfycatData.gfyItem.mobileUrl,
-      largeVideoUrl: gfycatData.gfyItem.mp4Url,
-      largeVideoWebm: gfycatData.gfyItem.webmUrl,
-      avgColor: gfycatData.gfyItem.avgColor,
-    },
-    images,
-    user,
-    steamId: user.steamId,
-    viewCount: gfycatData.gfyItem.views,
-    favoriteCount: 0,
-    commentCount: 0,
-  };
-};
-
 export function updatedNadeMerge(
   updateFields: NadeUpdateDTO,
-  views?: number,
-  newUser?: UserModel,
-  newGfcatData?: GfycatData
+  newResultImage?: NadeImages
 ): Partial<NadeModel> {
   const newNade: Partial<NadeModel> = {
-    title: updateFields.title,
+    endPosition: updateFields.endPosition,
+    slug: updateFields.slug,
+    startPosition: updateFields.startPosition,
+    status: updateFields.status,
     description: updateFields.description,
     map: updateFields.map,
     movement: updateFields.movement,
     technique: updateFields.technique,
     tickrate: updateFields.tickrate,
     type: updateFields.type,
-    gfycat: newGfcatData,
-    user: newUser,
-    steamId: newUser && newUser.steamId,
-    mapSite: updateFields.mapSite,
-    viewCount: views,
+    gfycat: updateFields.gfycat,
     mapEndCoord: updateFields.mapEndCoord,
-    createdAt: updateFields.createdAt
-      ? new Date(updateFields.createdAt)
-      : undefined,
-    images: updateFields.images,
+    images: newResultImage,
   };
 
   return removeUndefines(newNade);

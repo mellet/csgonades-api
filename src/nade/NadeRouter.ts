@@ -5,18 +5,9 @@ import { errorCatchConverter } from "../utils/ErrorUtil";
 import { userFromRequest } from "../utils/RouterUtils";
 import { sanitizeIt } from "../utils/Sanitize";
 import { getSessionId } from "../utils/SessionRoute";
-import {
-  CsgoMap,
-  GfycatData,
-  NadeCreateDTO,
-  NadeDTO,
-  NadeGfycatValidateDTO,
-  NadeStatusDTO,
-  NadeUpdateDTO,
-} from "./Nade";
-import { validateNade } from "./NadeMiddleware";
+import { CsgoMap, GfycatData, NadeDTO, NadeGfycatValidateDTO } from "./Nade";
 import { NadeService } from "./NadeService";
-import { validateNadeUpdateResultImage } from "./NadeValidators";
+import { validateNadeCreateBody, validateNadeEditBody } from "./NadeValidators";
 
 type IdParam = {
   id: string;
@@ -62,49 +53,12 @@ export class NadeRouter {
     this.router.get("/nades/:id", this.getById);
     this.router.get("/nades/map/:mapname", this.getByMap);
     this.router.get("/nades/user/:steamId", this.getByUser);
-    this.router.post("/nades", authOnlyHandler, validateNade, this.addNade);
+    this.router.post("/nades", authOnlyHandler, this.addNade);
     this.router.put("/nades/:id", authOnlyHandler, this.updateNade);
     this.router.post("/nades/:id/countView", this.incrementViewCount);
-    this.router.patch(
-      "/nades/:id/status",
-      adminOrModHandler,
-      this.updateStatus
-    );
     this.router.post("/nades/validateGfycat", this.validateGfy);
     this.router.delete("/nades/:id", adminOrModHandler, this.deleteNade);
     this.router.post("/nades/list", this.getByIdList);
-    this.router.patch(
-      "/nades/:id/image",
-      authOnlyHandler,
-      this.handleUpdateImage
-    );
-  };
-
-  private handleUpdateImage: RequestHandler = async (req, res) => {
-    try {
-      const id = sanitizeIt(req.params.id);
-      const user = userFromRequest(req);
-      const nadeUpdateImageDto = validateNadeUpdateResultImage(req.body);
-
-      const isAllowedEdit = await this.nadeService.isAllowedEdit(
-        id,
-        user.steamId
-      );
-
-      if (!isAllowedEdit) {
-        return res.status(401).send({ error: "Not allowed to edit this nade" });
-      }
-
-      const updatedNadeResult = await this.nadeService.replaceResultImage(
-        id,
-        nadeUpdateImageDto.imageBase64
-      );
-
-      return res.status(202).send(updatedNadeResult);
-    } catch (error) {
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
-    }
   };
 
   private getNades: RequestHandler = async (req, res) => {
@@ -229,11 +183,7 @@ export class NadeRouter {
   private addNade: RequestHandler = async (req, res) => {
     try {
       const user = userFromRequest(req);
-      const dirtyNadeBody = req.body as NadeCreateDTO;
-      const nadeBody: NadeCreateDTO = {
-        gfycatIdOrUrl: sanitizeIt(dirtyNadeBody.gfycatIdOrUrl),
-        imageBase64: dirtyNadeBody.imageBase64,
-      };
+      const nadeBody = validateNadeCreateBody(req);
 
       const nade = await this.nadeService.save(nadeBody, user.steamId);
 
@@ -248,27 +198,26 @@ export class NadeRouter {
     try {
       const id = sanitizeIt(req.params.id);
       const user = userFromRequest(req);
-
-      const dirtyNadeBody = req.body as NadeUpdateDTO; // TODO: Validate NadeUpdateBody
-      const nadeBody: NadeUpdateDTO = {
-        ...sanitizeIt(dirtyNadeBody),
-        description: dirtyNadeBody.description, // TODO: Sanitize markdown
-      };
-
-      if (nadeBody.createdAt && user.role === "user") {
-        return res.status(403).send({ status: 403, message: "Forbidden" });
-      }
+      const updateDto = validateNadeEditBody(req);
 
       const isAllowedEdit = await this.nadeService.isAllowedEdit(
         id,
         user.steamId
       );
 
+      if (updateDto.slug && user.role !== "administrator") {
+        return res.status(401).send({ error: "Not allowed to update slug" });
+      }
+
+      if (updateDto.status && user.role === "user") {
+        return res.status(401).send({ error: "Not allowed edit status" });
+      }
+
       if (!isAllowedEdit) {
         return res.status(401).send({ error: "Not allowed to edit this nade" });
       }
 
-      const nade = await this.nadeService.update(id, nadeBody);
+      const nade = await this.nadeService.update(id, updateDto);
 
       return res.status(202).send(nade);
     } catch (error) {
@@ -288,29 +237,6 @@ export class NadeRouter {
       } else {
         return res.status(406).send();
       }
-    } catch (error) {
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
-    }
-  };
-
-  private updateStatus: RequestHandler<IdParam> = async (req, res) => {
-    try {
-      const id = sanitizeIt(req.params.id);
-      const user = userFromRequest(req);
-      const dirtyStatusUpdate = req.body as NadeStatusDTO; // TODO: Validate NadeStatusDTO
-      const statusUpdate = sanitizeIt(dirtyStatusUpdate);
-
-      if (user.role !== "moderator" && user.role !== "administrator") {
-        return res.status(403).send({
-          error:
-            "Only administrator or administrator are allowed to update nade status.",
-        });
-      }
-
-      const nade = await this.nadeService.updateNadeStatus(id, statusUpdate);
-
-      return res.status(202).send(nade);
     } catch (error) {
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
