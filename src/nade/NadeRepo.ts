@@ -147,14 +147,15 @@ export class NadeRepo {
 
   update = async (
     nadeId: string,
-    updates: Partial<NadeModel>
+    updates: Partial<NadeModel>,
+    setNewUpdateNade?: boolean
   ): Promise<NadeDTO> => {
     let modelUpdates: ModelUpdate<NadeModel> = {
       ...updates,
       lastGfycatUpdate: updates.lastGfycatUpdate
         ? value("serverDate")
         : undefined,
-      updatedAt: value("serverDate"),
+      updatedAt: setNewUpdateNade ? value("serverDate") : undefined,
     };
 
     modelUpdates = removeUndefines(modelUpdates);

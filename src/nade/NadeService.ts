@@ -276,7 +276,7 @@ export class NadeService {
 
     const mergedNade = updatedNadeMerge(updateFields, newImageData);
 
-    const updatedNade = await this.nadeRepo.update(nadeId, mergedNade);
+    const updatedNade = await this.nadeRepo.update(nadeId, mergedNade, true);
 
     if (updatedNade) {
       this.cache.invalidateNade(updatedNade.id);
