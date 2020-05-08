@@ -46,6 +46,7 @@ export const validateNadeCreateBody = (req: Request): NadeCreateDTO => {
         y: Joi.number(),
       })
       .required(),
+    oneWay: Joi.boolean().optional(),
   }).unknown(false);
 
   const value = Joi.attempt(body, schema) as NadeCreateDTO;
@@ -114,6 +115,7 @@ export const validateNadeEditBody = (req: Request): NadeUpdateDTO => {
       .optional(),
     // slug?: string;
     slug: Joi.string().optional(),
+    oneWay: Joi.boolean().optional(),
   }).unknown(false);
 
   const value = Joi.attempt(body, schema) as NadeUpdateDTO;

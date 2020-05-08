@@ -200,6 +200,7 @@ export function updatedNadeMerge(
     gfycat: updateFields.gfycat,
     mapEndCoord: updateFields.mapEndCoord,
     images: newResultImage,
+    oneWay: updateFields.oneWay,
   };
 
   return removeUndefines(newNade);
