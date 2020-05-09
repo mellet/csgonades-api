@@ -9,7 +9,7 @@ type ImageGalleryDeps = {
   config: CSGNConfig;
 };
 
-export type ImageCollection = "nades" | "articles";
+export type ImageCollection = "nades" | "lineup";
 
 export class ImageGalleryService {
   private IMAGE_LARGE_SIZE = 1240;

@@ -35,6 +35,7 @@ export class NotificationService {
     this.eventBus.subNewFavorites(this.addFavoriteNotification);
     this.eventBus.subUnFavorite(this.onRemoveFavorite);
     this.eventBus.subNadeCommentCreate(this.addNewCommentNotification);
+    this.eventBus.subNewReport(this.newReport);
   }
 
   forUser = (steamId: string) => {

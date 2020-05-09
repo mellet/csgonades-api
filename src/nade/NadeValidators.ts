@@ -16,6 +16,7 @@ export const validateNadeCreateBody = (req: Request): NadeCreateDTO => {
       })
       .required(),
     imageBase64: Joi.string().required(),
+    lineUpImageBase64: Joi.string().optional(),
     startPosition: Joi.string().required(),
     endPosition: Joi.string().required(),
     description: Joi.string().required(),
@@ -70,6 +71,7 @@ export const validateNadeEditBody = (req: Request): NadeUpdateDTO => {
       .optional(),
     // imageBase64?: string;
     imageBase64: Joi.string().optional(),
+    lineUpImageBase64: Joi.string().optional(),
     // startPosition?: string;
     startPosition: Joi.string().optional(),
     // endPosition?: string;

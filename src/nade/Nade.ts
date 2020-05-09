@@ -2,9 +2,13 @@ import { UserLightModel } from "../user/UserModel";
 import { removeUndefines } from "../utils/Common";
 
 export type NadeImages = {
+  // Result image
   thumbnailId: string;
   thumbnailCollection?: string;
   thumbnailUrl: string;
+  // Line up image
+  lineupId?: string;
+  lineupUrl?: string;
 };
 
 export type CsgoMap =
@@ -140,6 +144,7 @@ export type NadeLightDTO = {
 export type NadeCreateDTO = {
   gfycat: GfycatData;
   imageBase64: string;
+  lineUpImageBase64?: string;
   startPosition: string;
   endPosition: string;
   description: string;
@@ -152,18 +157,10 @@ export type NadeCreateDTO = {
   oneWay?: boolean;
 };
 
-export type NadeUpdateResultImageDto = {
-  imageBase64: string;
-};
-
-export type NadeStatusDTO = {
-  status: NadeStatus;
-  statusInfo?: StatusInfo;
-};
-
 export type NadeUpdateDTO = {
   gfycat?: GfycatData;
   imageBase64?: string;
+  lineUpImageBase64?: string;
   startPosition?: string;
   endPosition?: string;
   description?: string;
@@ -184,7 +181,7 @@ export type NadeGfycatValidateDTO = {
 
 export function updatedNadeMerge(
   updateFields: NadeUpdateDTO,
-  newResultImage?: NadeImages
+  newImages?: NadeImages
 ): Partial<NadeModel> {
   const newNade: Partial<NadeModel> = {
     endPosition: updateFields.endPosition,
@@ -199,7 +196,7 @@ export function updatedNadeMerge(
     type: updateFields.type,
     gfycat: updateFields.gfycat,
     mapEndCoord: updateFields.mapEndCoord,
-    images: newResultImage,
+    images: newImages,
     oneWay: updateFields.oneWay,
   };
 

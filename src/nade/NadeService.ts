@@ -8,7 +8,7 @@ import { GfycatService } from "../services/GfycatService";
 import { UserDTO } from "../user/UserDTOs";
 import { UserLightModel } from "../user/UserModel";
 import { UserService } from "../user/UserService";
-import { clamp } from "../utils/Common";
+import { clamp, removeUndefines } from "../utils/Common";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import {
   CsgoMap,
@@ -175,6 +175,11 @@ export class NadeService {
     body: NadeCreateDTO,
     steamID: string
   ): Promise<NadeDTO | null> => {
+    const imageBuilder: NadeImages = {
+      thumbnailId: "",
+      thumbnailUrl: "",
+    };
+
     const user = await this.userService.byId(steamID);
 
     const userLight: UserLightModel = {
@@ -198,14 +203,23 @@ export class NadeService {
       "nades"
     );
 
+    imageBuilder.thumbnailId = `${resultImage.collection}/${resultImage.id}`;
+    imageBuilder.thumbnailUrl = resultImage.url;
+
+    if (body.lineUpImageBase64) {
+      const lineupImage = await this.galleryService.createThumbnail(
+        body.lineUpImageBase64,
+        "lineup"
+      );
+      imageBuilder.lineupId = `${lineupImage.collection}/${lineupImage.id}`;
+      imageBuilder.lineupUrl = lineupImage.url;
+    }
+
     const nadeModel: NadeCreateModel = {
       commentCount: 0,
       favoriteCount: 0,
       gfycat: body.gfycat,
-      images: {
-        thumbnailId: resultImage.id,
-        thumbnailUrl: resultImage.url,
-      },
+      images: removeUndefines(imageBuilder),
       steamId: userLight.steamId,
       user: userLight,
       viewCount: gfycatData.gfyItem.views,
@@ -231,19 +245,13 @@ export class NadeService {
   delete = async (nadeId: string) => {
     const nade = await this.nadeRepo.byId(nadeId);
 
-    try {
-      await this.galleryService.deleteImage(nade.images.thumbnailId);
-    } catch (error) {
-      console.log("Failed to delete image for nade", nade.images.thumbnailId);
-      return;
+    await this.galleryService.deleteImage(nade.images.thumbnailId);
+
+    if (nade.images.lineupId) {
+      await this.galleryService.deleteImage(nade.images.lineupId);
     }
 
-    try {
-      await this.nadeRepo.delete(nade.id);
-    } catch (error) {
-      console.log("Failed to delete nade", nade.id);
-      return;
-    }
+    await this.nadeRepo.delete(nade.id);
 
     this.eventBus.emitNadeDelete(nade);
     this.cache.invalidateNade(nadeId);
@@ -258,9 +266,10 @@ export class NadeService {
 
     let newImageData: NadeImages | undefined;
 
+    // Update result image
     if (updateFields.imageBase64) {
       // Delete old image
-      this.galleryService.deleteImage(originalNade.images.thumbnailId);
+      await this.galleryService.deleteImage(originalNade.images.thumbnailId);
 
       // Add new image
       const imageData = await this.galleryService.createThumbnail(
@@ -269,14 +278,57 @@ export class NadeService {
       );
 
       newImageData = {
-        thumbnailId: imageData.id,
+        ...originalNade.images,
+        thumbnailId: `${imageData.collection}/${imageData.id}`,
         thumbnailUrl: imageData.url,
       };
+    }
+
+    // Update lineup image
+    if (updateFields.lineUpImageBase64) {
+      // Delete old if present
+      if (originalNade.images.lineupId) {
+        await this.galleryService.deleteImage(originalNade.images.lineupId);
+      }
+
+      const newLineUpImage = await this.galleryService.createThumbnail(
+        updateFields.lineUpImageBase64,
+        "lineup"
+      );
+
+      // If original image was updated aswell
+      if (newImageData) {
+        newImageData = {
+          ...newImageData,
+          ...originalNade.images,
+          lineupId: `${newLineUpImage.collection}/${newLineUpImage.id}`,
+          lineupUrl: newLineUpImage.url,
+        };
+      } else {
+        newImageData = {
+          ...originalNade.images,
+          lineupId: `${newLineUpImage.collection}/${newLineUpImage.id}`,
+          lineupUrl: newLineUpImage.url,
+        };
+      }
     }
 
     const mergedNade = updatedNadeMerge(updateFields, newImageData);
 
     const updatedNade = await this.nadeRepo.update(nadeId, mergedNade, true);
+
+    if (
+      updateFields.status === "accepted" &&
+      originalNade.status === "pending"
+    ) {
+      this.eventBus.emitNadeAccepted(updatedNade);
+    }
+    if (
+      updateFields.status === "declined" &&
+      originalNade.status === "pending"
+    ) {
+      this.eventBus.emitNadeDeclined(updatedNade);
+    }
 
     if (updatedNade) {
       this.cache.invalidateNade(updatedNade.id);
