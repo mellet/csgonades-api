@@ -59,6 +59,19 @@ export class NadeRouter {
     this.router.post("/nades/validateGfycat", this.validateGfy);
     this.router.delete("/nades/:id", adminOrModHandler, this.deleteNade);
     this.router.post("/nades/list", this.getByIdList);
+    this.router.get("/nades/:id/checkslug", this.checkSlug);
+  };
+
+  private checkSlug: RequestHandler<IdParam> = async (req, res) => {
+    try {
+      const slug = req.params.id;
+      const slugIsFree = await this.nadeService.slugIsFree(slug);
+      console.log("> slug is free", slugIsFree);
+      return res.status(200).send(slugIsFree);
+    } catch (error) {
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
+    }
   };
 
   private getNades: RequestHandler = async (req, res) => {

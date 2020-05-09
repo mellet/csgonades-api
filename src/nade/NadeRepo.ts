@@ -31,6 +31,16 @@ export class NadeRepo {
     this.collection = collection("nades");
   }
 
+  slugIsFree = async (slug: string): Promise<boolean> => {
+    const nadeDocs = await query(this.collection, [where("slug", "==", slug)]);
+
+    if (nadeDocs.length === 0) {
+      return true;
+    }
+
+    return false;
+  };
+
   getAll = async (nadeLimit?: number): Promise<NadeDTO[]> => {
     const queryBuilder: Query<NadeModel, keyof NadeModel>[] = [
       where("status", "==", "accepted"),

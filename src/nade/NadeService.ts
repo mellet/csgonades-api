@@ -64,6 +64,8 @@ export class NadeService {
     this.eventBus.subUserDetailsUpdate(this.onUserDetailsUpdated);
   }
 
+  slugIsFree = (slug: string) => this.nadeRepo.slugIsFree(slug);
+
   onUserDetailsUpdated = async (user: UserDTO) => {
     await this.nadeRepo.updateUserOnNades(user.steamId, {
       avatar: user.avatar,
