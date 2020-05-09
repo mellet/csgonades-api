@@ -291,7 +291,7 @@ export class NadeService {
         await this.galleryService.deleteImage(originalNade.images.lineupId);
       }
 
-      const newLineUpImage = await this.galleryService.createThumbnail(
+      const newLineUpImage = await this.galleryService.createLarge(
         updateFields.lineUpImageBase64,
         "lineup"
       );
