@@ -15,7 +15,6 @@ import { ContactService } from "./contact/ContactService";
 import { FavoriteRepo } from "./favorite/FavoriteRepo";
 import { FavoriteRouter } from "./favorite/FavoriteRouter";
 import { FavoriteService } from "./favorite/FavoriteService";
-import { ImageGalleryController } from "./imageGallery/ImageGalleryController";
 import { ImageGalleryService } from "./imageGallery/ImageGalleryService";
 import { ImageStorageRepo } from "./imageGallery/ImageStorageService";
 import { NadeRepo } from "./nade/NadeRepo";
@@ -66,9 +65,9 @@ export const AppServer = (config: CSGNConfig) => {
     dsn: config.secrets.sentry_dsn,
     integrations: [
       new RewriteFrames({
-        root: global.__rootdir__
-      })
-    ]
+        root: global.__rootdir__,
+      }),
+    ],
   });
 
   // Express dependencies.
@@ -86,9 +85,9 @@ export const AppServer = (config: CSGNConfig) => {
         "https://www.csgonades.com",
         "https://csgonades-client-lgljtzmn9.now.sh",
         "https://csgonades-client-l7r733goa.now.sh",
-        "https://csgonades.com"
+        "https://csgonades.com",
       ],
-      credentials: true
+      credentials: true,
     })
   );
   app.disable("x-powered-by");
@@ -120,11 +119,11 @@ export const AppServer = (config: CSGNConfig) => {
   const statsService = new StatsService({
     eventBus,
     statsRepo,
-    cacheService
+    cacheService,
   });
   const galleryService = new ImageGalleryService({
     config,
-    imageRepo
+    imageRepo,
   });
   const gfycatService = makeGfycatService(config);
 
@@ -132,7 +131,7 @@ export const AppServer = (config: CSGNConfig) => {
   const userService = new UserService({
     eventBus,
     steamService,
-    userRepo
+    userRepo,
   });
   const nadeService = new NadeService({
     cache: cacheService,
@@ -140,7 +139,7 @@ export const AppServer = (config: CSGNConfig) => {
     galleryService,
     nadeRepo,
     userService,
-    eventBus
+    eventBus,
   });
   const favoriteService = new FavoriteService({ favoriteRepo, eventBus });
   const tournamentService = new TournamentService(tournamentRepo, cacheService);
@@ -149,22 +148,22 @@ export const AppServer = (config: CSGNConfig) => {
     eventBus,
     notificationRepo,
     nadeService,
-    userService
+    userService,
   });
 
   const contactService = new ContactService({
     contactRepo,
-    notificationService
+    notificationService,
   });
 
   const articleService = new ArticleService({
-    articleRepo
+    articleRepo,
   });
 
   const nadeCommentService = new NadeCommentService({
     nadeCommentRepo,
     userService,
-    eventBus
+    eventBus,
   });
 
   // Routers
@@ -183,7 +182,6 @@ export const AppServer = (config: CSGNConfig) => {
   const notificationRouter = new NotificationRouter(
     notificationService
   ).getRouter();
-  const imageGalleryRouter = new ImageGalleryController(galleryService);
   const nadeCommentRouter = new NadeCommentRouter({ nadeCommentService });
 
   app.use(nadeRouter.getRouter());
@@ -197,14 +195,13 @@ export const AppServer = (config: CSGNConfig) => {
   app.use(tournamentRouter);
   app.use(reportRouter);
   app.use(notificationRouter);
-  app.use(imageGalleryRouter.getRouter());
   app.use(nadeCommentRouter.getRouter());
 
   app.get("/", (_, res) => {
     res.send("");
   });
 
-  app.use("/robots.txt", function(req, res, next) {
+  app.use("/robots.txt", function (req, res, next) {
     res.type("text/plain");
     res.send("User-agent: *\nDisallow: /");
   });
@@ -214,13 +211,13 @@ export const AppServer = (config: CSGNConfig) => {
 
   const notFoundHandler: RequestHandler = (req, res, next) => {
     return res.status(404).send({
-      error: "Not found"
+      error: "Not found",
     });
   };
 
   const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
     return res.status(500).send({
-      error: err.message
+      error: err.message,
     });
   };
 
