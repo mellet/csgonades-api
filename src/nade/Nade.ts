@@ -87,6 +87,7 @@ export interface NadeModel {
   favoriteCount: number;
   commentCount: number;
   oneWay?: boolean;
+  isPro?: boolean;
 }
 
 export interface NadeDTO extends NadeModel {
@@ -139,6 +140,7 @@ export type NadeLightDTO = {
   user: UserLightModel;
   nextUpdateInHours: number;
   oneWay?: boolean;
+  isPro?: boolean;
 };
 
 export type NadeCreateDTO = {

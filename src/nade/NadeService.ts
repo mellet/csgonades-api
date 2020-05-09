@@ -512,6 +512,7 @@ export class NadeService {
       user: nadeDto.user,
       nextUpdateInHours: this.timeToNextUpdate(nadeDto),
       oneWay: nadeDto.oneWay,
+      isPro: nadeDto.isPro,
     };
   };
 }
