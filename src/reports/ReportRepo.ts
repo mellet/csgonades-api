@@ -1,4 +1,12 @@
-import { add, all, Collection, collection, Doc, remove } from "typesaurus";
+import {
+  add,
+  all,
+  Collection,
+  collection,
+  Doc,
+  remove,
+  value,
+} from "typesaurus";
 import { ReportDTO, ReportModel, ReportSaveDTO } from "./Report";
 
 export class ReportRepo {
@@ -15,7 +23,11 @@ export class ReportRepo {
   };
 
   save = async (saveDto: ReportSaveDTO): Promise<ReportDTO> => {
-    const res = await add(this.collection, saveDto);
+    const res = await add(this.collection, {
+      message: saveDto.message,
+      nadeId: saveDto.nadeId,
+      createdAt: value("serverDate"),
+    });
 
     return this.toDto(res);
   };
@@ -27,7 +39,7 @@ export class ReportRepo {
   private toDto = (doc: Doc<ReportModel>): ReportDTO => {
     return {
       ...doc.data,
-      id: doc.ref.id
+      id: doc.ref.id,
     };
   };
 }

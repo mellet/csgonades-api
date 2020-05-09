@@ -1,6 +1,7 @@
 export interface ReportModel {
   nadeId: string;
   message: string;
+  createdAt: Date;
 }
 
 export interface ReportDTO extends ReportModel {
