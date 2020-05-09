@@ -66,7 +66,7 @@ export class NadeRouter {
     try {
       const slug = req.params.id;
       const slugIsFree = await this.nadeService.slugIsFree(slug);
-      console.log("> slug is free", slugIsFree);
+
       return res.status(200).send(slugIsFree);
     } catch (error) {
       const err = errorCatchConverter(error);
