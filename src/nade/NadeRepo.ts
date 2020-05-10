@@ -293,20 +293,20 @@ export class NadeRepo {
     const commentCount = (nade.commentCount || 1) * 1000;
     const favoriteCount = (nade.favoriteCount || 1) * 1000;
     const addedHoursAgo = moment().diff(moment(nade.createdAt), "hours", false);
-    const proBonus = nade.isPro ? 1.035 : 1.0;
+    const proBonus = nade.isPro ? 1.05 : 1.0;
 
-    const interactionScore = Math.log(commentCount + favoriteCount) * proBonus;
+    const interactionScore = Math.log(commentCount + favoriteCount);
     const ageScore = Math.log(50000 - addedHoursAgo) / 2;
 
     // Inflate new nades to allow them to get views
-    const freshScore = this.freshScore(addedHoursAgo);
+    const freshScore = this.freshScore(addedHoursAgo, nade.isPro);
     const hotScore = freshScore + ageScore + interactionScore;
 
-    return hotScore;
+    return hotScore * proBonus;
   };
 
-  private freshScore(addedHoursAgo: number) {
-    const freshDuration = 24 * 7;
+  private freshScore(addedHoursAgo: number, isPro?: boolean) {
+    const freshDuration = isPro ? 24 * 14 : 24 * 7;
     if (addedHoursAgo < 36) {
       return 100 - addedHoursAgo;
     }
