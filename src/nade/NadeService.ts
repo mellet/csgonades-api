@@ -319,12 +319,15 @@ export class NadeService {
 
     const updatedNade = await this.nadeRepo.update(nadeId, mergedNade, true);
 
+    // First time accepted
     if (
       updateFields.status === "accepted" &&
       originalNade.status === "pending"
     ) {
       this.eventBus.emitNadeAccepted(updatedNade);
+      this.nadeRepo.setCreatedAtNowForNade(updatedNade.id);
     }
+
     if (
       updateFields.status === "declined" &&
       originalNade.status === "pending"

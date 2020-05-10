@@ -155,6 +155,14 @@ export class NadeRepo {
     return this.toNadeDTO(nade);
   };
 
+  setCreatedAtNowForNade = async (nadeId: string) => {
+    let modelUpdates: ModelUpdate<NadeModel> = {
+      createdAt: value("serverDate"),
+      updatedAt: value("serverDate"),
+    };
+    await update(this.collection, nadeId, modelUpdates);
+  };
+
   update = async (
     nadeId: string,
     updates: Partial<NadeModel>,
