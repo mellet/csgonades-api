@@ -12,8 +12,8 @@ type ImageGalleryDeps = {
 export type ImageCollection = "nades" | "lineup";
 
 export class ImageGalleryService {
-  private IMAGE_LARGE_SIZE = 1240;
-  private IMAGE_THUMB_SIZE = 620;
+  private IMAGE_LARGE_SIZE = 1400;
+  private IMAGE_THUMB_SIZE = 700;
   private imageRepo: ImageStorageRepo;
   private config: CSGNConfig;
 
