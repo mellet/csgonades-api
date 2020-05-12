@@ -175,6 +175,7 @@ export type NadeUpdateDTO = {
   status?: NadeStatus;
   slug?: string;
   oneWay?: boolean;
+  isPro?: boolean;
 };
 
 export type NadeGfycatValidateDTO = {
@@ -200,6 +201,7 @@ export function updatedNadeMerge(
     mapEndCoord: updateFields.mapEndCoord,
     images: newImages,
     oneWay: updateFields.oneWay,
+    isPro: updateFields.isPro,
   };
 
   return removeUndefines(newNade);

@@ -118,6 +118,7 @@ export const validateNadeEditBody = (req: Request): NadeUpdateDTO => {
     // slug?: string;
     slug: Joi.string().optional(),
     oneWay: Joi.boolean().optional(),
+    isPro: Joi.boolean().optional(),
   }).unknown(false);
 
   const value = Joi.attempt(body, schema) as NadeUpdateDTO;
