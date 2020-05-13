@@ -319,28 +319,25 @@ export class NadeService {
 
     const updatedNade = await this.nadeRepo.update(nadeId, mergedNade, true);
 
-    // First time accepted
-    if (
-      updateFields.status === "accepted" &&
-      originalNade.status === "pending"
-    ) {
-      this.eventBus.emitNadeAccepted(updatedNade);
-      this.nadeRepo.setCreatedAtNowForNade(updatedNade.id);
-    }
+    this.handleStatusChange(originalNade, updatedNade);
 
-    if (
-      updateFields.status === "declined" &&
-      originalNade.status === "pending"
-    ) {
-      this.eventBus.emitNadeDeclined(updatedNade);
-    }
-
-    if (updatedNade) {
-      this.cache.invalidateNade(updatedNade.id);
-      this.cache.invalidateUserNades(updatedNade.steamId);
-    }
+    this.cache.invalidateNade(updatedNade.id);
+    this.cache.invalidateMap(updatedNade.map);
+    this.cache.invalidateUserNades(updatedNade.steamId);
 
     return updatedNade;
+  };
+
+  private handleStatusChange = (prevNade: NadeDTO, newNade: NadeDTO) => {
+    const prevStatus = prevNade.status;
+    const newStatus = newNade.status;
+
+    if (newStatus === "accepted" && prevStatus !== "accepted") {
+      this.eventBus.emitNadeAccepted(newNade);
+    }
+    if (newStatus === "declined" && prevStatus !== "declined") {
+      this.eventBus.emitNadeDeclined(newNade);
+    }
   };
 
   private incrementFavoriteCount = async (favorite: FavoriteDTO) => {
