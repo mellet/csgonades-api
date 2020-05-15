@@ -62,6 +62,10 @@ export class NadeService {
     this.eventBus.subNadeCommentCreate(this.incrementCommentCount);
     this.eventBus.subNadeCommentDelete(this.decrementCommentCount);
     this.eventBus.subUserDetailsUpdate(this.onUserDetailsUpdated);
+    this.eventBus.subIncrementDownVote(this.incrementDownVoteCount);
+    this.eventBus.subIncrementUpVote(this.incrementUpVoteCount);
+    this.eventBus.subDecrementDownVote(this.decrementDownVoteCount);
+    this.eventBus.subDecrementUpVote(this.decrementUpVoteCount);
   }
 
   slugIsFree = (slug: string) => this.nadeRepo.slugIsFree(slug);
@@ -344,24 +348,56 @@ export class NadeService {
     const nade = await this.nadeRepo.incrementFavoriteCount(favorite.nadeId);
     this.cache.invalidateNade(nade.id);
     this.cache.invalidateUserNades(nade.steamId);
+    this.cache.invalidateMap(nade.map);
   };
 
   private decrementFavoriteCount = async (favorite: FavoriteDTO) => {
     const nade = await this.nadeRepo.decrementFavoriteCount(favorite.nadeId);
     this.cache.invalidateNade(nade.id);
     this.cache.invalidateUserNades(nade.steamId);
+    this.cache.invalidateMap(nade.map);
   };
 
   private incrementCommentCount = async (comment: NadeCommentDto) => {
     const nade = await this.nadeRepo.incrementCommentCount(comment.nadeId);
     this.cache.invalidateNade(nade.id);
     this.cache.invalidateUserNades(nade.steamId);
+    this.cache.invalidateMap(nade.map);
   };
 
   private decrementCommentCount = async (comment: NadeCommentDto) => {
     const nade = await this.nadeRepo.decrementCommentCount(comment.nadeId);
     this.cache.invalidateNade(nade.id);
     this.cache.invalidateUserNades(nade.steamId);
+    this.cache.invalidateMap(nade.map);
+  };
+
+  private incrementUpVoteCount = async (nadeId: string) => {
+    const nade = await this.nadeRepo.incementUpVoteCount(nadeId);
+    this.cache.invalidateNade(nade.id);
+    this.cache.invalidateUserNades(nade.steamId);
+    this.cache.invalidateMap(nade.map);
+  };
+
+  private decrementUpVoteCount = async (nadeId: string) => {
+    const nade = await this.nadeRepo.decrementUpVoteCount(nadeId);
+    this.cache.invalidateNade(nade.id);
+    this.cache.invalidateUserNades(nade.steamId);
+    this.cache.invalidateMap(nade.map);
+  };
+
+  private incrementDownVoteCount = async (nadeId: string) => {
+    const nade = await this.nadeRepo.incementDownVoteCount(nadeId);
+    this.cache.invalidateNade(nade.id);
+    this.cache.invalidateUserNades(nade.steamId);
+    this.cache.invalidateMap(nade.map);
+  };
+
+  private decrementDownVoteCount = async (nadeId: string) => {
+    const nade = await this.nadeRepo.decrementDownVoteCount(nadeId);
+    this.cache.invalidateNade(nade.id);
+    this.cache.invalidateUserNades(nade.steamId);
+    this.cache.invalidateMap(nade.map);
   };
 
   private shouldUpdateStats = (nade: NadeDTO) => {

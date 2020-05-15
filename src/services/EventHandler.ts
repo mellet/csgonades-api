@@ -16,12 +16,60 @@ const NewReport = "@@report/NEW";
 const OnNadeCommentCreate = "@@nadecomment/NEW";
 const OnNadeCommentDelete = "@@nadecomment/DELETE";
 const OnUserDetailsUpdate = "@@user/UPDATE";
+const OnIncrementUpVote = "@@vote/INC_UPVOTE";
+const OnDecrementUpVote = "@@vote/DEC_UPVOTE";
+const OnIncrementDownVote = "@@vote/INC_DOWNVOTE";
+const OnDecrementDownVote = "@@vote/DEC_DOWNVOTE";
+
+type VoteData = {
+  nadeId: string;
+};
 
 export class EventBus {
   private eventEmitter: EventEmitter;
   constructor() {
     this.eventEmitter = new EventEmitter();
   }
+
+  emitIncrementUpVote = (nadeId: string) => {
+    this.eventEmitter.emit(OnIncrementUpVote, nadeId);
+  };
+
+  emitDecrementUpVote = (nadeId: string) => {
+    this.eventEmitter.emit(OnDecrementUpVote, nadeId);
+  };
+
+  subIncrementUpVote = (cb: (nadeId: string) => void) => {
+    this.eventEmitter.on(OnIncrementUpVote, (votedNadeId: string) =>
+      cb(votedNadeId)
+    );
+  };
+
+  subDecrementUpVote = (cb: (nadeId: string) => void) => {
+    this.eventEmitter.on(OnDecrementUpVote, (votedNadeId: string) =>
+      cb(votedNadeId)
+    );
+  };
+
+  emitIncrementDownVote = (nadeId: string) => {
+    this.eventEmitter.emit(OnIncrementDownVote, nadeId);
+  };
+
+  emitDecrementDownVote = (nadeId: string) => {
+    this.eventEmitter.emit(OnDecrementDownVote, nadeId);
+  };
+
+  subIncrementDownVote = (cb: (nadeId: string) => void) => {
+    this.eventEmitter.on(OnIncrementDownVote, (votedNadeId: string) =>
+      cb(votedNadeId)
+    );
+  };
+
+  subDecrementDownVote = (cb: (nadeId: string) => void) => {
+    this.eventEmitter.on(OnDecrementDownVote, (votedNadeId: string) =>
+      cb(votedNadeId)
+    );
+  };
 
   subUserDetailsUpdate = (cb: (user: UserDTO) => void) => {
     this.eventEmitter.on(OnUserDetailsUpdate, (value: UserDTO) => cb(value));

@@ -47,6 +47,9 @@ import { makeUserRouter } from "./user/UserRouter";
 import { UserService } from "./user/UserService";
 import { extractTokenMiddleware } from "./utils/AuthUtils";
 import { sessionRoute } from "./utils/SessionRoute";
+import { VoteRepo } from "./votes/VoteRepo";
+import { VoteRouter } from "./votes/VoteRouter";
+import { VoteService } from "./votes/VoteService";
 
 declare global {
   namespace NodeJS {
@@ -109,6 +112,7 @@ export const AppServer = (config: CSGNConfig) => {
   const reportRepo = new ReportRepo();
   const imageRepo = new ImageStorageRepo(bucket);
   const nadeCommentRepo = new NadeCommentRepo();
+  const voteRepo = new VoteRepo();
 
   // Event bus so services can send events that others can subscribe to
   const eventBus = new EventBus();
@@ -165,6 +169,7 @@ export const AppServer = (config: CSGNConfig) => {
     userService,
     eventBus,
   });
+  const voteService = new VoteService({ eventBus, voteRepo });
 
   // Routers
   const statusRouter = new StatusRouter({ cache: cacheService });
@@ -183,6 +188,7 @@ export const AppServer = (config: CSGNConfig) => {
     notificationService
   ).getRouter();
   const nadeCommentRouter = new NadeCommentRouter({ nadeCommentService });
+  const voteRouter = new VoteRouter({ voteService });
 
   app.use(nadeRouter.getRouter());
   app.use(steamRouter);
@@ -196,6 +202,7 @@ export const AppServer = (config: CSGNConfig) => {
   app.use(reportRouter);
   app.use(notificationRouter);
   app.use(nadeCommentRouter.getRouter());
+  app.use(voteRouter.getRouter());
 
   app.get("/", (_, res) => {
     res.send("");

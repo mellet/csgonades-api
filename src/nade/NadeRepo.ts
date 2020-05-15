@@ -236,6 +236,35 @@ export class NadeRepo {
     return this.byId(nadeId);
   };
 
+  incementUpVoteCount = async (nadeId: string) => {
+    update(this.collection, nadeId, {
+      upVoteCount: value("increment", 1),
+    });
+
+    return this.byId(nadeId);
+  };
+
+  decrementUpVoteCount = async (nadeId: string) => {
+    update(this.collection, nadeId, {
+      upVoteCount: value("increment", -1),
+    });
+    return this.byId(nadeId);
+  };
+
+  incementDownVoteCount = async (nadeId: string) => {
+    update(this.collection, nadeId, {
+      downVoteCount: value("increment", 1),
+    });
+    return this.byId(nadeId);
+  };
+
+  decrementDownVoteCount = async (nadeId: string) => {
+    update(this.collection, nadeId, {
+      downVoteCount: value("increment", -1),
+    });
+    return this.byId(nadeId);
+  };
+
   private toNadeDTO = (doc: Doc<NadeModel>): NadeDTO => {
     return {
       ...doc.data,

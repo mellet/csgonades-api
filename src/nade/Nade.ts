@@ -86,6 +86,8 @@ export interface NadeModel {
   viewCount: number;
   favoriteCount: number;
   commentCount: number;
+  upVoteCount?: number;
+  downVoteCount?: number;
   oneWay?: boolean;
   isPro?: boolean;
 }
