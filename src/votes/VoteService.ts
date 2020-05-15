@@ -33,7 +33,6 @@ export class VoteService {
 
     // If no previous vote, create the vote
     if (!previousVote) {
-      console.log("> Creating new vote");
       const vote = await this.voteRepo.createVote(user.steamId, voteBody);
       // Increment or decrement by vote value
       if (isUpVote) {
@@ -46,7 +45,6 @@ export class VoteService {
 
     // Ignore if vote is equal to current vote
     if (previousVote.vote === voteBody.vote) {
-      console.log("Ignoring vote");
       return null;
     }
 
@@ -55,11 +53,9 @@ export class VoteService {
 
     // Vote change
     if (isUpVote) {
-      console.log("> Change to up vote");
       this.eventBus.emitDecrementDownVote(voteBody.nadeId);
       this.eventBus.emitIncrementUpVote(voteBody.nadeId);
     } else {
-      console.log("> Changed to down vote");
       this.eventBus.emitDecrementUpVote(voteBody.nadeId);
       this.eventBus.emitIncrementDownVote(voteBody.nadeId);
     }
@@ -70,13 +66,15 @@ export class VoteService {
     const previousVote = await this.voteRepo.byId(voteId);
 
     if (!previousVote) {
-      console.warn("Did not find vote to remove");
+      console.log("> No vote found");
       return;
     }
 
     if (user.steamId !== previousVote.bySteamId) {
       throw ErrorFactory.Forbidden("Vote not owned by user");
     }
+
+    await this.voteRepo.deleteVote(voteId);
 
     const isUpVote = previousVote.vote > 0;
 

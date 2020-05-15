@@ -47,8 +47,6 @@ export class VoteRouter {
       const user = userFromRequest(req);
       const voteBody = req.body as VoteReqBody;
 
-      console.log("Casting vote");
-
       const vote = await this.voteService.castVote(user, voteBody);
 
       return res.status(201).send(vote);
