@@ -143,6 +143,8 @@ export type NadeLightDTO = {
   nextUpdateInHours: number;
   oneWay?: boolean;
   isPro?: boolean;
+  upVoteCount?: number;
+  downVoteCount?: number;
 };
 
 export type NadeCreateDTO = {

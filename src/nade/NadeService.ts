@@ -551,6 +551,8 @@ export class NadeService {
       nextUpdateInHours: this.timeToNextUpdate(nadeDto),
       oneWay: nadeDto.oneWay,
       isPro: nadeDto.isPro,
+      downVoteCount: nadeDto.downVoteCount,
+      upVoteCount: nadeDto.upVoteCount,
     };
   };
 }
