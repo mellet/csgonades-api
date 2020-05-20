@@ -277,12 +277,10 @@ export class NadeRepo {
   private calcScore = (nade: NadeModel): number => {
     const commentCount = (nade.commentCount || 1) * 250;
     const favoriteCount = (nade.favoriteCount || 1) * 1000;
-    const voteScore =
-      this.voteCalc(nade.upVoteCount, nade.downVoteCount) * 1000;
     const addedHoursAgo = moment().diff(moment(nade.createdAt), "hours", false);
     const proBonus = nade.isPro ? 1.02 : 1.0;
 
-    const interactionScore = Math.log(commentCount + favoriteCount + voteScore);
+    const interactionScore = Math.log(commentCount + favoriteCount);
     const ageScore = Math.log(50000 - addedHoursAgo) / 2;
 
     // Inflate new nades to allow them to get views
@@ -302,16 +300,5 @@ export class NadeRepo {
     } else {
       return 0;
     }
-  }
-
-  private voteCalc(upVoteCount?: number, downVoteCount?: number) {
-    const ups = upVoteCount || 0;
-    const downs = downVoteCount || 0;
-    const score = ups - downs;
-
-    if (score < 0) {
-      return 0;
-    }
-    return score;
   }
 }
