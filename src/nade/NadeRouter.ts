@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/node";
 import { RequestHandler, Router } from "express";
 import { GfycatService } from "../services/GfycatService";
 import { adminOrModHandler, authOnlyHandler } from "../utils/AuthUtils";
@@ -202,6 +203,7 @@ export class NadeRouter {
 
       return res.status(201).send(nade);
     } catch (error) {
+      Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
