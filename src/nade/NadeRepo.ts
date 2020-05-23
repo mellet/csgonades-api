@@ -292,12 +292,18 @@ export class NadeRepo {
   };
 
   private freshScore(addedHoursAgo: number, isPro?: boolean) {
-    const freshDuration = isPro ? 24 * 14 : 24 * 7;
-    if (addedHoursAgo < 36) {
-      return 100 - addedHoursAgo;
-    }
-    if (addedHoursAgo < freshDuration) {
-      return Math.log(freshDuration - addedHoursAgo || 1);
+    const bonusFreshScore = Math.log(50000 - addedHoursAgo || 1);
+
+    if (addedHoursAgo < 48) {
+      return bonusFreshScore;
+    } else if (addedHoursAgo < 24 * 7) {
+      return bonusFreshScore * 0.65;
+    } else if (addedHoursAgo < 24 * 14) {
+      return bonusFreshScore * 0.45;
+    } else if (addedHoursAgo < 24 * 21) {
+      return bonusFreshScore * 0.25;
+    } else if (addedHoursAgo < 24 * 30) {
+      return bonusFreshScore * 0.1;
     } else {
       return 0;
     }
