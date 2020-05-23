@@ -6,8 +6,9 @@ import { errorCatchConverter } from "../utils/ErrorUtil";
 import { userFromRequest } from "../utils/RouterUtils";
 import { sanitizeIt } from "../utils/Sanitize";
 import { getSessionId } from "../utils/SessionRoute";
-import { CsgoMap, GfycatData, NadeDTO, NadeGfycatValidateDTO } from "./Nade";
+import { GfycatData, NadeDTO, NadeGfycatValidateDTO } from "./Nade";
 import { NadeService } from "./NadeService";
+import { CsgoMap } from "./nadeSubTypes/CsgoMap";
 import { validateNadeCreateBody, validateNadeEditBody } from "./NadeValidators";
 
 type IdParam = {

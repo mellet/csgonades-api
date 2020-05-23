@@ -20,7 +20,8 @@ import { ModelUpdate } from "typesaurus/update";
 import { UserLightModel } from "../user/UserModel";
 import { removeUndefines } from "../utils/Common";
 import { ErrorFactory } from "../utils/ErrorUtil";
-import { CsgoMap, NadeCreateModel, NadeDTO, NadeModel } from "./Nade";
+import { NadeCreateModel, NadeDTO, NadeModel } from "./Nade";
+import { CsgoMap } from "./nadeSubTypes/CsgoMap";
 
 export class NadeRepo {
   private collection: Collection<NadeModel>;

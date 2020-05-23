@@ -1,5 +1,6 @@
 import NodeCache from "node-cache";
-import { CsgoMap, NadeDTO, NadeLightDTO } from "../nade/Nade";
+import { NadeDTO, NadeLightDTO } from "../nade/Nade";
+import { CsgoMap } from "../nade/nadeSubTypes/CsgoMap";
 import { TournamentModel } from "../tournament/Tournament";
 
 export class CachingService {

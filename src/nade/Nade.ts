@@ -1,5 +1,11 @@
 import { UserLightModel } from "../user/UserModel";
 import { removeUndefines } from "../utils/Common";
+import { CsgoMap } from "./nadeSubTypes/CsgoMap";
+import { Movement } from "./nadeSubTypes/Movements";
+import { NadeStatus } from "./nadeSubTypes/NadeStatus";
+import { NadeType } from "./nadeSubTypes/NadeType";
+import { Technique } from "./nadeSubTypes/Technique";
+import { Tickrate } from "./nadeSubTypes/Tickrate";
 
 export type NadeImages = {
   // Result image
@@ -11,28 +17,6 @@ export type NadeImages = {
   lineupUrl?: string;
 };
 
-export type CsgoMap =
-  | "notset"
-  | "dust2"
-  | "mirage"
-  | "nuke"
-  | "cache"
-  | "inferno"
-  | "anubis"
-  | "vertigo"
-  | "overpass"
-  | "cobblestone";
-
-type Movement =
-  | "notset"
-  | "stationary"
-  | "running"
-  | "walking"
-  | "crouching"
-  | "crouchwalking";
-
-export type NadeStatus = "pending" | "accepted" | "declined" | "deleted";
-
 type StatusInfo = string;
 
 export type GfycatData = {
@@ -43,12 +27,6 @@ export type GfycatData = {
   avgColor?: string;
   duration?: string;
 };
-
-type Technique = "notset" | "left" | "right" | "both" | "jumpthrow";
-
-type Tickrate = "tick64" | "tick128" | "any";
-
-type NadeType = "notset" | "smoke" | "flash" | "molotov" | "hegrenade";
 
 type MapCoordinates = {
   x: number;

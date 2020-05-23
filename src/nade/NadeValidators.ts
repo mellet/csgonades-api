@@ -1,6 +1,12 @@
 import Joi from "@hapi/joi";
 import { Request } from "express";
 import { NadeCreateDTO, NadeUpdateDTO } from "./Nade";
+import { nadeValidMaps } from "./nadeSubTypes/CsgoMap";
+import { nadeValidMovements } from "./nadeSubTypes/Movements";
+import { nadeValidStatus } from "./nadeSubTypes/NadeStatus";
+import { nadeValidTypes } from "./nadeSubTypes/NadeType";
+import { nadeValidTechniques } from "./nadeSubTypes/Technique";
+import { nadeValidTickrate } from "./nadeSubTypes/Tickrate";
 
 export const validateNadeCreateBody = (req: Request): NadeCreateDTO => {
   const body = req.body as NadeCreateDTO;
@@ -27,34 +33,15 @@ export const validateNadeCreateBody = (req: Request): NadeCreateDTO => {
     // description: string;
     description: Joi.string().required(),
     // map: CsgoMap;
-    map: Joi.string()
-      .allow(
-        "dust2",
-        "mirage",
-        "nuke",
-        "inferno",
-        "cache",
-        "vertigo",
-        "anubis",
-        "train",
-        "overpass",
-        "cobblestone"
-      )
-      .required(),
+    map: Joi.string().valid(nadeValidMaps()).required(),
     // movement: Movement;
-    movement: Joi.string()
-      .allow("stationary", "running", "walking", "crouching", "crouchwalking")
-      .required(),
+    movement: Joi.string().valid(nadeValidMovements()).required(),
     // technique: Technique;
-    technique: Joi.string()
-      .allow("left", "right", "both", "jumpthrow")
-      .required(),
+    technique: Joi.string().valid(nadeValidTechniques()).required(),
     // tickrate?: Tickrate;
-    tickrate: Joi.string().allow("tick64", "tick128", "any").optional(),
+    tickrate: Joi.string().valid(nadeValidTickrate()).optional(),
     // type: NadeType;
-    type: Joi.string()
-      .allow("smoke", "flash", "molotov", "hegrenade")
-      .required(),
+    type: Joi.string().valid(nadeValidTypes()).required(),
     // mapEndCoord: MapCoordinates;
     mapEndCoord: Joi.object()
       .keys({
@@ -95,34 +82,15 @@ export const validateNadeEditBody = (req: Request): NadeUpdateDTO => {
     // description?: string;
     description: Joi.string().optional(),
     // map?: CsgoMap;
-    map: Joi.string()
-      .allow(
-        "dust2",
-        "mirage",
-        "nuke",
-        "inferno",
-        "cache",
-        "vertigo",
-        "anubis",
-        "train",
-        "overpass",
-        "cobblestone"
-      )
-      .optional(),
+    map: Joi.string().valid(nadeValidMaps()).optional(),
     // movement?: Movement;
-    movement: Joi.string()
-      .allow("stationary", "running", "walking", "crouching", "crouchwalking")
-      .optional(),
+    movement: Joi.string().valid(nadeValidMovements()).optional(),
     // technique?: Technique;
-    technique: Joi.string()
-      .allow("left", "right", "both", "jumpthrow")
-      .optional(),
+    technique: Joi.string().valid(nadeValidTechniques()).optional(),
     // tickrate?: Tickrate;
-    tickrate: Joi.string().allow("tick64", "tick128", "any").optional(),
+    tickrate: Joi.string().valid(nadeValidTickrate()).optional(),
     // type?: NadeType;
-    type: Joi.string()
-      .allow("smoke", "flash", "molotov", "hegrenade")
-      .optional(),
+    type: Joi.string().valid(nadeValidTypes()).optional(),
     // mapEndCoord?: MapCoordinates;
     mapEndCoord: Joi.object()
       .keys({
@@ -131,9 +99,7 @@ export const validateNadeEditBody = (req: Request): NadeUpdateDTO => {
       })
       .optional(),
     //status?: NadeStatus;
-    status: Joi.string()
-      .allow("pending", "accepted", "declined", "deleted")
-      .optional(),
+    status: Joi.string().allow(nadeValidStatus()).optional(),
     // slug?: string;
     slug: Joi.string().optional(),
     oneWay: Joi.boolean().optional(),

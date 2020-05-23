@@ -11,7 +11,6 @@ import { UserService } from "../user/UserService";
 import { clamp, removeUndefines } from "../utils/Common";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import {
-  CsgoMap,
   NadeCreateDTO,
   NadeCreateModel,
   NadeDTO,
@@ -22,6 +21,7 @@ import {
   updatedNadeMerge,
 } from "./Nade";
 import { NadeRepo } from "./NadeRepo";
+import { CsgoMap } from "./nadeSubTypes/CsgoMap";
 
 type NadeServiceDeps = {
   nadeRepo: NadeRepo;
