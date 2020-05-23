@@ -33,15 +33,25 @@ export const validateNadeCreateBody = (req: Request): NadeCreateDTO => {
     // description: string;
     description: Joi.string().required(),
     // map: CsgoMap;
-    map: Joi.string().valid(nadeValidMaps()).required(),
+    map: Joi.string()
+      .valid(...nadeValidMaps())
+      .required(),
     // movement: Movement;
-    movement: Joi.string().valid(nadeValidMovements()).required(),
+    movement: Joi.string()
+      .valid(...nadeValidMovements())
+      .required(),
     // technique: Technique;
-    technique: Joi.string().valid(nadeValidTechniques()).required(),
+    technique: Joi.string()
+      .valid(...nadeValidTechniques())
+      .required(),
     // tickrate?: Tickrate;
-    tickrate: Joi.string().valid(nadeValidTickrate()).optional(),
+    tickrate: Joi.string()
+      .valid(...nadeValidTickrate())
+      .optional(),
     // type: NadeType;
-    type: Joi.string().valid(nadeValidTypes()).required(),
+    type: Joi.string()
+      .valid(...nadeValidTypes())
+      .required(),
     // mapEndCoord: MapCoordinates;
     mapEndCoord: Joi.object()
       .keys({
@@ -82,15 +92,25 @@ export const validateNadeEditBody = (req: Request): NadeUpdateDTO => {
     // description?: string;
     description: Joi.string().optional(),
     // map?: CsgoMap;
-    map: Joi.string().valid(nadeValidMaps()).optional(),
+    map: Joi.string()
+      .valid(...nadeValidMaps())
+      .optional(),
     // movement?: Movement;
-    movement: Joi.string().valid(nadeValidMovements()).optional(),
+    movement: Joi.string()
+      .valid(...nadeValidMovements())
+      .optional(),
     // technique?: Technique;
-    technique: Joi.string().valid(nadeValidTechniques()).optional(),
+    technique: Joi.string()
+      .valid(...nadeValidTechniques())
+      .optional(),
     // tickrate?: Tickrate;
-    tickrate: Joi.string().valid(nadeValidTickrate()).optional(),
+    tickrate: Joi.string()
+      .valid(...nadeValidTickrate())
+      .optional(),
     // type?: NadeType;
-    type: Joi.string().valid(nadeValidTypes()).optional(),
+    type: Joi.string()
+      .valid(...nadeValidTypes())
+      .optional(),
     // mapEndCoord?: MapCoordinates;
     mapEndCoord: Joi.object()
       .keys({
@@ -99,7 +119,9 @@ export const validateNadeEditBody = (req: Request): NadeUpdateDTO => {
       })
       .optional(),
     //status?: NadeStatus;
-    status: Joi.string().allow(nadeValidStatus()).optional(),
+    status: Joi.string()
+      .valid(...nadeValidStatus())
+      .optional(),
     // slug?: string;
     slug: Joi.string().optional(),
     oneWay: Joi.boolean().optional(),

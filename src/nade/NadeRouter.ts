@@ -237,6 +237,7 @@ export class NadeRouter {
 
       return res.status(202).send(nade);
     } catch (error) {
+      Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
