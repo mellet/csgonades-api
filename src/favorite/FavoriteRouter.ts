@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/node";
 import { RequestHandler, Router } from "express";
 import { authOnlyHandler } from "../utils/AuthUtils";
 import { errorCatchConverter } from "../utils/ErrorUtil";
@@ -59,6 +60,7 @@ export class FavoriteRouter {
 
       return res.status(201).send(favorite);
     } catch (error) {
+      Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
@@ -73,6 +75,7 @@ export class FavoriteRouter {
 
       return res.status(202).send();
     } catch (error) {
+      Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }

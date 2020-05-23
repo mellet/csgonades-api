@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/node";
 import { RequestHandler, Router } from "express";
 import { authOnlyHandler } from "../utils/AuthUtils";
 import { errorCatchConverter } from "../utils/ErrorUtil";
@@ -51,6 +52,7 @@ export class NadeCommentRouter {
 
       return res.status(200).send(nadeComments);
     } catch (error) {
+      Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
@@ -76,6 +78,7 @@ export class NadeCommentRouter {
 
       return res.status(201).send(comment);
     } catch (error) {
+      Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
@@ -102,6 +105,7 @@ export class NadeCommentRouter {
       );
       return res.status(201).send(updatedComment);
     } catch (error) {
+      Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
@@ -115,6 +119,7 @@ export class NadeCommentRouter {
 
       return res.status(204).send();
     } catch (error) {
+      Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }

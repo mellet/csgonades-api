@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/node";
 import { RequestHandler, Router } from "express";
 import { adminOrModHandler } from "../utils/AuthUtils";
 import { errorCatchConverter } from "../utils/ErrorUtil";
@@ -47,8 +48,8 @@ export class ReportRouter {
 
       return res.status(202).send(result);
     } catch (error) {
+      Sentry.captureException(error);
       const err = errorCatchConverter(error);
-
       return res.status(err.code).send(err);
     }
   };
@@ -60,7 +61,6 @@ export class ReportRouter {
       return res.status(204).send();
     } catch (error) {
       const err = errorCatchConverter(error);
-
       return res.status(err.code).send(err);
     }
   };

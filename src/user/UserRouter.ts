@@ -1,8 +1,9 @@
+import * as Sentry from "@sentry/node";
 import { Router } from "express";
 import {
   adminOrModHandler,
   authOnlyHandler,
-  RequestUser
+  RequestUser,
 } from "../utils/AuthUtils";
 import { errorCatchConverter, ErrorFactory } from "../utils/ErrorUtil";
 import { maybeUserFromRequest, userFromRequest } from "../utils/RouterUtils";
@@ -20,6 +21,7 @@ export const makeUserRouter = (userService: UserService): Router => {
 
       return res.status(200).send(user);
     } catch (error) {
+      Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
@@ -59,7 +61,7 @@ export const makeUserRouter = (userService: UserService): Router => {
       const userFilter: UserFilter = {
         byActivity: sortActive,
         limit,
-        page
+        page,
       };
 
       const users = await userService.all(userFilter);
@@ -82,14 +84,13 @@ export const makeUserRouter = (userService: UserService): Router => {
       const user = await userService.update(steamId, userUpdateFields);
 
       if (!user) {
-        return res.status(400).send({
-          status: 400,
-          message: "No user found"
-        });
+        throw ErrorFactory.NotFound("No user found");
       }
 
       return res.status(202).send(user);
     } catch (error) {
+      Sentry.captureException(error);
+
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
