@@ -276,22 +276,24 @@ export class NadeRepo {
   };
 
   private calcScore = (nade: NadeModel): number => {
-    const commentCount = (nade.commentCount || 1) * 250;
-    const favoriteCount = (nade.favoriteCount || 1) * 1000;
     const addedHoursAgo = moment().diff(moment(nade.createdAt), "hours", false);
     const proBonus = nade.isPro ? 1.02 : 1.0;
 
-    const interactionScore = Math.log(commentCount + favoriteCount);
-    const ageScore = Math.log(50000 - addedHoursAgo) / 2;
+    const interactionScore = this.interactionScore(
+      addedHoursAgo,
+      nade.commentCount,
+      nade.favoriteCount
+    );
+    const ageScore = Math.log(50000 - addedHoursAgo);
 
     // Inflate new nades to allow them to get views
-    const freshScore = this.freshScore(addedHoursAgo, nade.isPro);
+    const freshScore = this.freshScore(addedHoursAgo);
     const hotScore = freshScore + ageScore + interactionScore;
 
     return hotScore * proBonus;
   };
 
-  private freshScore(addedHoursAgo: number, isPro?: boolean) {
+  private freshScore(addedHoursAgo: number) {
     const bonusFreshScore = Math.log(50000 - addedHoursAgo || 1);
 
     if (addedHoursAgo < 48) {
@@ -300,12 +302,28 @@ export class NadeRepo {
       return bonusFreshScore * 0.65;
     } else if (addedHoursAgo < 24 * 14) {
       return bonusFreshScore * 0.45;
-    } else if (addedHoursAgo < 24 * 21) {
-      return bonusFreshScore * 0.25;
-    } else if (addedHoursAgo < 24 * 30) {
-      return bonusFreshScore * 0.1;
     } else {
       return 0;
     }
   }
+
+  private interactionScore = (
+    addedHoursAgo: number,
+    commentCount?: number,
+    favCount?: number
+  ) => {
+    const addedWeeksAgo = addedHoursAgo / 24 / 7;
+    const commentScore = commentCount || 0;
+    let favScore = (favCount || 0) <= 2 ? 0 : favCount || 0;
+
+    const multiplier = 20 / addedWeeksAgo;
+
+    if (addedWeeksAgo < 10) {
+      favScore = favScore * multiplier;
+    }
+
+    const interactionScore = Math.log(commentScore + favScore || 1);
+
+    return interactionScore;
+  };
 }
