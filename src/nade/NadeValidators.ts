@@ -5,6 +5,7 @@ import { NadeCreateDTO, NadeUpdateDTO } from "./Nade";
 export const validateNadeCreateBody = (req: Request): NadeCreateDTO => {
   const body = req.body as NadeCreateDTO;
   const schema = Joi.object<NadeCreateDTO>({
+    // gfycat: GfycatData;
     gfycat: Joi.object()
       .keys({
         gfyId: Joi.string(),
@@ -15,11 +16,17 @@ export const validateNadeCreateBody = (req: Request): NadeCreateDTO => {
         duration: Joi.string().optional(),
       })
       .required(),
+    // imageBase64: string;
     imageBase64: Joi.string().required(),
+    // lineUpImageBase64?: string;
     lineUpImageBase64: Joi.string().optional(),
+    // startPosition: string;
     startPosition: Joi.string().required(),
+    // endPosition: string;
     endPosition: Joi.string().required(),
+    // description: string;
     description: Joi.string().required(),
+    // map: CsgoMap;
     map: Joi.string()
       .allow(
         "dust2",
@@ -34,22 +41,28 @@ export const validateNadeCreateBody = (req: Request): NadeCreateDTO => {
         "cobblestone"
       )
       .required(),
+    // movement: Movement;
     movement: Joi.string()
       .allow("stationary", "running", "walking", "crouching", "crouchwalking")
       .required(),
+    // technique: Technique;
     technique: Joi.string()
       .allow("left", "right", "both", "jumpthrow")
       .required(),
+    // tickrate?: Tickrate;
     tickrate: Joi.string().allow("tick64", "tick128", "any").optional(),
+    // type: NadeType;
     type: Joi.string()
       .allow("smoke", "flash", "molotov", "hegrenade")
       .required(),
+    // mapEndCoord: MapCoordinates;
     mapEndCoord: Joi.object()
       .keys({
         x: Joi.number(),
         y: Joi.number(),
       })
       .required(),
+    // oneWay?: boolean;
     oneWay: Joi.boolean().optional(),
   }).unknown(false);
 
@@ -88,7 +101,10 @@ export const validateNadeEditBody = (req: Request): NadeUpdateDTO => {
         "mirage",
         "nuke",
         "inferno",
+        "cache",
+        "vertigo",
         "anubis",
+        "train",
         "overpass",
         "cobblestone"
       )
@@ -99,7 +115,7 @@ export const validateNadeEditBody = (req: Request): NadeUpdateDTO => {
       .optional(),
     // technique?: Technique;
     technique: Joi.string()
-      .allow("mouseleft", "mouseright", "mouseboth", "jumpthrow")
+      .allow("left", "right", "both", "jumpthrow")
       .optional(),
     // tickrate?: Tickrate;
     tickrate: Joi.string().allow("tick64", "tick128", "any").optional(),
