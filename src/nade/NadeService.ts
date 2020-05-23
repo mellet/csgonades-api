@@ -535,7 +535,6 @@ export class NadeService {
       images: nadeDto.images,
       status: nadeDto.status,
       viewCount: nadeDto.viewCount,
-      mapSite: nadeDto.mapSite,
       tickrate: nadeDto.tickrate,
       title: nadeDto.title,
       endPosition: nadeDto.endPosition,

@@ -16,8 +16,10 @@ export type CsgoMap =
   | "dust2"
   | "mirage"
   | "nuke"
+  | "cache"
   | "inferno"
   | "anubis"
+  | "vertigo"
   | "overpass"
   | "cobblestone";
 
@@ -31,8 +33,6 @@ type Movement =
 
 export type NadeStatus = "pending" | "accepted" | "declined" | "deleted";
 
-export type MapSite = "a" | "b" | "mid";
-
 type StatusInfo = string;
 
 export type GfycatData = {
@@ -44,12 +44,7 @@ export type GfycatData = {
   duration?: string;
 };
 
-type Technique =
-  | "notset"
-  | "mouseleft"
-  | "mouseright"
-  | "mouseboth"
-  | "jumpthrow";
+type Technique = "notset" | "left" | "right" | "both" | "jumpthrow";
 
 type Tickrate = "tick64" | "tick128" | "any";
 
@@ -80,7 +75,6 @@ export interface NadeModel {
   tickrate?: Tickrate;
   type?: NadeType;
   statusInfo?: StatusInfo;
-  mapSite?: MapSite;
   mapStartCoord?: MapCoordinates;
   mapEndCoord?: MapCoordinates;
   viewCount: number;
@@ -128,7 +122,6 @@ export type NadeLightDTO = {
   gfycat: GfycatData;
   images: NadeImages;
   type?: NadeType;
-  mapSite?: MapSite;
   tickrate?: Tickrate;
   technique?: Technique;
   movement?: Movement;

@@ -26,7 +26,10 @@ export const validateNadeCreateBody = (req: Request): NadeCreateDTO => {
         "mirage",
         "nuke",
         "inferno",
+        "cache",
+        "vertigo",
         "anubis",
+        "train",
         "overpass",
         "cobblestone"
       )
@@ -35,7 +38,7 @@ export const validateNadeCreateBody = (req: Request): NadeCreateDTO => {
       .allow("stationary", "running", "walking", "crouching", "crouchwalking")
       .required(),
     technique: Joi.string()
-      .allow("mouseleft", "mouseright", "mouseboth", "jumpthrow")
+      .allow("left", "right", "both", "jumpthrow")
       .required(),
     tickrate: Joi.string().allow("tick64", "tick128", "any").optional(),
     type: Joi.string()
