@@ -77,8 +77,12 @@ export class NadeService {
       steamId: user.steamId,
     });
 
-    // Clear cache on update
-    this.cache.flushAll();
+    const nadesByUser = await this.nadeRepo.byUser(user.steamId);
+
+    if (nadesByUser.length) {
+      // Clear cache if user had any nades
+      this.cache.flushAll();
+    }
   };
 
   fetchNades = async (

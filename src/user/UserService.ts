@@ -47,7 +47,7 @@ export class UserService {
         steamId: player.steamID,
         nickname: player.nickname,
         avatar: player.avatar.medium,
-        role: "user"
+        role: "user",
       };
       const user = await this.userRepo.create(newUser);
 
