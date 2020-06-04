@@ -297,7 +297,7 @@ export class NadeRepo {
     const bonusFreshScore = Math.log(50000 - addedHoursAgo || 1);
 
     if (addedHoursAgo < 48) {
-      return bonusFreshScore;
+      return bonusFreshScore + 10;
     } else if (addedHoursAgo < 24 * 7) {
       return bonusFreshScore * 0.65;
     } else if (addedHoursAgo < 24 * 14) {
