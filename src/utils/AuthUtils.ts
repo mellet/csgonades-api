@@ -1,4 +1,5 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction } from "express";
+import { Request, Response } from "express-serve-static-core";
 import jwt from "jsonwebtoken";
 import { CSGNConfig } from "../config/enironment";
 import { Role, UserModel } from "../user/UserModel";
@@ -20,7 +21,7 @@ export const createRefreshToken = (secret: string, user: UserModel): string => {
   const token = jwt.sign(
     {
       steamId: user.steamId,
-      role: user.role
+      role: user.role,
     },
     secret,
     { expiresIn: "30d" }
@@ -32,11 +33,11 @@ export const createAccessToken = (secret: string, user: UserModel): string => {
   const token = jwt.sign(
     {
       steamId: user.steamId,
-      role: user.role
+      role: user.role,
     },
     secret,
     {
-      expiresIn: "15m"
+      expiresIn: "15m",
     }
   );
   return token;
@@ -55,7 +56,7 @@ export const authOnlyHandler = (
   const user = userFromRequest(req);
   if (!user || !(user && user.role) || !(user && user.steamId)) {
     return res.status(401).send({
-      error: "Access denied. No user detected."
+      error: "Access denied. No user detected.",
     });
   }
   next();
@@ -69,13 +70,13 @@ export const adminOrModHandler = (
   const user = userFromRequest(req);
   if (!user) {
     return res.status(401).send({
-      error: "Access denied. No user detected."
+      error: "Access denied. No user detected.",
     });
   }
 
   if (user.role === "user") {
     return res.status(403).send({
-      error: "Only allowed by admin or moderator."
+      error: "Only allowed by admin or moderator.",
     });
   }
 
@@ -91,7 +92,7 @@ export const extractTokenMiddleware = (config: CSGNConfig) => {
         const decoded = payloadFromToken(config.secrets.server_key, token);
         const requestUser: RequestUser = {
           steamId: decoded.steamId,
-          role: decoded.role
+          role: decoded.role,
         };
         req.user = requestUser;
       } catch (error) {
@@ -114,7 +115,7 @@ export const extractTokenMiddleware = (config: CSGNConfig) => {
         );
         const requestUser: RequestUser = {
           steamId: decoded.steamId,
-          role: decoded.role
+          role: decoded.role,
         };
         req.user = requestUser;
       } catch (error) {

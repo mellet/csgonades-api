@@ -1,11 +1,12 @@
-import { RequestHandler, Router } from "express";
+import { Router } from "express";
+import { Request, Response } from "express-serve-static-core";
 import { adminOrModHandler } from "../utils/AuthUtils";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { ArticleService } from "./ArticleService";
 import {
   validateArticleCreateDTO,
   validateArticleId,
-  validateArticleUpdateDTO
+  validateArticleUpdateDTO,
 } from "./ArticleValidators";
 
 export class ArticleController {
@@ -29,7 +30,7 @@ export class ArticleController {
     );
   };
 
-  getArticles: RequestHandler = async (_, res) => {
+  getArticles = async (_: Request, res: Response) => {
     try {
       const articles = await this.articleService.getAll();
 
@@ -40,7 +41,7 @@ export class ArticleController {
     }
   };
 
-  get: RequestHandler = async (req, res) => {
+  get = async (req: Request, res: Response) => {
     try {
       const articleId = validateArticleId(req);
 
@@ -53,7 +54,7 @@ export class ArticleController {
     }
   };
 
-  createArticle: RequestHandler = async (req, res) => {
+  createArticle = async (req: Request, res: Response) => {
     try {
       const articleCreateDto = validateArticleCreateDTO(req);
 
@@ -66,7 +67,7 @@ export class ArticleController {
     }
   };
 
-  updateArticle: RequestHandler = async (req, res) => {
+  updateArticle = async (req: Request, res: Response) => {
     try {
       const articleId = validateArticleId(req);
       const articleUpdateDto = validateArticleUpdateDTO(req);

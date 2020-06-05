@@ -1,4 +1,4 @@
-import nanoid from "nanoid";
+import { nanoid } from "nanoid";
 import sharp from "sharp";
 import { CSGNConfig } from "../config/enironment";
 import { ErrorFactory } from "../utils/ErrorUtil";

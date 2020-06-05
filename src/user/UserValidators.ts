@@ -1,5 +1,5 @@
 import Joi from "@hapi/joi";
-import { Request } from "express";
+import { Request } from "express-serve-static-core";
 import { sanitizeIt } from "../utils/Sanitize";
 import { UserUpdateDTO } from "./UserDTOs";
 
@@ -7,13 +7,9 @@ export const validateUserUpdateDTO = (req: Request): UserUpdateDTO => {
   const body = req.body as UserUpdateDTO;
   const articleUpdateSchema = Joi.object<UserUpdateDTO>({
     nickname: Joi.string().optional(),
-    bio: Joi.string()
-      .allow("")
-      .optional(),
-    email: Joi.string()
-      .allow("")
-      .optional(),
-    createdAt: Joi.string().optional()
+    bio: Joi.string().allow("").optional(),
+    email: Joi.string().allow("").optional(),
+    createdAt: Joi.string().optional(),
   }).unknown(false);
 
   const value = Joi.attempt(body, articleUpdateSchema) as UserUpdateDTO;
@@ -29,7 +25,7 @@ type SteamIdReqParam = {
 
 export const validateSteamId = (req: Request): SteamIdReqParam => {
   const articleUpdateSchema = Joi.object({
-    steamId: Joi.string().required()
+    steamId: Joi.string().required(),
   }).unknown(false);
 
   const value = Joi.attempt(req.params, articleUpdateSchema) as SteamIdReqParam;

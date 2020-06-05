@@ -74,7 +74,6 @@ export class ImageStorageRepo {
         await image.delete();
       } catch (error) {
         Sentry.captureException(error);
-        throw ErrorFactory.ExternalError("Failed to delete image.");
       }
     }
   }

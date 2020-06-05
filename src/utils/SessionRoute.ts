@@ -1,4 +1,4 @@
-import { CookieOptions, Request, Response } from "express";
+import { CookieOptions, Request, Response } from "express-serve-static-core";
 import uniqid from "uniqid";
 
 export function sessionRoute(req: Request, res: Response) {
@@ -13,7 +13,7 @@ export function sessionRoute(req: Request, res: Response) {
   const config: CookieOptions = {
     httpOnly: true,
     maxAge: oneDay,
-    signed: true
+    signed: true,
   };
   res.cookie("csgonadessession", id, config);
   return res.status(200).send();

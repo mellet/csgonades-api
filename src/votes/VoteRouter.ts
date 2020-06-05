@@ -1,4 +1,5 @@
-import { RequestHandler, Router } from "express";
+import { Router } from "express";
+import { Request, Response } from "express-serve-static-core";
 import { authOnlyHandler } from "../utils/AuthUtils";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { userFromRequest } from "../utils/RouterUtils";
@@ -30,7 +31,7 @@ export class VoteRouter {
     this.router.delete("/votes/:voteId", authOnlyHandler, this.removeVote);
   };
 
-  private getVotes: RequestHandler = async (req, res) => {
+  private getVotes = async (req: Request, res: Response) => {
     try {
       const user = userFromRequest(req);
       const votes = await this.voteService.getUserVotes(user);
@@ -42,7 +43,7 @@ export class VoteRouter {
     }
   };
 
-  private castVote: RequestHandler = async (req, res) => {
+  private castVote = async (req: Request, res: Response) => {
     try {
       const user = userFromRequest(req);
       const voteBody = req.body as VoteReqBody;
@@ -56,7 +57,7 @@ export class VoteRouter {
     }
   };
 
-  private removeVote: RequestHandler = async (req, res) => {
+  private removeVote = async (req: Request, res: Response) => {
     try {
       const voteId = sanitizeIt(req.params.voteId);
       const user = userFromRequest(req);

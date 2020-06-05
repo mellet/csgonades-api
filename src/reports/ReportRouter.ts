@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/node";
-import { RequestHandler, Router } from "express";
+import { Router } from "express";
+import { Request, Response } from "express-serve-static-core";
 import { adminOrModHandler } from "../utils/AuthUtils";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { ReportService } from "./ReportService";
@@ -29,7 +30,7 @@ export class ReportRouter {
     );
   };
 
-  private getReports: RequestHandler = async (_, res) => {
+  private getReports = async (_: Request, res: Response) => {
     try {
       const reports = await this.reportService.getAll();
 
@@ -41,7 +42,7 @@ export class ReportRouter {
     }
   };
 
-  private saveReport: RequestHandler = async (req, res) => {
+  private saveReport = async (req: Request, res: Response) => {
     try {
       const dto = validateReportSaveDTO(req);
       const result = await this.reportService.save(dto);
@@ -54,7 +55,7 @@ export class ReportRouter {
     }
   };
 
-  private deleteReport: RequestHandler = async (req, res) => {
+  private deleteReport = async (req: Request, res: Response) => {
     try {
       const id = validateReportId(req);
       await this.reportService.delete(id);

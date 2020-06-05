@@ -1,4 +1,5 @@
-import { RequestHandler, Router } from "express";
+import { Router } from "express";
+import { Request, Response } from "express-serve-static-core";
 import { adminOrModHandler } from "../utils/AuthUtils";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { TournamentCreateDTO } from "./Tournament";
@@ -24,7 +25,7 @@ export class TournamentController {
     this.router.patch("/tournaments", adminOrModHandler, this.updateTournament);
   };
 
-  private getTournaments: RequestHandler = async (_, res) => {
+  private getTournaments = async (_: Request, res: Response) => {
     try {
       const tournaments = await this.tournamentSerivce.getAll();
       return res.status(200).send(tournaments);
@@ -34,7 +35,7 @@ export class TournamentController {
     }
   };
 
-  private createTournament: RequestHandler = async (req, res) => {
+  private createTournament = async (req: Request, res: Response) => {
     try {
       const tournament = req.body as TournamentCreateDTO;
       await this.tournamentSerivce.save(tournament);
@@ -46,7 +47,7 @@ export class TournamentController {
     }
   };
 
-  private updateTournament: RequestHandler = async (req, res) => {
+  private updateTournament = async (req: Request, res: Response) => {
     try {
       const id = req.params.id;
       const updates = req.body as Partial<TournamentCreateDTO>;

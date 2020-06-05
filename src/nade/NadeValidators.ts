@@ -1,5 +1,5 @@
 import Joi from "@hapi/joi";
-import { Request } from "express";
+import { Request } from "express-serve-static-core";
 import { NadeCreateDTO, NadeUpdateDTO } from "./Nade";
 import { nadeValidMaps } from "./nadeSubTypes/CsgoMap";
 import { nadeValidMovements } from "./nadeSubTypes/Movements";
