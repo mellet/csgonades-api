@@ -1,5 +1,4 @@
 import Joi from "@hapi/joi";
-import { Request } from "express-serve-static-core";
 import { sanitizeIt } from "../utils/Sanitize";
 import { ArticleCreateDTO, ArticleUpdateDTO } from "./Article";
 
@@ -16,7 +15,7 @@ export const validateArticleUpdateDTO = (req: Request): ArticleUpdateDTO => {
   return value;
 };
 
-export const validateArticleCreateDTO = (req: Request): ArticleCreateDTO => {
+export const validateArticleCreateDTO = (req): ArticleCreateDTO => {
   const body = req.body as ArticleCreateDTO;
 
   const articleUpdateSchema = Joi.object({
@@ -31,7 +30,7 @@ export const validateArticleCreateDTO = (req: Request): ArticleCreateDTO => {
   return value;
 };
 
-export const validateArticleId = (req: Request): string => {
+export const validateArticleId = (req): string => {
   const articleUpdateSchema = Joi.object({
     articleId: Joi.string().required(),
   }).unknown(false);

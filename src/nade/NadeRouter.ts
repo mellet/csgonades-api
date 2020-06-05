@@ -1,6 +1,5 @@
 import * as Sentry from "@sentry/node";
 import { Router } from "express";
-import { Request, Response } from "express-serve-static-core";
 import { GfycatService } from "../services/GfycatService";
 import { adminOrModHandler, authOnlyHandler } from "../utils/AuthUtils";
 import { errorCatchConverter } from "../utils/ErrorUtil";
@@ -65,7 +64,7 @@ export class NadeRouter {
     this.router.get("/nades/:id/checkslug", this.checkSlug);
   };
 
-  private checkSlug = async (req: Request<IdParam>, res: Response) => {
+  private checkSlug = async (req, res) => {
     try {
       const slug = req.params.id;
       const slugIsFree = await this.nadeService.slugIsFree(slug);
@@ -77,7 +76,7 @@ export class NadeRouter {
     }
   };
 
-  private getNades = async (req: Request, res: Response) => {
+  private getNades = async (req, res) => {
     try {
       const limitParam = req?.query?.limit;
       let limit: number | undefined = undefined;
@@ -101,7 +100,7 @@ export class NadeRouter {
     }
   };
 
-  private getPendingNades = async (req: Request, res: Response) => {
+  private getPendingNades = async (req, res) => {
     try {
       const pendingNades = await this.nadeService.pending();
 
@@ -112,7 +111,7 @@ export class NadeRouter {
     }
   };
 
-  private getDeclinedNades = async (_: Request, res: Response) => {
+  private getDeclinedNades = async (_, res) => {
     try {
       const declinedNades = await this.nadeService.declined();
 
@@ -123,7 +122,7 @@ export class NadeRouter {
     }
   };
 
-  private getById = async (req: Request<IdParam>, res: Response) => {
+  private getById = async (req, res) => {
     try {
       const id = sanitizeIt(req.params.id);
 
@@ -149,7 +148,7 @@ export class NadeRouter {
     }
   };
 
-  private getByIdList = async (req: Request, res: Response) => {
+  private getByIdList = async (req, res) => {
     try {
       const nadeList = req.body.nadeIds as string[];
 
@@ -172,7 +171,7 @@ export class NadeRouter {
     }
   };
 
-  private getByMap = async (req: Request, res: Response) => {
+  private getByMap = async (req, res) => {
     try {
       const mapName = sanitizeIt(req.params.mapname) as CsgoMap;
       const nades = await this.nadeService.byMap(mapName);
@@ -184,7 +183,7 @@ export class NadeRouter {
     }
   };
 
-  private getByUser = async (req: Request<SteamIdParam>, res: Response) => {
+  private getByUser = async (req, res) => {
     try {
       const steamId = sanitizeIt(req.params.steamId);
       const nades = await this.nadeService.byUser(steamId);
@@ -196,7 +195,7 @@ export class NadeRouter {
     }
   };
 
-  private addNade = async (req: Request, res: Response) => {
+  private addNade = async (req, res) => {
     try {
       const user = userFromRequest(req);
       const nadeBody = validateNadeCreateBody(req);
@@ -211,7 +210,7 @@ export class NadeRouter {
     }
   };
 
-  private updateNade = async (req: Request, res: Response) => {
+  private updateNade = async (req, res) => {
     try {
       const id = sanitizeIt(req.params.id);
       const user = userFromRequest(req);
@@ -244,7 +243,7 @@ export class NadeRouter {
     }
   };
 
-  private incrementViewCount = async (req: Request<IdParam>, res: Response) => {
+  private incrementViewCount = async (req, res) => {
     try {
       const id = sanitizeIt(req.params.id);
       const identifier = getSessionId(req);
@@ -261,7 +260,7 @@ export class NadeRouter {
     }
   };
 
-  private validateGfy = async (req: Request, res: Response) => {
+  private validateGfy = async (req, res) => {
     try {
       const validateGfycat = req.body as NadeGfycatValidateDTO;
 
@@ -292,7 +291,7 @@ export class NadeRouter {
     }
   };
 
-  private deleteNade = async (req: Request, res: Response) => {
+  private deleteNade = async (req, res) => {
     try {
       const id = sanitizeIt(req.params.id);
 

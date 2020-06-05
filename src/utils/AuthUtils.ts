@@ -1,5 +1,3 @@
-import { NextFunction } from "express";
-import { Request, Response } from "express-serve-static-core";
 import jwt from "jsonwebtoken";
 import { CSGNConfig } from "../config/enironment";
 import { Role, UserModel } from "../user/UserModel";
@@ -48,11 +46,7 @@ export const payloadFromToken = (secret: string, token: string): JWTPayload => {
   return decoded;
 };
 
-export const authOnlyHandler = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const authOnlyHandler = (req, res, next) => {
   const user = userFromRequest(req);
   if (!user || !(user && user.role) || !(user && user.steamId)) {
     return res.status(401).send({
@@ -62,11 +56,7 @@ export const authOnlyHandler = (
   next();
 };
 
-export const adminOrModHandler = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const adminOrModHandler = (req, res, next) => {
   const user = userFromRequest(req);
   if (!user) {
     return res.status(401).send({
@@ -84,7 +74,7 @@ export const adminOrModHandler = (
 };
 
 export const extractTokenMiddleware = (config: CSGNConfig) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req, res, next) => {
     const token = (req.headers["x-access-token"] ||
       req.headers["authorization"]) as string;
     if (token) {

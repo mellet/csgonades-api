@@ -1,6 +1,5 @@
 import * as Sentry from "@sentry/node";
 import { Router } from "express";
-import { Request, Response } from "express-serve-static-core";
 import { authOnlyHandler } from "../utils/AuthUtils";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { userFromRequest } from "../utils/RouterUtils";
@@ -45,7 +44,7 @@ export class NadeCommentRouter {
     );
   };
 
-  private getCommentForNade = async (req: Request, res: Response) => {
+  private getCommentForNade = async (req, res) => {
     try {
       const nadeId = req.params.nadeId;
 
@@ -59,7 +58,7 @@ export class NadeCommentRouter {
     }
   };
 
-  private createComment = async (req: Request, res: Response) => {
+  private createComment = async (req, res) => {
     try {
       const user = userFromRequest(req);
       const dirtyBody = req.body as NadeCommentCreateDTO;
@@ -85,7 +84,7 @@ export class NadeCommentRouter {
     }
   };
 
-  private updateComment = async (req: Request, res: Response) => {
+  private updateComment = async (req, res) => {
     try {
       const user = userFromRequest(req);
       const commentId = sanitizeIt(req.params.commentId);
@@ -112,7 +111,7 @@ export class NadeCommentRouter {
     }
   };
 
-  private deleteComment = async (req: Request, res: Response) => {
+  private deleteComment = async (req, res) => {
     try {
       const user = userFromRequest(req);
       const commentId = sanitizeIt(req.params.commentId);

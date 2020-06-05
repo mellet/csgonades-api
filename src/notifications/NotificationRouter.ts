@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { Request, Response } from "express-serve-static-core";
 import { authOnlyHandler } from "../utils/AuthUtils";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { userFromRequest } from "../utils/RouterUtils";
@@ -28,7 +27,7 @@ export class NotificationRouter {
     );
   };
 
-  private getNotifications = async (req: Request, res: Response) => {
+  private getNotifications = async (req, res) => {
     try {
       const user = userFromRequest(req);
 
@@ -44,7 +43,7 @@ export class NotificationRouter {
     }
   };
 
-  private viewedNotifcation = async (req: Request, res: Response) => {
+  private viewedNotifcation = async (req, res) => {
     try {
       const user = userFromRequest(req);
       const id = req.params.id;

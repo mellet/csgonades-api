@@ -1,6 +1,5 @@
 import * as Sentry from "@sentry/node";
 import { Router } from "express";
-import { Request, Response } from "express-serve-static-core";
 import { adminOrModHandler } from "../utils/AuthUtils";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { sanitizeIt } from "../utils/Sanitize";
@@ -31,7 +30,7 @@ export class ContactRouter {
     );
   };
 
-  private getContactMessages = async (_: Request, res: Response) => {
+  private getContactMessages = async (_, res) => {
     try {
       const contactMessages = await this.contactRepo.getMessages();
 
@@ -42,7 +41,7 @@ export class ContactRouter {
     }
   };
 
-  private addContactMessage = async (req: Request, res: Response) => {
+  private addContactMessage = async (req, res) => {
     try {
       const contactData = sanitizeIt(req.body) as ContactDTO;
 
@@ -56,7 +55,7 @@ export class ContactRouter {
     }
   };
 
-  private removeContactMessage = async (req: Request, res: Response) => {
+  private removeContactMessage = async (req, res) => {
     try {
       const id = req.params.id;
       await this.contactRepo.deleteMessage(id);

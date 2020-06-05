@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { Request, Response } from "express-serve-static-core";
 import { adminOrModHandler } from "../utils/AuthUtils";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { ArticleService } from "./ArticleService";
@@ -30,7 +29,7 @@ export class ArticleController {
     );
   };
 
-  getArticles = async (_: Request, res: Response) => {
+  getArticles = async (_, res) => {
     try {
       const articles = await this.articleService.getAll();
 
@@ -41,7 +40,7 @@ export class ArticleController {
     }
   };
 
-  get = async (req: Request, res: Response) => {
+  get = async (req: Request, res) => {
     try {
       const articleId = validateArticleId(req);
 
@@ -54,7 +53,7 @@ export class ArticleController {
     }
   };
 
-  createArticle = async (req: Request, res: Response) => {
+  createArticle = async (req, res) => {
     try {
       const articleCreateDto = validateArticleCreateDTO(req);
 
@@ -67,7 +66,7 @@ export class ArticleController {
     }
   };
 
-  updateArticle = async (req: Request, res: Response) => {
+  updateArticle = async (req, res) => {
     try {
       const articleId = validateArticleId(req);
       const articleUpdateDto = validateArticleUpdateDTO(req);

@@ -1,6 +1,5 @@
 import * as Sentry from "@sentry/node";
 import { Router } from "express";
-import { Request, Response } from "express-serve-static-core";
 import { authOnlyHandler } from "../utils/AuthUtils";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { userFromRequest } from "../utils/RouterUtils";
@@ -35,7 +34,7 @@ export class FavoriteRouter {
     );
   };
 
-  private getFavorites = async (req: Request, res: Response) => {
+  private getFavorites = async (req, res) => {
     try {
       const user = userFromRequest(req);
       const favorites = await this.favoriteService.getFavoritesForUser(
@@ -49,7 +48,7 @@ export class FavoriteRouter {
     }
   };
 
-  private addFavorite = async (req: Request, res: Response) => {
+  private addFavorite = async (req, res) => {
     try {
       const user = userFromRequest(req);
       const nadeId = sanitizeIt(req.params.nadeId);
@@ -67,7 +66,7 @@ export class FavoriteRouter {
     }
   };
 
-  private removeFavorite = async (req: Request, res: Response) => {
+  private removeFavorite = async (req, res) => {
     try {
       const favoriteId = sanitizeIt(req.params.favoriteId);
       const user = userFromRequest(req);

@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { Request, Response } from "express-serve-static-core";
 import { CachingService } from "../services/CachingService";
 
 type StatusRouterDeps = {
@@ -24,7 +23,7 @@ export class StatusRouter {
     this.router.get("/status", this.statusHandler);
   };
 
-  private statusHandler = async (_: Request, res: Response) => {
+  private statusHandler = async (_, res) => {
     return res.send({
       status: "OK",
       serverClock: new Date(),

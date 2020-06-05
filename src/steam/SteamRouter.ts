@@ -7,7 +7,7 @@ import { UserService } from "../user/UserService";
 import {
   createAccessToken,
   createRefreshToken,
-  payloadFromToken
+  payloadFromToken,
 } from "../utils/AuthUtils";
 import { sanitizeIt } from "../utils/Sanitize";
 
@@ -18,11 +18,11 @@ export const makeSteamRouter = (
 ): Router => {
   const router = Router({ mergeParams: true });
 
-  passport.serializeUser(function(steamId: string, done) {
+  passport.serializeUser(function (steamId: string, done) {
     done(null, steamId);
   });
 
-  passport.deserializeUser(async function(steamId: string, done) {
+  passport.deserializeUser(async function (steamId: string, done) {
     done(null, steamId);
   });
 
@@ -31,9 +31,9 @@ export const makeSteamRouter = (
       {
         returnURL: `${config.server.baseUrl}/auth/steam/return`,
         realm: config.server.baseUrl,
-        apiKey: config.secrets.steam_api_key
+        apiKey: config.secrets.steam_api_key,
       },
-      function(_, profile, done) {
+      function (_, profile, done) {
         return done(null, profile.id);
       }
     )
@@ -46,7 +46,7 @@ export const makeSteamRouter = (
   router.get(
     "/auth/steam/return",
     // Fix url
-    function(req, res, next) {
+    function (req, _, next) {
       req.url = req.originalUrl;
       next();
     },
@@ -116,7 +116,7 @@ function makeCookieOptions(config: CSGNConfig): CookieOptions {
       maxAge: oneDay * 60,
       signed: true,
       path: "/",
-      domain: ".csgonades.com"
+      domain: ".csgonades.com",
     };
   }
 
@@ -125,6 +125,6 @@ function makeCookieOptions(config: CSGNConfig): CookieOptions {
     secure: false,
     maxAge: oneDay,
     signed: true,
-    path: "/"
+    path: "/",
   };
 }
