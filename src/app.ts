@@ -2,7 +2,7 @@ import { RewriteFrames } from "@sentry/integrations";
 import * as Sentry from "@sentry/node";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import express, { ErrorRequestHandler, RequestHandler } from "express";
+import express from "express";
 import helmet from "helmet";
 import passport from "passport";
 import { ArticleController } from "./article/ArticleController";
@@ -74,12 +74,6 @@ export const AppServer = (config: CSGNConfig) => {
   });
 
   // Express dependencies.
-  app.use(Sentry.Handlers.requestHandler());
-  app.use(express.json({ limit: "3mb" }));
-  app.use(express.urlencoded({ extended: true }));
-  app.use(passport.initialize());
-  app.use(cookieParser(config.secrets.server_key));
-  app.use(helmet());
   app.use(
     cors({
       origin: [
@@ -93,6 +87,12 @@ export const AppServer = (config: CSGNConfig) => {
       credentials: true,
     })
   );
+  app.use(Sentry.Handlers.requestHandler());
+  app.use(express.json({ limit: "5mb" }));
+  app.use(express.urlencoded({ extended: true }));
+  app.use(passport.initialize());
+  app.use(cookieParser(config.secrets.server_key));
+  app.use(helmet());
   app.disable("x-powered-by");
   app.use(extractTokenMiddleware(config));
 
@@ -216,17 +216,10 @@ export const AppServer = (config: CSGNConfig) => {
   // Called by client to set up session
   app.post("/initSession", sessionRoute);
 
-  const notFoundHandler: RequestHandler = (req, res, next) => {
-    return res.status(404).send({
-      error: "Not found",
-    });
-  };
-
-  const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
-    return res.status(500).send({
-      error: err.message,
-    });
-  };
+  app.use(function customErrorHandler(err, req, res, next) {
+    Sentry.captureException(err);
+    res.status(500).send("Unknown error");
+  });
 
   app.use(Sentry.Handlers.errorHandler());
 
