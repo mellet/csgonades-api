@@ -11,18 +11,6 @@ import { NadeService } from "./NadeService";
 import { CsgoMap } from "./nadeSubTypes/CsgoMap";
 import { validateNadeCreateBody, validateNadeEditBody } from "./NadeValidators";
 
-type IdParam = {
-  id: string;
-};
-
-type MapNameParam = {
-  mapname: CsgoMap;
-};
-
-type SteamIdParam = {
-  steamId: string;
-};
-
 type NadeRouterServices = {
   nadeService: NadeService;
   gfycatService: GfycatService;

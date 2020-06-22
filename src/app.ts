@@ -1,4 +1,3 @@
-import { RewriteFrames } from "@sentry/integrations";
 import * as Sentry from "@sentry/node";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -51,27 +50,8 @@ import { VoteRepo } from "./votes/VoteRepo";
 import { VoteRouter } from "./votes/VoteRouter";
 import { VoteService } from "./votes/VoteService";
 
-declare global {
-  namespace NodeJS {
-    interface Global {
-      __rootdir__: string;
-    }
-  }
-}
-
-global.__rootdir__ = __dirname || process.cwd();
-
 export const AppServer = (config: CSGNConfig) => {
   const app = express();
-
-  Sentry.init({
-    dsn: config.secrets.sentry_dsn,
-    integrations: [
-      new RewriteFrames({
-        root: global.__rootdir__,
-      }),
-    ],
-  });
 
   // Express dependencies.
   app.use(
