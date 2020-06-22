@@ -88,7 +88,7 @@ export const AppServer = (config: CSGNConfig) => {
     })
   );
   app.use(Sentry.Handlers.requestHandler());
-  app.use(express.json({ limit: "5mb" }));
+  app.use(express.json({ limit: "15mb" }));
   app.use(express.urlencoded({ extended: true }));
   app.use(passport.initialize());
   app.use(cookieParser(config.secrets.server_key));
