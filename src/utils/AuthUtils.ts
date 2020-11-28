@@ -73,6 +73,23 @@ export const adminOrModHandler = (req, res, next) => {
   next();
 };
 
+export const adminOnlyHandler = (req, res, next) => {
+  const user = userFromRequest(req);
+  if (!user) {
+    return res.status(401).send({
+      error: "Access denied. No user detected.",
+    });
+  }
+
+  if (user.role !== "administrator") {
+    return res.status(403).send({
+      error: "Only allowed by admin.",
+    });
+  }
+
+  next();
+};
+
 export const extractTokenMiddleware = (config: CSGNConfig) => {
   return (req, res, next) => {
     const token = (req.headers["x-access-token"] ||

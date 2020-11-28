@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/node";
 import { Router } from "express";
-import { adminOrModHandler } from "../utils/AuthUtils";
+import { adminOnlyHandler } from "../utils/AuthUtils";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { sanitizeIt } from "../utils/Sanitize";
 import { ContactDTO } from "./ContactData";
@@ -21,11 +21,11 @@ export class ContactRouter {
   };
 
   private setupRoutes = () => {
-    this.router.get("/contact", adminOrModHandler, this.getContactMessages);
+    this.router.get("/contact", adminOnlyHandler, this.getContactMessages);
     this.router.post("/contact", this.addContactMessage);
     this.router.delete(
       "/contact/:id",
-      adminOrModHandler,
+      adminOnlyHandler,
       this.removeContactMessage
     );
   };

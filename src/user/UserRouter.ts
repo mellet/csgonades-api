@@ -100,7 +100,7 @@ export const makeUserRouter = (userService: UserService): Router => {
 };
 
 function checkUserUpdatePrivileges(requestUser: RequestUser, steamId: string) {
-  if (requestUser.role === "user" && requestUser.steamId !== steamId) {
-    throw ErrorFactory.Forbidden("You can't update this user");
+  if (requestUser.role !== "administrator" && requestUser.steamId !== steamId) {
+    throw ErrorFactory.Forbidden("You can't update this user.");
   }
 }
