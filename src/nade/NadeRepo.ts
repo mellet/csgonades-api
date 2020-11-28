@@ -129,7 +129,8 @@ export class NadeRepo {
       order("createdAt", "desc"),
     ]);
 
-    const nades = nadeDocs.map(this.toNadeDTO);
+    const allNades = nadeDocs.map(this.toNadeDTO);
+    const nades = allNades.filter((n) => n.status !== "deleted");
     return nades;
   };
 
