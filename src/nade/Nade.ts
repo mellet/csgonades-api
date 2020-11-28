@@ -1,3 +1,4 @@
+import { ImageRes } from "../imageGallery/ImageStorageService";
 import { UserLightModel } from "../user/UserModel";
 import { removeUndefines } from "../utils/Common";
 import { CsgoMap } from "./nadeSubTypes/CsgoMap";
@@ -8,24 +9,22 @@ import { Technique } from "./nadeSubTypes/Technique";
 import { Tickrate } from "./nadeSubTypes/Tickrate";
 
 export type NadeImages = {
-  // Result image
-  thumbnailId: string;
-  thumbnailCollection?: string;
-  thumbnailUrl: string;
-  // Line up image
   lineupId?: string;
   lineupUrl?: string;
+  thumbnailCollection?: string;
+  thumbnailId: string;
+  thumbnailUrl: string;
 };
 
 type StatusInfo = string;
 
 export type GfycatData = {
-  gfyId: string;
-  smallVideoUrl: string;
-  largeVideoUrl: string;
-  largeVideoWebm?: string;
   avgColor?: string;
   duration?: string;
+  gfyId: string;
+  largeVideoUrl: string;
+  largeVideoWebm?: string;
+  smallVideoUrl: string;
 };
 
 type MapCoordinates = {
@@ -34,104 +33,107 @@ type MapCoordinates = {
 };
 
 export interface NadeModel {
-  title?: string;
-  startPosition?: string;
+  commentCount: number;
+  createdAt: Date;
+  description?: string;
+  downVoteCount?: number;
   endPosition?: string;
-  slug?: string;
+  favoriteCount: number;
   gfycat: GfycatData;
   images: NadeImages;
-  steamId: string;
-  user: UserLightModel;
-  createdAt: Date;
-  updatedAt: Date;
+
+  imageLineupThumb?: ImageRes;
+  isPro?: boolean;
   lastGfycatUpdate: Date;
-  status: NadeStatus;
-  description?: string;
   map?: CsgoMap;
+  mapEndCoord?: MapCoordinates;
+  mapStartCoord?: MapCoordinates;
   movement?: Movement;
+  oneWay?: boolean;
+  slug?: string;
+  startPosition?: string;
+  status: NadeStatus;
+  statusInfo?: StatusInfo;
+  steamId: string;
   technique?: Technique;
   tickrate?: Tickrate;
+  title?: string;
   type?: NadeType;
-  statusInfo?: StatusInfo;
-  mapStartCoord?: MapCoordinates;
-  mapEndCoord?: MapCoordinates;
-  viewCount: number;
-  favoriteCount: number;
-  commentCount: number;
+  updatedAt: Date;
   upVoteCount?: number;
-  downVoteCount?: number;
-  oneWay?: boolean;
-  isPro?: boolean;
+  user: UserLightModel;
+  viewCount: number;
 }
 
 export interface NadeDTO extends NadeModel {
   id: string;
-  score: number;
   nextUpdateInHours: number;
+  score: number;
 }
 
 export type NadeCreateModel = {
-  gfycat: GfycatData;
-  images: NadeImages;
-  steamId: string;
-  user: UserLightModel;
-  viewCount: number;
-  favoriteCount: number;
   commentCount: number;
   description: string;
   endPosition: string;
-  startPosition: string;
+  favoriteCount: number;
+  gfycat: GfycatData;
+  images: NadeImages;
   map: CsgoMap;
   mapEndCoord: MapCoordinates;
   movement: Movement;
+  oneWay?: boolean;
+  startPosition: string;
+  steamId: string;
   technique: Technique;
   tickrate?: Tickrate;
   type: NadeType;
-  oneWay?: boolean;
+  user: UserLightModel;
+  viewCount: number;
 };
 
 export type NadeLightDTO = {
   id: string;
-  status: NadeStatus;
-  title?: string;
-  startPosition?: string;
-  endPosition?: string;
-  slug?: string;
-  gfycat: GfycatData;
-  images: NadeImages;
-  type?: NadeType;
-  tickrate?: Tickrate;
-  technique?: Technique;
-  movement?: Movement;
-  createdAt: Date;
-  updatedAt: Date;
-  viewCount: number;
   commentCount: number;
+  createdAt: Date;
+  downVoteCount?: number;
+  endPosition?: string;
   favoriteCount: number;
+  gfycat: GfycatData;
+  imageLineupThumbUrl?: string;
+  images: NadeImages;
+  isPro?: boolean;
   mapEndCoord?: MapCoordinates;
-  score: number;
-  user: UserLightModel;
+  movement?: Movement;
   nextUpdateInHours: number;
   oneWay?: boolean;
-  isPro?: boolean;
+  score: number;
+  slug?: string;
+  startPosition?: string;
+  status: NadeStatus;
+  technique?: Technique;
+  tickrate?: Tickrate;
+  title?: string;
+  type?: NadeType;
+  updatedAt: Date;
   upVoteCount?: number;
-  downVoteCount?: number;
+  user: UserLightModel;
+  viewCount: number;
 };
 
 export type NadeCreateDTO = {
+  description: string;
+  endPosition: string;
   gfycat: GfycatData;
   imageBase64: string;
   lineUpImageBase64?: string;
-  startPosition: string;
-  endPosition: string;
-  description: string;
   map: CsgoMap;
+  mapEndCoord: MapCoordinates;
   movement: Movement;
+  oneWay?: boolean;
+  startPosition: string;
   technique: Technique;
   tickrate?: Tickrate;
   type: NadeType;
-  mapEndCoord: MapCoordinates;
-  oneWay?: boolean;
 };
 
 export type NadeUpdateDTO = {

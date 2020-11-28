@@ -143,6 +143,8 @@ export class NadeService {
 
     this.cache.setNade(slug, nade);
 
+    this.tryCreateSmallLineupImage(nade);
+
     return nade;
   };
 
@@ -532,32 +534,49 @@ export class NadeService {
   private toLightDTO = (nadeDto: NadeDTO): NadeLightDTO => {
     return {
       id: nadeDto.id,
-      slug: nadeDto.slug,
+      commentCount: nadeDto.commentCount,
       createdAt: nadeDto.createdAt,
+      downVoteCount: nadeDto.downVoteCount,
+      endPosition: nadeDto.endPosition,
       favoriteCount: nadeDto.favoriteCount,
       gfycat: nadeDto.gfycat,
+      imageLineupThumbUrl: nadeDto.imageLineupThumb?.url,
       images: nadeDto.images,
-      status: nadeDto.status,
-      viewCount: nadeDto.viewCount,
-      tickrate: nadeDto.tickrate,
-      title: nadeDto.title,
-      endPosition: nadeDto.endPosition,
-      startPosition: nadeDto.startPosition,
-      type: nadeDto.type,
+      isPro: nadeDto.isPro,
       mapEndCoord: nadeDto.mapEndCoord,
-      score: nadeDto.score,
       movement: nadeDto.movement,
-      technique: nadeDto.technique,
-      updatedAt: nadeDto.updatedAt,
-      commentCount: nadeDto.commentCount,
-      user: nadeDto.user,
       nextUpdateInHours: this.timeToNextUpdate(nadeDto),
       oneWay: nadeDto.oneWay,
-      isPro: nadeDto.isPro,
-      downVoteCount: nadeDto.downVoteCount,
+      score: nadeDto.score,
+      slug: nadeDto.slug,
+      startPosition: nadeDto.startPosition,
+      status: nadeDto.status,
+      technique: nadeDto.technique,
+      tickrate: nadeDto.tickrate,
+      title: nadeDto.title,
+      type: nadeDto.type,
+      updatedAt: nadeDto.updatedAt,
       upVoteCount: nadeDto.upVoteCount,
+      user: nadeDto.user,
+      viewCount: nadeDto.viewCount,
     };
   };
+
+  async tryCreateSmallLineupImage(nade: NadeDTO) {
+    const { images, imageLineupThumb } = nade;
+    if (images.lineupUrl && !imageLineupThumb) {
+      console.log("> Should generate small lineup image");
+      const lineupThumb = await this.galleryService.createLineUpThumbFromUrl(
+        images.lineupUrl
+      );
+      if (lineupThumb) {
+        this.nadeRepo.update(nade.id, {
+          imageLineupThumb: lineupThumb,
+        });
+        console.log("Created lineup thumb", lineupThumb);
+      }
+    }
+  }
 }
 
 function videoDuration(framerate?: number, numFrames?: number) {

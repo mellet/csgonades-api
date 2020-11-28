@@ -1,8 +1,9 @@
+import axios from "axios";
 import { nanoid } from "nanoid";
 import sharp from "sharp";
 import { CSGNConfig } from "../config/enironment";
 import { ErrorFactory } from "../utils/ErrorUtil";
-import { ImageStorageRepo } from "./ImageStorageService";
+import { ImageRes, ImageStorageRepo } from "./ImageStorageService";
 
 type ImageGalleryDeps = {
   imageRepo: ImageStorageRepo;
@@ -13,7 +14,7 @@ export type ImageCollection = "nades" | "lineup";
 
 export class ImageGalleryService {
   private IMAGE_LARGE_SIZE = 1400;
-  private IMAGE_THUMB_SIZE = 700;
+  private IMAGE_THUMB_SIZE = 500;
   private imageRepo: ImageStorageRepo;
   private config: CSGNConfig;
 
@@ -38,8 +39,42 @@ export class ImageGalleryService {
     );
   };
 
-  createLarge = async (imageBase64: string, collection: ImageCollection) => {
+  createLarge = async (
+    imageBase64: string,
+    collection: ImageCollection
+  ): Promise<ImageRes> => {
     return this.saveImage(imageBase64, collection, this.IMAGE_LARGE_SIZE);
+  };
+
+  createLineUpThumbFromUrl = async (imageUrl: string) => {
+    const tmpFolderLocation = this.config.isProduction ? "../tmp" : "tmp";
+    const imageId = nanoid();
+    const imageName = `${imageId}.jpg`;
+    const imagePath = `${tmpFolderLocation}/${imageName}`;
+
+    try {
+      console.log("Fetching large lineup image", imageUrl);
+      const result = await axios({
+        url: imageUrl,
+        responseType: "arraybuffer",
+      });
+      const data = result.data as Buffer;
+
+      await sharp(data)
+        .resize(this.IMAGE_THUMB_SIZE, null)
+        .jpeg({ quality: 80 })
+        .toFile(imagePath);
+
+      const image = await this.imageRepo.saveImage(
+        imagePath,
+        imageName,
+        "lineup"
+      );
+
+      return image;
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   private saveImage = async (
@@ -94,7 +129,7 @@ export class ImageGalleryService {
 
     await sharp(imgBuffer)
       .resize(width, null)
-      .jpeg({ quality: 100 })
+      .jpeg({ quality: 80 })
       .toFile(imagePath);
 
     return imagePath;
