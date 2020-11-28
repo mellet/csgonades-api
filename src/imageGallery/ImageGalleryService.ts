@@ -53,7 +53,6 @@ export class ImageGalleryService {
     const imagePath = `${tmpFolderLocation}/${imageName}`;
 
     try {
-      console.log("Fetching large lineup image", imageUrl);
       const result = await axios({
         url: imageUrl,
         responseType: "arraybuffer",

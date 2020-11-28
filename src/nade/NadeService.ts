@@ -565,7 +565,6 @@ export class NadeService {
   async tryCreateSmallLineupImage(nade: NadeDTO) {
     const { images, imageLineupThumb } = nade;
     if (images.lineupUrl && !imageLineupThumb) {
-      console.log("> Should generate small lineup image");
       const lineupThumb = await this.galleryService.createLineUpThumbFromUrl(
         images.lineupUrl
       );
@@ -573,7 +572,6 @@ export class NadeService {
         this.nadeRepo.update(nade.id, {
           imageLineupThumb: lineupThumb,
         });
-        console.log("Created lineup thumb", lineupThumb);
       }
     }
   }
