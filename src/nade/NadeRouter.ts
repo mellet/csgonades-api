@@ -1,6 +1,9 @@
 import * as Sentry from "@sentry/node";
-import { Router } from "express";
+import { RequestHandler, Router } from "express";
+import { CreateAuditDto, UserAudit } from "../audit/AuditModel";
+import { AuditService } from "../audit/AuditService";
 import { GfycatService } from "../services/GfycatService";
+import { UserService } from "../user/UserService";
 import { adminOrModHandler, authOnlyHandler } from "../utils/AuthUtils";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { userFromRequest } from "../utils/RouterUtils";
@@ -14,16 +17,22 @@ import { validateNadeCreateBody, validateNadeEditBody } from "./NadeValidators";
 type NadeRouterServices = {
   nadeService: NadeService;
   gfycatService: GfycatService;
+  auditService: AuditService;
+  userService: UserService;
 };
 
 export class NadeRouter {
   private router: Router;
   private nadeService: NadeService;
   private gfycatService: GfycatService;
+  private auditServer: AuditService;
+  private userService: UserService;
 
   constructor(services: NadeRouterServices) {
     this.nadeService = services.nadeService;
     this.gfycatService = services.gfycatService;
+    this.auditServer = services.auditService;
+    this.userService = services.userService;
     this.router = Router();
     this.setUpRoutes();
   }
@@ -52,7 +61,7 @@ export class NadeRouter {
     this.router.get("/nades/:id/checkslug", this.checkSlug);
   };
 
-  private checkSlug = async (req, res) => {
+  private checkSlug: RequestHandler = async (req, res) => {
     try {
       const slug = req.params.id;
       const slugIsFree = await this.nadeService.slugIsFree(slug);
@@ -88,7 +97,7 @@ export class NadeRouter {
     }
   };
 
-  private getPendingNades = async (req, res) => {
+  private getPendingNades: RequestHandler = async (_, res) => {
     try {
       const pendingNades = await this.nadeService.pending();
 
@@ -99,7 +108,7 @@ export class NadeRouter {
     }
   };
 
-  private getDeclinedNades = async (_, res) => {
+  private getDeclinedNades: RequestHandler = async (_, res) => {
     try {
       const declinedNades = await this.nadeService.declined();
 
@@ -221,9 +230,25 @@ export class NadeRouter {
         return res.status(401).send({ error: "Not allowed to edit this nade" });
       }
 
-      const nade = await this.nadeService.update(id, updateDto);
+      const preUpdateNade = await this.nadeService.byId(id);
 
-      return res.status(202).send(nade);
+      const updatedNade = await this.nadeService.update(id, updateDto);
+
+      if (updatedNade) {
+        const editingUser = await this.userService.byId(user.steamId);
+        this.createAuditEntryNadeUpdate(
+          {
+            nickname: editingUser.nickname,
+            avatar: editingUser.avatar,
+            role: editingUser.role,
+            steamId: editingUser.steamId,
+          },
+          preUpdateNade,
+          updatedNade
+        );
+      }
+
+      return res.status(202).send(updatedNade);
     } catch (error) {
       Sentry.captureException(error);
       const err = errorCatchConverter(error);
@@ -295,5 +320,78 @@ export class NadeRouter {
 
   private isSlug = (value: string) => {
     return value.includes("-");
+  };
+
+  private createAuditEntryNadeUpdate = (
+    byUser: UserAudit,
+    preUpdateNade: NadeDTO,
+    updatedNade: NadeDTO
+  ) => {
+    const updatedField: string[] = [];
+
+    if (preUpdateNade.endPosition !== updatedNade.endPosition) {
+      updatedField.push("endPosition");
+    }
+    if (preUpdateNade.gfycat.gfyId !== updatedNade.gfycat.gfyId) {
+      updatedField.push("gfycat");
+    }
+    if (preUpdateNade.images.lineupUrl !== updatedNade.images.lineupUrl) {
+      updatedField.push("lineupImg");
+    }
+    if (preUpdateNade.images.thumbnailUrl !== updatedNade.images.thumbnailUrl) {
+      updatedField.push("resultImg");
+    }
+    if (preUpdateNade.isPro !== updatedNade.isPro) {
+      updatedField.push("isPro");
+    }
+    if (preUpdateNade.map !== updatedNade.map) {
+      updatedField.push("map");
+    }
+    if (preUpdateNade.mapEndCoord?.x !== updatedNade.mapEndCoord?.x) {
+      updatedField.push("mapEndCoord");
+    } else if (preUpdateNade.mapEndCoord?.y !== updatedNade.mapEndCoord?.y) {
+      updatedField.push("mapEndCoord");
+    }
+    if (preUpdateNade.movement !== updatedNade.movement) {
+      updatedField.push("movement");
+    }
+    if (preUpdateNade.oneWay !== updatedNade.oneWay) {
+      updatedField.push("oneWay");
+    }
+    if (preUpdateNade.status !== updatedNade.status) {
+      updatedField.push("status");
+    }
+    if (preUpdateNade.technique !== updatedNade.technique) {
+      updatedField.push("technique");
+    }
+    if (preUpdateNade.tickrate !== updatedNade.tickrate) {
+      updatedField.push("tickrate");
+    }
+    if (preUpdateNade.type !== updatedNade.type) {
+      updatedField.push("type");
+    }
+    if (preUpdateNade.description !== updatedNade.description) {
+      updatedField.push("description");
+    }
+    if (preUpdateNade.endPosition !== updatedNade.endPosition) {
+      updatedField.push("endPosition");
+    }
+    if (preUpdateNade.startPosition !== updatedNade.startPosition) {
+      updatedField.push("startPosition");
+    }
+
+    if (updatedField.length === 0) {
+      console.log("Update withouth change");
+      return;
+    }
+
+    const auditEvent: CreateAuditDto = {
+      byUser,
+      name: "updateNade",
+      description: `Nade updated with fields: ${updatedField.join(", ")}.`,
+      onNadeId: updatedNade.id,
+    };
+
+    this.auditServer.createAuditEvent(auditEvent);
   };
 }

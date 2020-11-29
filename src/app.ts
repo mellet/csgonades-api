@@ -7,6 +7,9 @@ import passport from "passport";
 import { ArticleController } from "./article/ArticleController";
 import { ArticleRepo } from "./article/ArticleRepo";
 import { ArticleService } from "./article/ArticleService";
+import { AuditRepo } from "./audit/AuditRepo";
+import { AuditRouter } from "./audit/AuditRouter";
+import { AuditService } from "./audit/AuditService";
 import { CSGNConfig } from "./config/enironment";
 import { ContactRepo } from "./contact/ContactRepo";
 import { ContactRouter } from "./contact/ContactRouter";
@@ -93,11 +96,13 @@ export const AppServer = (config: CSGNConfig) => {
   const imageRepo = new ImageStorageRepo(bucket);
   const nadeCommentRepo = new NadeCommentRepo();
   const voteRepo = new VoteRepo();
+  const auditRepo = new AuditRepo();
 
   // Event bus so services can send events that others can subscribe to
   const eventBus = new EventBus();
 
   // Services
+  const auditService = new AuditService({ auditRepo });
   const cacheService = new CachingService();
   const steamService = new SteamService(config);
   const statsService = new StatsService({
@@ -153,7 +158,12 @@ export const AppServer = (config: CSGNConfig) => {
 
   // Routers
   const statusRouter = new StatusRouter({ cache: cacheService });
-  const nadeRouter = new NadeRouter({ gfycatService, nadeService });
+  const nadeRouter = new NadeRouter({
+    gfycatService,
+    nadeService,
+    auditService,
+    userService,
+  });
   const steamRouter = makeSteamRouter(userService, passport, config);
   const userRouter = makeUserRouter(userService);
   const favoriteRouter = new FavoriteRouter({ favoriteService });
@@ -169,6 +179,7 @@ export const AppServer = (config: CSGNConfig) => {
   ).getRouter();
   const nadeCommentRouter = new NadeCommentRouter({ nadeCommentService });
   const voteRouter = new VoteRouter({ voteService });
+  const auditRouter = new AuditRouter(auditService);
 
   app.use(nadeRouter.getRouter());
   app.use(steamRouter);
@@ -183,6 +194,7 @@ export const AppServer = (config: CSGNConfig) => {
   app.use(notificationRouter);
   app.use(nadeCommentRouter.getRouter());
   app.use(voteRouter.getRouter());
+  app.use(auditRouter.getRouter());
 
   app.get("/", (_, res) => {
     res.send("");
