@@ -219,7 +219,7 @@ export class NadeService {
     imageBuilder.thumbnailUrl = resultImage.url;
 
     if (body.lineUpImageBase64) {
-      const lineupImage = await this.galleryService.createThumbnail(
+      const lineupImage = await this.galleryService.createLarge(
         body.lineUpImageBase64,
         "lineup"
       );
