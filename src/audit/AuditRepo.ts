@@ -20,7 +20,7 @@ export class AuditRepo {
   getAuditEvents = async (): Promise<AuditDto[]> => {
     const docs = await query(this.collection, [
       order("createdAt", "desc"),
-      limit(10),
+      limit(20),
     ]);
     const auditEvents = docs.map(this.docToDto);
 
