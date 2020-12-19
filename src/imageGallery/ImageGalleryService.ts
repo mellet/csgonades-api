@@ -100,6 +100,11 @@ export class ImageGalleryService {
     return this.imageRepo.deleteImage(internalPath);
   };
 
+  deleteImageResult = (imageRes: ImageRes) => {
+    const internalPath = `${imageRes.collection}/${imageRes.id}`;
+    return this.imageRepo.deleteImage(internalPath);
+  };
+
   private resizeImage = async (
     base64image: string,
     imageName: string,

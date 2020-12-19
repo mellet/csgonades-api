@@ -77,6 +77,7 @@ export type NadeCreateModel = {
   endPosition: string;
   favoriteCount: number;
   gfycat: GfycatData;
+  imageLineupThumb?: ImageRes;
   images: NadeImages;
   map: CsgoMap;
   mapEndCoord: MapCoordinates;
@@ -161,24 +162,26 @@ export type NadeGfycatValidateDTO = {
 
 export function updatedNadeMerge(
   updateFields: NadeUpdateDTO,
-  newImages?: NadeImages
+  newImages?: NadeImages,
+  newLineUpThumb?: ImageRes
 ): Partial<NadeModel> {
   const newNade: Partial<NadeModel> = {
+    description: updateFields.description,
     endPosition: updateFields.endPosition,
+    gfycat: updateFields.gfycat,
+    imageLineupThumb: newLineUpThumb,
+    images: newImages,
+    isPro: updateFields.isPro,
+    map: updateFields.map,
+    mapEndCoord: updateFields.mapEndCoord,
+    movement: updateFields.movement,
+    oneWay: updateFields.oneWay,
     slug: updateFields.slug,
     startPosition: updateFields.startPosition,
     status: updateFields.status,
-    description: updateFields.description,
-    map: updateFields.map,
-    movement: updateFields.movement,
     technique: updateFields.technique,
     tickrate: updateFields.tickrate,
     type: updateFields.type,
-    gfycat: updateFields.gfycat,
-    mapEndCoord: updateFields.mapEndCoord,
-    images: newImages,
-    oneWay: updateFields.oneWay,
-    isPro: updateFields.isPro,
   };
 
   return removeUndefines(newNade);

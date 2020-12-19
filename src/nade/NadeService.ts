@@ -1,6 +1,7 @@
 import moment from "moment";
 import { FavoriteDTO } from "../favorite/Favorite";
 import { ImageGalleryService } from "../imageGallery/ImageGalleryService";
+import { ImageRes } from "../imageGallery/ImageStorageService";
 import { NadeCommentDto } from "../nadecomment/NadeComment";
 import { CachingService } from "../services/CachingService";
 import { EventBus } from "../services/EventHandler";
@@ -218,14 +219,22 @@ export class NadeService {
     imageBuilder.thumbnailId = `${resultImage.collection}/${resultImage.id}`;
     imageBuilder.thumbnailUrl = resultImage.url;
 
+    let lineupThumb: ImageRes | undefined;
+
     if (body.lineUpImageBase64) {
       const lineupImage = await this.galleryService.createLarge(
+        body.lineUpImageBase64,
+        "lineup"
+      );
+      lineupThumb = await this.galleryService.createThumbnail(
         body.lineUpImageBase64,
         "lineup"
       );
       imageBuilder.lineupId = `${lineupImage.collection}/${lineupImage.id}`;
       imageBuilder.lineupUrl = lineupImage.url;
     }
+
+    const hasLineUpImage = !!lineupThumb;
 
     const nadeModel: NadeCreateModel = {
       commentCount: 0,
@@ -244,6 +253,7 @@ export class NadeService {
       technique: body.technique,
       tickrate: body.tickrate,
       type: body.type,
+      ...(hasLineUpImage && { imageLineupThumb: lineupThumb }),
     };
 
     const nade = await this.nadeRepo.save(nadeModel);
@@ -277,6 +287,7 @@ export class NadeService {
     const originalNade = await this.byId(nadeId);
 
     let newImageData: NadeImages | undefined;
+    let newLineUpImageThumb: ImageRes | undefined;
 
     // Update result image
     if (updateFields.imageBase64) {
@@ -302,8 +313,17 @@ export class NadeService {
       if (originalNade.images.lineupId) {
         await this.galleryService.deleteImage(originalNade.images.lineupId);
       }
+      if (originalNade.imageLineupThumb) {
+        await this.galleryService.deleteImageResult(
+          originalNade.imageLineupThumb
+        );
+      }
 
       const newLineUpImage = await this.galleryService.createLarge(
+        updateFields.lineUpImageBase64,
+        "lineup"
+      );
+      newLineUpImageThumb = await this.galleryService.createThumbnail(
         updateFields.lineUpImageBase64,
         "lineup"
       );
@@ -325,7 +345,11 @@ export class NadeService {
       }
     }
 
-    const mergedNade = updatedNadeMerge(updateFields, newImageData);
+    const mergedNade = updatedNadeMerge(
+      updateFields,
+      newImageData,
+      newLineUpImageThumb
+    );
 
     const updatedNade = await this.nadeRepo.update(nadeId, mergedNade, true);
 
