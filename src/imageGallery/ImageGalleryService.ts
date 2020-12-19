@@ -1,4 +1,3 @@
-import axios from "axios";
 import { nanoid } from "nanoid";
 import sharp from "sharp";
 import { CSGNConfig } from "../config/enironment";
@@ -44,36 +43,6 @@ export class ImageGalleryService {
     collection: ImageCollection
   ): Promise<ImageRes> => {
     return this.saveImage(imageBase64, collection, this.IMAGE_LARGE_SIZE);
-  };
-
-  createLineUpThumbFromUrl = async (imageUrl: string) => {
-    const tmpFolderLocation = this.config.isProduction ? "../tmp" : "tmp";
-    const imageId = nanoid();
-    const imageName = `${imageId}.jpg`;
-    const imagePath = `${tmpFolderLocation}/${imageName}`;
-
-    try {
-      const result = await axios({
-        url: imageUrl,
-        responseType: "arraybuffer",
-      });
-      const data = result.data as Buffer;
-
-      await sharp(data)
-        .resize(this.IMAGE_THUMB_SIZE, null)
-        .jpeg({ quality: 80 })
-        .toFile(imagePath);
-
-      const image = await this.imageRepo.saveImage(
-        imagePath,
-        imageName,
-        "lineup"
-      );
-
-      return image;
-    } catch (error) {
-      console.error(error);
-    }
   };
 
   private saveImage = async (

@@ -144,8 +144,6 @@ export class NadeService {
 
     this.cache.setNade(slug, nade);
 
-    this.tryCreateSmallLineupImage(nade);
-
     return nade;
   };
 
@@ -585,20 +583,6 @@ export class NadeService {
       viewCount: nadeDto.viewCount,
     };
   };
-
-  async tryCreateSmallLineupImage(nade: NadeDTO) {
-    const { images, imageLineupThumb } = nade;
-    if (images.lineupUrl && !imageLineupThumb) {
-      const lineupThumb = await this.galleryService.createLineUpThumbFromUrl(
-        images.lineupUrl
-      );
-      if (lineupThumb) {
-        this.nadeRepo.update(nade.id, {
-          imageLineupThumb: lineupThumb,
-        });
-      }
-    }
-  }
 }
 
 function videoDuration(framerate?: number, numFrames?: number) {
