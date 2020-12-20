@@ -12,7 +12,7 @@ type ImageGalleryDeps = {
 export type ImageCollection = "nades" | "lineup";
 
 export class ImageGalleryService {
-  private IMAGE_LARGE_SIZE = 1400;
+  private IMAGE_LARGE_SIZE = 1600;
   private IMAGE_THUMB_SIZE = 500;
   private imageRepo: ImageStorageRepo;
   private config: CSGNConfig;
@@ -102,7 +102,7 @@ export class ImageGalleryService {
 
     await sharp(imgBuffer)
       .resize(width, null)
-      .jpeg({ quality: 80 })
+      .jpeg({ quality: 95 })
       .toFile(imagePath);
 
     return imagePath;
