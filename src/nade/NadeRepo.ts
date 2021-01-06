@@ -285,7 +285,7 @@ export class NadeRepo {
       nade.commentCount,
       nade.favoriteCount
     );
-    const ageScore = Math.log(50000 - addedHoursAgo);
+    const ageScore = Math.log(50000 - addedHoursAgo) * 0.3;
 
     // Inflate new nades to allow them to get views
     const freshScore = this.freshScore(addedHoursAgo);
