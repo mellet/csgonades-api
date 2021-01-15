@@ -59,14 +59,23 @@ export const AppServer = (config: CSGNConfig) => {
   // Express dependencies.
   app.use(
     cors({
-      origin: [
-        "http://localhost:3000",
-        "http://www.csgonades.com",
-        "https://www.csgonades.com",
-        "https://csgonades-client-lgljtzmn9.now.sh",
-        "https://csgonades-client-l7r733goa.now.sh",
-        "https://csgonades.com",
-      ],
+      origin: (origin, callback) => {
+        if (!origin) {
+          return callback(null, true);
+        }
+        if (origin === "http://localhost:3000") {
+          return callback(null, true);
+        }
+        if (
+          origin.includes("csgonades.com") ||
+          origin.includes("csgonades-next.now.sh")
+        ) {
+          return callback(null, true);
+        }
+        const message =
+          "The CORS policy for this origin doesn't allow access from the particular origin.";
+        return callback(new Error(message), false);
+      },
       credentials: true,
     })
   );
