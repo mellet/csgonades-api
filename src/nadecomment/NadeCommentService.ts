@@ -67,21 +67,17 @@ export class NadeCommentService {
   update = async (updateModel: NadeCommentUpdateDTO, user: RequestUser) => {
     const originalComment = await this.nadeCommentRepo.getById(updateModel.id);
 
-    if (user.steamId !== originalComment.steamId && user.role === "user") {
+    if (this.isAdminModOrCommentOwner(originalComment, user)) {
+      return this.nadeCommentRepo.update(updateModel);
+    } else {
       throw ErrorFactory.Forbidden("You can only edit your own comments");
     }
-
-    return this.nadeCommentRepo.update(updateModel);
   };
 
   delete = async (commentId: string, user: RequestUser) => {
     const originalComment = await this.nadeCommentRepo.getById(commentId);
 
-    const isAdminOrMod =
-      user.role === "administrator" || user.role === "moderator";
-    const isNadeOwner = user.steamId === originalComment.steamId;
-
-    if (isNadeOwner || isAdminOrMod) {
+    if (this.isAdminModOrCommentOwner(originalComment, user)) {
       await this.nadeCommentRepo.delete(commentId);
 
       this.eventBus.emitNadeCommentDelete(originalComment);
@@ -89,4 +85,12 @@ export class NadeCommentService {
       throw ErrorFactory.Forbidden("You can only delete your own comments");
     }
   };
+
+  private isAdminModOrCommentOwner(comment: NadeCommentDto, user: RequestUser) {
+    const isAdminOrMod =
+      user.role === "administrator" || user.role === "moderator";
+    const isNadeOwner = user.steamId === comment.steamId;
+
+    return isAdminOrMod || isNadeOwner;
+  }
 }
