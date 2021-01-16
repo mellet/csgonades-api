@@ -63,13 +63,11 @@ export const AppServer = (config: CSGNConfig) => {
         if (!origin) {
           return callback(null, true);
         }
-        if (origin === "localhost:3000") {
-          return callback(null, true);
-        }
         if (
           origin.includes("csgonades.com") ||
           origin.includes("csgonades-next.now.sh") ||
-          origin.includes("steamcommunity.com")
+          origin.includes("steamcommunity.com") ||
+          origin.includes(":3000")
         ) {
           return callback(null, true);
         }
