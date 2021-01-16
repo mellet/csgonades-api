@@ -115,6 +115,7 @@ export class NadeCommentRouter {
     try {
       const user = userFromRequest(req);
       const commentId = sanitizeIt(req.params.commentId);
+
       await this.nadeCommentService.delete(commentId, user);
 
       return res.status(204).send();

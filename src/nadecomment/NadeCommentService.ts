@@ -77,12 +77,16 @@ export class NadeCommentService {
   delete = async (commentId: string, user: RequestUser) => {
     const originalComment = await this.nadeCommentRepo.getById(commentId);
 
-    if (user.role === "user" && user.steamId !== originalComment.steamId) {
+    const isAdminOrMod =
+      user.role === "administrator" || user.role === "moderator";
+    const isNadeOwner = user.steamId === originalComment.steamId;
+
+    if (isNadeOwner || isAdminOrMod) {
+      await this.nadeCommentRepo.delete(commentId);
+
+      this.eventBus.emitNadeCommentDelete(originalComment);
+    } else {
       throw ErrorFactory.Forbidden("You can only delete your own comments");
     }
-
-    await this.nadeCommentRepo.delete(commentId);
-
-    this.eventBus.emitNadeCommentDelete(originalComment);
   };
 }
