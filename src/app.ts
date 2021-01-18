@@ -67,7 +67,8 @@ export const AppServer = (config: CSGNConfig) => {
           origin.includes("csgonades.com") ||
           origin.includes("csgonades-next.now.sh") ||
           origin.includes("steamcommunity.com") ||
-          origin.includes(":3000")
+          origin.includes(":3000") ||
+          origin.includes("csgonades-next.vercel.app")
         ) {
           return callback(null, true);
         }
