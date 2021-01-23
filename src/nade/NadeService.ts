@@ -1,185 +1,121 @@
-import moment from "moment";
-import { FavoriteDTO } from "../favorite/Favorite";
-import { ImageGalleryService } from "../imageGallery/ImageGalleryService";
-import { ImageRes } from "../imageGallery/ImageStorageService";
-import { NadeCommentDto } from "../nadecomment/NadeComment";
-import { CachingService } from "../services/CachingService";
-import { EventBus } from "../services/EventHandler";
-import { GfycatService } from "../services/GfycatService";
-import { UserDTO } from "../user/UserDTOs";
+import { GfycatApi } from "../external-api/GfycatApi";
+import { FavoriteRepo } from "../favorite/FavoriteRepo";
+import { ImageRepo } from "../imageGallery/ImageGalleryService";
+import { ImageData } from "../imageGallery/ImageStorageRepo";
+import { NadeCommentRepo } from "../nadecomment/NadeCommentRepo";
+import { NotificationRepo } from "../notifications/NotificationRepo";
+import { StatsRepo } from "../stats/StatsRepo";
 import { UserLightModel } from "../user/UserModel";
-import { UserService } from "../user/UserService";
-import { clamp, removeUndefines } from "../utils/Common";
+import { UserRepo } from "../user/UserRepo";
+import { RequestUser } from "../utils/AuthUtils";
+import { removeUndefines } from "../utils/Common";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import {
   NadeCreateDTO,
   NadeCreateModel,
   NadeDTO,
   NadeImages,
-  NadeLightDTO,
+  NadeMiniDto,
   NadeModel,
   NadeUpdateDTO,
-  updatedNadeMerge,
 } from "./Nade";
 import { NadeRepo } from "./NadeRepo";
 import { CsgoMap } from "./nadeSubTypes/CsgoMap";
+import { NadeStatus } from "./nadeSubTypes/NadeStatus";
+import {
+  convertNadesToLightDto,
+  newStatsFromGfycat,
+  shouldUpdateNadeStats,
+  verifyAdminFields,
+  verifyAllowEdit,
+} from "./NadeUtils";
 
-type NadeServiceDeps = {
+export type NadeServiceDeps = {
   nadeRepo: NadeRepo;
-  userService: UserService;
-  galleryService: ImageGalleryService;
-  gfycatService: GfycatService;
-  cache: CachingService;
-  eventBus: EventBus;
+  commentRepo: NadeCommentRepo;
+  statsRepo: StatsRepo;
+  imageRepo: ImageRepo;
+  gfycatApi: GfycatApi;
+  notificationRepo: NotificationRepo;
+  favoriteRepo: FavoriteRepo;
 };
 
 export class NadeService {
   private nadeRepo: NadeRepo;
-  private userService: UserService;
-  private galleryService: ImageGalleryService;
-  private gfycatService: GfycatService;
-  private cache: CachingService;
-  private eventBus: EventBus;
+  private userRepo: UserRepo;
+  private imageRepo: ImageRepo;
+  private gfycatApi: GfycatApi;
+  private statsRepo: StatsRepo;
+  private commentRepo: NadeCommentRepo;
+  private notificationRepo: NotificationRepo;
+  private favoriteRepo: FavoriteRepo;
 
   constructor(deps: NadeServiceDeps) {
     const {
-      cache,
-      gfycatService,
-      galleryService,
+      gfycatApi,
+      imageRepo,
       nadeRepo,
-      userService,
-      eventBus,
+      statsRepo,
+      commentRepo,
+      notificationRepo,
+      favoriteRepo,
     } = deps;
 
     this.nadeRepo = nadeRepo;
-    this.userService = userService;
-    this.galleryService = galleryService;
-    this.gfycatService = gfycatService;
-    this.cache = cache;
-    this.eventBus = eventBus;
-
-    this.eventBus.subNewFavorites(this.incrementFavoriteCount);
-    this.eventBus.subUnFavorite(this.decrementFavoriteCount);
-    this.eventBus.subNadeCommentCreate(this.incrementCommentCount);
-    this.eventBus.subNadeCommentDelete(this.decrementCommentCount);
-    this.eventBus.subUserDetailsUpdate(this.onUserDetailsUpdated);
-    this.eventBus.subIncrementDownVote(this.incrementDownVoteCount);
-    this.eventBus.subIncrementUpVote(this.incrementUpVoteCount);
-    this.eventBus.subDecrementDownVote(this.decrementDownVoteCount);
-    this.eventBus.subDecrementUpVote(this.decrementUpVoteCount);
+    this.imageRepo = imageRepo;
+    this.gfycatApi = gfycatApi;
+    this.statsRepo = statsRepo;
+    this.commentRepo = commentRepo;
+    this.notificationRepo = notificationRepo;
+    this.favoriteRepo = favoriteRepo;
   }
 
-  slugIsFree = (slug: string) => this.nadeRepo.slugIsFree(slug);
-
-  onUserDetailsUpdated = async (user: UserDTO) => {
-    await this.nadeRepo.updateUserOnNades(user.steamId, {
-      avatar: user.avatar,
-      nickname: user.nickname,
-      steamId: user.steamId,
-    });
-
-    const nadesByUser = await this.nadeRepo.byUser(user.steamId);
-
-    if (nadesByUser.length) {
-      // Clear cache if user had any nades
-      this.cache.flushAll();
-    }
+  isSlugAvailable = async (slug: string) => {
+    return this.nadeRepo.isSlugAvailable(slug);
   };
 
-  fetchNades = async (
-    limit?: number,
-    noCache?: boolean
-  ): Promise<NadeLightDTO[]> => {
-    const cachedNades = this.cache.getRecentNades();
-
-    if (cachedNades && !noCache) {
-      return cachedNades.map(this.toLightDTO);
-    }
-
+  getRecent = async (limit?: number): Promise<NadeMiniDto[]> => {
     const nades = await this.nadeRepo.getAll(limit);
 
-    if (!noCache) {
-      this.cache.setRecentNades(nades);
-    }
-
-    return nades.map(this.toLightDTO);
+    return convertNadesToLightDto(nades);
   };
 
-  pending = async (): Promise<NadeLightDTO[]> => {
-    const pendingDTOS = await this.nadeRepo.pending();
-    const pending = pendingDTOS.map(this.toLightDTO);
-    return pending;
+  getPending = async (): Promise<NadeMiniDto[]> => {
+    const pendingNades = await this.nadeRepo.getPending();
+
+    return convertNadesToLightDto(pendingNades);
   };
 
-  declined = async (): Promise<NadeLightDTO[]> => {
-    const declinedDTOS = await this.nadeRepo.declined();
-    const pending = declinedDTOS.map(this.toLightDTO);
-    return pending;
+  getDeclined = async (): Promise<NadeMiniDto[]> => {
+    const declinedNades = await this.nadeRepo.getDeclined();
+
+    return convertNadesToLightDto(declinedNades);
   };
 
-  byId = async (nadeId: string): Promise<NadeDTO> => {
-    const cachedNade = this.cache.getNade(nadeId);
-
-    if (cachedNade && !this.shouldUpdateStats(cachedNade)) {
-      return cachedNade;
-    }
-
-    let nade = await this.nadeRepo.byId(nadeId);
-    nade = await this.tryUpdateViewCounter(nade);
-
-    this.cache.setNade(nadeId, nade);
+  getById = async (nadeId: string): Promise<NadeDTO> => {
+    const nade = await this.nadeRepo.getById(nadeId);
+    await this.tryUpdateViewCounter(nade);
 
     return nade;
   };
 
-  bySlug = async (slug: string): Promise<NadeDTO> => {
-    const cachedNade = this.cache.getNade(slug);
-
-    if (cachedNade && !this.shouldUpdateStats(cachedNade)) {
-      return cachedNade;
-    }
-
-    let nade = await this.nadeRepo.bySlug(slug);
-    nade = await this.tryUpdateViewCounter(nade);
-
-    this.cache.setNade(slug, nade);
+  getBySlug = async (slug: string): Promise<NadeDTO> => {
+    const nade = await this.nadeRepo.getBySlug(slug);
+    await this.tryUpdateViewCounter(nade);
 
     return nade;
   };
 
-  list = async (ids: string[]): Promise<NadeLightDTO[]> => {
-    const nades = await this.nadeRepo.list(ids);
-    return nades.map(this.toLightDTO);
+  getByMap = async (map: CsgoMap): Promise<NadeMiniDto[]> => {
+    const nades = await this.nadeRepo.getByMap(map);
+
+    return convertNadesToLightDto(nades);
   };
 
-  byMap = async (map: CsgoMap): Promise<NadeLightDTO[]> => {
-    const cachedNades = this.cache.getByMap(map);
+  getByUser = async (steamId: string): Promise<NadeMiniDto[]> => {
+    const nadesByUser = await this.nadeRepo.getByUser(steamId);
 
-    if (cachedNades) {
-      return cachedNades.map(this.toLightDTO);
-    }
-
-    const nades = await this.nadeRepo.byMap(map);
-
-    this.cache.setByMap(map, nades);
-
-    return nades.map(this.toLightDTO);
-  };
-
-  byUser = async (steamId: string): Promise<NadeLightDTO[]> => {
-    const cachedNades = this.cache.getUserNades(steamId);
-
-    if (cachedNades) {
-      return cachedNades;
-    }
-
-    const nadesByUse = await this.nadeRepo.byUser(steamId);
-
-    const nadesDto = nadesByUse.map(this.toLightDTO);
-
-    this.cache.setUserNades(steamId, nadesDto);
-
-    return nadesDto;
+    return convertNadesToLightDto(nadesByUser);
   };
 
   save = async (
@@ -191,7 +127,7 @@ export class NadeService {
       thumbnailUrl: "",
     };
 
-    const user = await this.userService.byId(steamID);
+    const user = await this.userRepo.byId(steamID);
 
     const userLight: UserLightModel = {
       nickname: user.nickname,
@@ -199,9 +135,7 @@ export class NadeService {
       steamId: user.steamId,
     };
 
-    const gfycatData = await this.gfycatService.getGfycatData(
-      body.gfycat.gfyId
-    );
+    const gfycatData = await this.gfycatApi.getGfycatData(body.gfycat.gfyId);
 
     if (!gfycatData) {
       throw ErrorFactory.ExternalError(
@@ -209,7 +143,7 @@ export class NadeService {
       );
     }
 
-    const resultImage = await this.galleryService.createThumbnail(
+    const resultImage = await this.imageRepo.createThumbnail(
       body.imageBase64,
       "nades"
     );
@@ -217,14 +151,14 @@ export class NadeService {
     imageBuilder.thumbnailId = `${resultImage.collection}/${resultImage.id}`;
     imageBuilder.thumbnailUrl = resultImage.url;
 
-    let lineupThumb: ImageRes | undefined;
+    let lineupThumb: ImageData | undefined;
 
     if (body.lineUpImageBase64) {
-      const lineupImage = await this.galleryService.createLarge(
+      const lineupImage = await this.imageRepo.createLarge(
         body.lineUpImageBase64,
         "lineup"
       );
-      lineupThumb = await this.galleryService.createThumbnail(
+      lineupThumb = await this.imageRepo.createThumbnail(
         body.lineUpImageBase64,
         "lineup"
       );
@@ -255,340 +189,168 @@ export class NadeService {
     };
 
     const nade = await this.nadeRepo.save(nadeModel);
-
-    this.eventBus.emitNewNade(nade);
-    this.cache.invalidateUserNades(nade.steamId);
+    await this.statsRepo.incrementNadeCounter();
+    await this.notificationRepo.newNade(nade.id);
 
     return nade;
   };
 
   delete = async (nadeId: string) => {
-    const nade = await this.nadeRepo.byId(nadeId);
+    const nade = await this.nadeRepo.getById(nadeId);
 
-    await this.galleryService.deleteImage(nade.images.thumbnailId);
+    await this.imageRepo.deleteImage(nade.images.thumbnailId);
 
     if (nade.images.lineupId) {
-      await this.galleryService.deleteImage(nade.images.lineupId);
+      await this.imageRepo.deleteImage(nade.images.lineupId);
     }
 
+    await this.commentRepo.deleteForNadeId(nadeId);
+    await this.favoriteRepo.deleteWhereNadeId(nadeId);
     await this.nadeRepo.delete(nade.id);
-
-    this.eventBus.emitNadeDelete(nade);
-    this.cache.invalidateNade(nadeId);
-    this.cache.invalidateUserNades(nade.steamId);
+    await this.statsRepo.decrementNadeCounter();
   };
 
   update = async (
     nadeId: string,
-    updateFields: NadeUpdateDTO
+    nadeUpdateDto: NadeUpdateDTO,
+    user: RequestUser
   ): Promise<NadeDTO | null> => {
-    const originalNade = await this.byId(nadeId);
+    const originalNade = await this.getById(nadeId);
 
-    let newImageData: NadeImages | undefined;
-    let newLineUpImageThumb: ImageRes | undefined;
+    verifyAllowEdit(originalNade, user);
+    verifyAdminFields(user, nadeUpdateDto);
 
-    // Update result image
-    if (updateFields.imageBase64) {
-      // Delete old image
-      await this.galleryService.deleteImage(originalNade.images.thumbnailId);
+    let newNadeData: Partial<NadeModel> = {
+      gfycat: nadeUpdateDto.gfycat,
+      startPosition: nadeUpdateDto.startPosition,
+      endPosition: nadeUpdateDto.endPosition,
+      description: nadeUpdateDto.description,
+      map: nadeUpdateDto.map,
+      movement: nadeUpdateDto.movement,
+      technique: nadeUpdateDto.technique,
+      tickrate: nadeUpdateDto.tickrate,
+      type: nadeUpdateDto.type,
+      mapEndCoord: nadeUpdateDto.mapEndCoord,
+      status: nadeUpdateDto.status,
+      slug: nadeUpdateDto.slug,
+      oneWay: nadeUpdateDto.oneWay,
+      isPro: nadeUpdateDto.isPro,
+    };
 
-      // Add new image
-      const imageData = await this.galleryService.createThumbnail(
-        updateFields.imageBase64,
-        "nades"
-      );
-
-      newImageData = {
-        ...originalNade.images,
-        thumbnailId: `${imageData.collection}/${imageData.id}`,
-        thumbnailUrl: imageData.url,
-      };
-    }
-
-    // Update lineup image
-    if (updateFields.lineUpImageBase64) {
-      // Delete old if present
-      if (originalNade.images.lineupId) {
-        await this.galleryService.deleteImage(originalNade.images.lineupId);
-      }
-      if (originalNade.imageLineupThumb) {
-        await this.galleryService.deleteImageResult(
-          originalNade.imageLineupThumb
-        );
-      }
-
-      const newLineUpImage = await this.galleryService.createLarge(
-        updateFields.lineUpImageBase64,
-        "lineup"
-      );
-      newLineUpImageThumb = await this.galleryService.createThumbnail(
-        updateFields.lineUpImageBase64,
-        "lineup"
-      );
-
-      // If original image was updated aswell
-      if (newImageData) {
-        newImageData = {
-          ...newImageData,
-          ...originalNade.images,
-          lineupId: `${newLineUpImage.collection}/${newLineUpImage.id}`,
-          lineupUrl: newLineUpImage.url,
-        };
-      } else {
-        newImageData = {
-          ...originalNade.images,
-          lineupId: `${newLineUpImage.collection}/${newLineUpImage.id}`,
-          lineupUrl: newLineUpImage.url,
-        };
-      }
-    }
-
-    const mergedNade = updatedNadeMerge(
-      updateFields,
-      newImageData,
-      newLineUpImageThumb
+    const mainImage = await this.replaceMainImageIfPresent(
+      originalNade,
+      nadeUpdateDto.imageBase64
     );
 
-    const updatedNade = await this.nadeRepo.update(nadeId, mergedNade, true);
+    if (mainImage) {
+      newNadeData["imageMain"] = mainImage;
+    }
 
-    this.handleStatusChange(originalNade, updatedNade);
+    const lineupImages = await this.replaceLineUpImageIfPresent(
+      originalNade,
+      nadeUpdateDto.lineUpImageBase64
+    );
 
-    this.cache.invalidateNade(updatedNade.id);
-    this.cache.invalidateMap(updatedNade.map);
-    this.cache.invalidateUserNades(updatedNade.steamId);
+    if (lineupImages) {
+      newNadeData["imageLineupThumb"] = lineupImages.lineupImageThumb;
+      newNadeData["imageLineup"] = lineupImages.lineupImage;
+    }
+
+    const updatedNade = await this.nadeRepo.update(nadeId, newNadeData, true);
+
+    await this.handleNadeUpdateNotification(
+      originalNade,
+      originalNade.status,
+      updatedNade.status
+    );
+
+    // #TODO Create Audit record
 
     return updatedNade;
   };
 
-  private handleStatusChange = (prevNade: NadeDTO, newNade: NadeDTO) => {
-    const prevStatus = prevNade.status;
-    const newStatus = newNade.status;
+  private handleNadeUpdateNotification = async (
+    nade: NadeDTO,
+    oldStatus: NadeStatus,
+    newStatus: NadeStatus
+  ) => {
+    const wasAccepted = newStatus === "accepted" && oldStatus !== "accepted";
+    const wasDeclined = newStatus === "declined" && oldStatus !== "declined";
 
-    if (newStatus === "accepted" && prevStatus !== "accepted") {
-      this.eventBus.emitNadeAccepted(newNade);
+    if (wasAccepted) {
+      await this.notificationRepo.nadeAccepted(nade);
+    } else if (wasDeclined) {
+      await this.notificationRepo.nadeDeclined(nade);
     }
-    if (newStatus === "declined" && prevStatus !== "declined") {
-      this.eventBus.emitNadeDeclined(newNade);
-    }
   };
 
-  private incrementFavoriteCount = async (favorite: FavoriteDTO) => {
-    const nade = await this.nadeRepo.incrementFavoriteCount(favorite.nadeId);
-    this.cache.invalidateNade(nade.id);
-    this.cache.invalidateUserNades(nade.steamId);
-    this.cache.invalidateMap(nade.map);
-  };
-
-  private decrementFavoriteCount = async (favorite: FavoriteDTO) => {
-    const nade = await this.nadeRepo.decrementFavoriteCount(favorite.nadeId);
-    this.cache.invalidateNade(nade.id);
-    this.cache.invalidateUserNades(nade.steamId);
-    this.cache.invalidateMap(nade.map);
-  };
-
-  private incrementCommentCount = async (comment: NadeCommentDto) => {
-    const nade = await this.nadeRepo.incrementCommentCount(comment.nadeId);
-    this.cache.invalidateNade(nade.id);
-    this.cache.invalidateUserNades(nade.steamId);
-    this.cache.invalidateMap(nade.map);
-  };
-
-  private decrementCommentCount = async (comment: NadeCommentDto) => {
-    const nade = await this.nadeRepo.decrementCommentCount(comment.nadeId);
-    this.cache.invalidateNade(nade.id);
-    this.cache.invalidateUserNades(nade.steamId);
-    this.cache.invalidateMap(nade.map);
-  };
-
-  private incrementUpVoteCount = async (nadeId: string) => {
-    const nade = await this.nadeRepo.incementUpVoteCount(nadeId);
-    this.cache.invalidateNade(nade.id);
-    this.cache.invalidateUserNades(nade.steamId);
-    this.cache.invalidateMap(nade.map);
-  };
-
-  private decrementUpVoteCount = async (nadeId: string) => {
-    const nade = await this.nadeRepo.decrementUpVoteCount(nadeId);
-    this.cache.invalidateNade(nade.id);
-    this.cache.invalidateUserNades(nade.steamId);
-    this.cache.invalidateMap(nade.map);
-  };
-
-  private incrementDownVoteCount = async (nadeId: string) => {
-    const nade = await this.nadeRepo.incementDownVoteCount(nadeId);
-    this.cache.invalidateNade(nade.id);
-    this.cache.invalidateUserNades(nade.steamId);
-    this.cache.invalidateMap(nade.map);
-  };
-
-  private decrementDownVoteCount = async (nadeId: string) => {
-    const nade = await this.nadeRepo.decrementDownVoteCount(nadeId);
-    this.cache.invalidateNade(nade.id);
-    this.cache.invalidateUserNades(nade.steamId);
-    this.cache.invalidateMap(nade.map);
-  };
-
-  private shouldUpdateStats = (nade: NadeDTO) => {
-    if (!nade.lastGfycatUpdate) {
-      return true;
+  private replaceLineUpImageIfPresent = async (
+    originalNade: NadeDTO,
+    lineupImageBase64?: string
+  ) => {
+    if (!lineupImageBase64) {
+      return;
     }
 
-    const daysAgoSubmitted = moment().diff(
-      moment(nade.createdAt),
-      "days",
-      false
+    // Delete old
+    if (originalNade.images.lineupId) {
+      await this.imageRepo.deleteImage(originalNade.images.lineupId);
+    }
+    if (originalNade.imageLineupThumb) {
+      await this.imageRepo.deleteImageResult(originalNade.imageLineupThumb);
+    }
+
+    const lineupImage = await this.imageRepo.createLarge(
+      lineupImageBase64,
+      "lineup"
+    );
+    const lineupImageThumb = await this.imageRepo.createThumbnail(
+      lineupImageBase64,
+      "lineup"
     );
 
-    const MIN_HOURS_TO_UPDATE = 6;
-    const MAX_HOURS_TO_UPDATE = 72;
-
-    const hoursToWaitForUpdate = clamp(
-      daysAgoSubmitted,
-      MIN_HOURS_TO_UPDATE,
-      MAX_HOURS_TO_UPDATE
-    );
-
-    const lastUpdated = nade.lastGfycatUpdate;
-    const hoursSinceUpdate = moment().diff(moment(lastUpdated), "hours", false);
-
-    const shouldUpdate = hoursSinceUpdate >= hoursToWaitForUpdate;
-
-    return shouldUpdate;
+    return {
+      lineupImage,
+      lineupImageThumb,
+    };
   };
 
-  private timeToNextUpdate = (nade: NadeDTO): number => {
-    if (!nade.lastGfycatUpdate) {
-      return 24;
+  private replaceMainImageIfPresent = async (
+    originalNade: NadeDTO,
+    mainImageBase64?: string
+  ) => {
+    if (!mainImageBase64) {
+      return;
     }
 
-    const daysAgoSubmitted = moment().diff(
-      moment(nade.createdAt),
-      "days",
-      false
+    if (originalNade.images.thumbnailId) {
+      await this.imageRepo.deleteImage(originalNade.images.thumbnailId);
+    }
+
+    const mainImage = await this.imageRepo.createThumbnail(
+      mainImageBase64,
+      "nades"
     );
 
-    const MIN_HOURS_TO_UPDATE = 6;
-    const MAX_HOURS_TO_UPDATE = 72;
-
-    const hoursToWaitForUpdate = clamp(
-      daysAgoSubmitted,
-      MIN_HOURS_TO_UPDATE,
-      MAX_HOURS_TO_UPDATE
-    );
-
-    const lastUpdated = nade.lastGfycatUpdate;
-    const hoursSinceUpdate = moment().diff(moment(lastUpdated), "hours", false);
-
-    const nextUpdate = hoursToWaitForUpdate - hoursSinceUpdate;
-
-    if (nextUpdate < 0) {
-      return 0;
-    }
-
-    return nextUpdate;
-  };
-
-  isAllowedEdit = async (nadeId: string, steamId: string): Promise<boolean> => {
-    try {
-      const nade = await this.byId(nadeId);
-      const user = await this.userService.byId(steamId);
-
-      if (!nade) {
-        // TODO: Throw sensible error
-        return false;
-      }
-
-      if (user.role === "administrator" || user.role === "moderator") {
-        return true;
-      }
-
-      if (nade.steamId === user.steamId) {
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      return false;
-    }
+    return mainImage;
   };
 
   private tryUpdateViewCounter = async (nade: NadeDTO): Promise<NadeDTO> => {
-    const shouldUpdate = this.shouldUpdateStats(nade);
-
-    if (!shouldUpdate) {
+    if (!shouldUpdateNadeStats(nade)) {
       return nade;
     }
 
-    const gfycat = await this.gfycatService.getGfycatData(nade.gfycat.gfyId);
+    const newNadeStats = await newStatsFromGfycat(
+      nade.gfycat.gfyId,
+      this.gfycatApi
+    );
 
-    if (!gfycat) {
-      // Gfycat service down, so we can't update view counter
+    if (!newNadeStats) {
       return nade;
     }
 
-    const updatedNadeViews: Partial<NadeModel> = {
-      viewCount: gfycat.gfyItem.views,
-      gfycat: {
-        gfyId: gfycat.gfyItem.gfyId,
-        smallVideoUrl: gfycat.gfyItem.mobileUrl,
-        largeVideoUrl: gfycat.gfyItem.mp4Url,
-        largeVideoWebm: gfycat.gfyItem.webmUrl,
-        avgColor: gfycat.gfyItem.avgColor,
-        duration: videoDuration(
-          gfycat.gfyItem.frameRate,
-          gfycat.gfyItem.numFrames
-        ),
-      },
-      lastGfycatUpdate: new Date(),
-    };
-
-    const viewCountDidDiffer = gfycat.gfyItem.views !== nade.viewCount;
-
-    const updatedNade = await this.nadeRepo.update(nade.id, updatedNadeViews);
-
-    if (viewCountDidDiffer) {
-      this.cache.invalidateNade(updatedNade.id);
-    }
+    const updatedNade = await this.nadeRepo.update(nade.id, newNadeStats);
 
     return updatedNade;
   };
-
-  private toLightDTO = (nadeDto: NadeDTO): NadeLightDTO => {
-    return {
-      id: nadeDto.id,
-      commentCount: nadeDto.commentCount,
-      createdAt: nadeDto.createdAt,
-      downVoteCount: nadeDto.downVoteCount,
-      endPosition: nadeDto.endPosition,
-      favoriteCount: nadeDto.favoriteCount,
-      gfycat: nadeDto.gfycat,
-      imageLineupThumbUrl: nadeDto.imageLineupThumb?.url,
-      images: nadeDto.images,
-      isPro: nadeDto.isPro,
-      mapEndCoord: nadeDto.mapEndCoord,
-      movement: nadeDto.movement,
-      nextUpdateInHours: this.timeToNextUpdate(nadeDto),
-      oneWay: nadeDto.oneWay,
-      score: nadeDto.score,
-      slug: nadeDto.slug,
-      startPosition: nadeDto.startPosition,
-      status: nadeDto.status,
-      technique: nadeDto.technique,
-      tickrate: nadeDto.tickrate,
-      title: nadeDto.title,
-      type: nadeDto.type,
-      updatedAt: nadeDto.updatedAt,
-      upVoteCount: nadeDto.upVoteCount,
-      user: nadeDto.user,
-      viewCount: nadeDto.viewCount,
-    };
-  };
-}
-
-function videoDuration(framerate?: number, numFrames?: number) {
-  if (!framerate || !numFrames) {
-    return undefined;
-  }
-  const seconds = Math.floor(numFrames / framerate);
-  return `PT0M${seconds}S`;
 }

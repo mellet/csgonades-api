@@ -1,24 +1,28 @@
-import { EventBus } from "../services/EventHandler";
-import { ISteamService } from "../steam/SteamService";
+import { SteamApi } from "../external-api/SteamApi";
+import { NadeRepo } from "../nade/NadeRepo";
+import { StatsRepo } from "../stats/StatsRepo";
 import { UserCreateDTO, UserUpdateDTO } from "./UserDTOs";
 import { UserModel, UserModelAnon } from "./UserModel";
 import { UserFilter, UserRepo } from "./UserRepo";
 
 type UserServiceDeps = {
+  nadeRepo: NadeRepo;
   userRepo: UserRepo;
-  steamService: ISteamService;
-  eventBus: EventBus;
+  statsRepo: StatsRepo;
+  steamApi: SteamApi;
 };
 
 export class UserService {
   private userRepo: UserRepo;
-  private steamService: ISteamService;
-  private eventBus: EventBus;
+  private steamApi: SteamApi;
+  private statsRepo: StatsRepo;
+  private nadeRepo: NadeRepo;
 
   constructor(deps: UserServiceDeps) {
     this.userRepo = deps.userRepo;
-    this.steamService = deps.steamService;
-    this.eventBus = deps.eventBus;
+    this.steamApi = deps.steamApi;
+    this.statsRepo = deps.statsRepo;
+    this.nadeRepo = deps.nadeRepo;
   }
 
   all = (filter: UserFilter) => {
@@ -41,7 +45,7 @@ export class UserService {
       const user = await this.userRepo.byId(steamId);
       return user;
     } catch (error) {
-      const player = await this.steamService.getPlayerBySteamID(steamId);
+      const player = await this.steamApi.getPlayerBySteamID(steamId);
 
       const newUser: UserCreateDTO = {
         steamId: player.steamID,
@@ -50,8 +54,7 @@ export class UserService {
         role: "user",
       };
       const user = await this.userRepo.create(newUser);
-
-      this.eventBus.emitNewUser(user);
+      await this.statsRepo.incrementUserCounter();
 
       return user;
     }
@@ -61,7 +64,11 @@ export class UserService {
     const res = await this.userRepo.update(steamId, update);
 
     if (res) {
-      this.eventBus.emitUserDetailsUpdate(res);
+      this.nadeRepo.updateUserOnNades(steamId, {
+        nickname: res.nickname,
+        avatar: res.avatar,
+        steamId: steamId,
+      });
     }
 
     return res;

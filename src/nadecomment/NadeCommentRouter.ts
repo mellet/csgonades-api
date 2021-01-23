@@ -8,15 +8,15 @@ import { NadeCommentCreateDTO, NadeCommentUpdateDTO } from "./NadeComment";
 import { NadeCommentService } from "./NadeCommentService";
 
 type NadeCommentRouterDeps = {
-  nadeCommentService: NadeCommentService;
+  commentService: NadeCommentService;
 };
 
 export class NadeCommentRouter {
   private router: Router;
-  private nadeCommentService: NadeCommentService;
+  private commentService: NadeCommentService;
 
   constructor(deps: NadeCommentRouterDeps) {
-    this.nadeCommentService = deps.nadeCommentService;
+    this.commentService = deps.commentService;
     this.router = Router();
     this.setUpRoutes();
   }
@@ -48,7 +48,7 @@ export class NadeCommentRouter {
     try {
       const nadeId = req.params.nadeId;
 
-      const nadeComments = await this.nadeCommentService.getForNade(nadeId);
+      const nadeComments = await this.commentService.getForNade(nadeId);
 
       return res.status(200).send(nadeComments);
     } catch (error) {
@@ -71,7 +71,7 @@ export class NadeCommentRouter {
         throw new Error("Invalid input");
       }
 
-      const comment = await this.nadeCommentService.save(
+      const comment = await this.commentService.save(
         nadeCommentBody,
         user.steamId
       );
@@ -99,7 +99,7 @@ export class NadeCommentRouter {
         throw new Error("Invalid input");
       }
 
-      const updatedComment = await this.nadeCommentService.update(
+      const updatedComment = await this.commentService.update(
         nadeCommentBody,
         user
       );
@@ -116,7 +116,7 @@ export class NadeCommentRouter {
       const user = userFromRequest(req);
       const commentId = sanitizeIt(req.params.commentId);
 
-      await this.nadeCommentService.delete(commentId, user);
+      await this.commentService.delete(commentId, user);
 
       return res.status(204).send();
     } catch (error) {

@@ -1,23 +1,29 @@
-import { NadeDTO } from "../nade/Nade";
-import { EventBus } from "../services/EventHandler";
+import { NadeRepo } from "../nade/NadeRepo";
+import { NotificationRepo } from "../notifications/NotificationRepo";
+import { UserRepo } from "../user/UserRepo";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import { makeFavorite } from "./Favorite";
 import { FavoriteRepo } from "./FavoriteRepo";
 
 type FavoriteDeps = {
   favoriteRepo: FavoriteRepo;
-  eventBus: EventBus;
+  nadeRepo: NadeRepo;
+  userRepo: UserRepo;
+  notificationRepo: NotificationRepo;
 };
 
 export class FavoriteService {
   private favoriteRepo: FavoriteRepo;
-  private eventBus: EventBus;
+  private nadeRepo: NadeRepo;
+  private userRepo: UserRepo;
+  private notificationRepo: NotificationRepo;
 
   constructor(deps: FavoriteDeps) {
-    const { eventBus } = deps;
-    this.favoriteRepo = deps.favoriteRepo;
-    this.eventBus = eventBus;
-    eventBus.subNadeDelete(this.deleteFavoritesForNade);
+    const { favoriteRepo, nadeRepo, notificationRepo, userRepo } = deps;
+    this.favoriteRepo = favoriteRepo;
+    this.nadeRepo = nadeRepo;
+    this.notificationRepo = notificationRepo;
+    this.userRepo = userRepo;
   }
 
   getFavoritesForUser = async (steamId: string) => {
@@ -26,39 +32,54 @@ export class FavoriteService {
     return favorites;
   };
 
-  createFavoriteForUser = async (steamId: string, nadeId: string) => {
+  addFavorite = async (steamId: string, nadeId: string) => {
+    const nadeBeingFavorited = await this.nadeRepo.getById(nadeId);
+    const userFavoriting = await this.userRepo.byId(steamId);
+
     const newFavorite = makeFavorite(nadeId, steamId);
-    const favorite = await this.favoriteRepo.set(newFavorite);
+    const favorite = await this.favoriteRepo.addFavorite(newFavorite);
 
     if (favorite) {
-      this.eventBus.emitNewFavorite(favorite);
+      await this.nadeRepo.incrementFavoriteCount(nadeId);
+
+      // Avoid favorite notification for own nades
+      if (favorite.userId !== nadeBeingFavorited.steamId) {
+        await this.notificationRepo.newFavorite(
+          nadeBeingFavorited,
+          userFavoriting
+        );
+      }
     }
 
     return favorite;
   };
 
-  unFavorite = async (steamId: string, favoriteId: string): Promise<void> => {
+  removeFavorite = async (
+    steamId: string,
+    favoriteId: string
+  ): Promise<void> => {
     const allowUnfavorite = await this.isOwnerOfFavorite(steamId, favoriteId);
 
     if (!allowUnfavorite) {
       throw ErrorFactory.Forbidden("You can't unfavorite this item.");
     }
 
-    const favorite = await this.favoriteRepo.unSet(favoriteId);
+    const favorite = await this.favoriteRepo.removeFavorite(favoriteId);
 
     if (!favorite) {
       throw ErrorFactory.NotFound("Favorite not found.");
     }
 
-    if (favorite) {
-      this.eventBus.emitUnFavorite(favorite);
+    const nadeBeingUnFavorited = await this.nadeRepo.getById(favorite.nadeId);
+
+    if (favorite.userId !== nadeBeingUnFavorited.steamId) {
+      await this.notificationRepo.removeFavoriteNotification({
+        nadeId: favorite.nadeId,
+        bySteamId: steamId,
+      });
     }
 
-    return;
-  };
-
-  private deleteFavoritesForNade = (nade: NadeDTO) => {
-    return this.favoriteRepo.deleteByNadeId(nade.id);
+    await this.nadeRepo.decrementFavoriteCount(favorite.nadeId);
   };
 
   private isOwnerOfFavorite = async (

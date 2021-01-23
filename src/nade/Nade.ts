@@ -1,4 +1,4 @@
-import { ImageRes } from "../imageGallery/ImageStorageService";
+import { ImageData } from "../imageGallery/ImageStorageRepo";
 import { UserLightModel } from "../user/UserModel";
 import { removeUndefines } from "../utils/Common";
 import { CsgoMap } from "./nadeSubTypes/CsgoMap";
@@ -41,8 +41,9 @@ export interface NadeModel {
   favoriteCount: number;
   gfycat: GfycatData;
   images: NadeImages;
-
-  imageLineupThumb?: ImageRes;
+  imageLineup?: ImageData;
+  imageLineupThumb?: ImageData;
+  imageMain?: ImageData;
   isPro?: boolean;
   lastGfycatUpdate: Date;
   map?: CsgoMap;
@@ -77,7 +78,7 @@ export type NadeCreateModel = {
   endPosition: string;
   favoriteCount: number;
   gfycat: GfycatData;
-  imageLineupThumb?: ImageRes;
+  imageLineupThumb?: ImageData;
   images: NadeImages;
   map: CsgoMap;
   mapEndCoord: MapCoordinates;
@@ -92,7 +93,7 @@ export type NadeCreateModel = {
   viewCount: number;
 };
 
-export type NadeLightDTO = {
+export type NadeMiniDto = {
   id: string;
   commentCount: number;
   createdAt: Date;
@@ -163,7 +164,7 @@ export type NadeGfycatValidateDTO = {
 export function updatedNadeMerge(
   updateFields: NadeUpdateDTO,
   newImages?: NadeImages,
-  newLineUpThumb?: ImageRes
+  newLineUpThumb?: ImageData
 ): Partial<NadeModel> {
   const newNade: Partial<NadeModel> = {
     description: updateFields.description,

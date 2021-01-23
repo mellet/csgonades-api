@@ -1,13 +1,13 @@
 import { Router } from "express";
 import { errorCatchConverter } from "../utils/ErrorUtil";
-import { StatsService } from "./StatsService";
+import { StatsRepo } from "./StatsRepo";
 
-export const makeStatsRouter = (statsService: StatsService): Router => {
+export const makeStatsRouter = (statsRepo: StatsRepo): Router => {
   const StatsRouter = Router();
 
   StatsRouter.get("/stats", async (req, res) => {
     try {
-      const result = await statsService.getStats();
+      const result = await statsRepo.getStats();
 
       if (!result) {
         return res.status(404).send();
@@ -20,14 +20,9 @@ export const makeStatsRouter = (statsService: StatsService): Router => {
     }
   });
 
-  StatsRouter.get("/flush-all", async (_, res) => {
-    statsService.nukeCache();
-    return res.status(200).send({});
-  });
-
   StatsRouter.get("/client-config", async (_, res) => {
     try {
-      const clientConfig = await statsService.getClientConfig();
+      const clientConfig = await statsRepo.getClientConfig();
 
       if (!clientConfig) {
         return res.status(404).send();

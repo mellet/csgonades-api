@@ -6,7 +6,6 @@ import {
   Collection,
   Doc,
   get,
-  getMany,
   limit,
   order,
   query,
@@ -30,7 +29,7 @@ export class NadeRepo {
     this.collection = collection("nades");
   }
 
-  slugIsFree = async (slug: string): Promise<boolean> => {
+  isSlugAvailable = async (slug: string): Promise<boolean> => {
     const nadeDocs = await query(this.collection, [where("slug", "==", slug)]);
 
     if (nadeDocs.length === 0) {
@@ -57,7 +56,7 @@ export class NadeRepo {
     return nades;
   };
 
-  pending = async (): Promise<NadeDTO[]> => {
+  getPending = async (): Promise<NadeDTO[]> => {
     const pendingDocs = await query(this.collection, [
       where("status", "==", "pending"),
       order("createdAt", "desc"),
@@ -67,7 +66,7 @@ export class NadeRepo {
     return pendingNades;
   };
 
-  declined = async (): Promise<NadeDTO[]> => {
+  getDeclined = async (): Promise<NadeDTO[]> => {
     const declinedDocs = await query(this.collection, [
       where("status", "==", "declined"),
       order("createdAt", "desc"),
@@ -77,7 +76,7 @@ export class NadeRepo {
     return declinedNades;
   };
 
-  byId = async (nadeId: string): Promise<NadeDTO> => {
+  getById = async (nadeId: string): Promise<NadeDTO> => {
     const nadeDoc = await get(this.collection, nadeId);
 
     if (!nadeDoc) {
@@ -92,7 +91,7 @@ export class NadeRepo {
     };
   };
 
-  bySlug = async (slug: string): Promise<NadeDTO> => {
+  getBySlug = async (slug: string): Promise<NadeDTO> => {
     const nadeDocs = await query(this.collection, [where("slug", "==", slug)]);
 
     if (!nadeDocs.length) {
@@ -109,7 +108,7 @@ export class NadeRepo {
     };
   };
 
-  byMap = async (csgoMap: CsgoMap): Promise<NadeDTO[]> => {
+  getByMap = async (csgoMap: CsgoMap): Promise<NadeDTO[]> => {
     const queryBuilder: Query<NadeModel, keyof NadeModel>[] = [
       where("status", "==", "accepted"),
       where("map", "==", csgoMap),
@@ -123,7 +122,7 @@ export class NadeRepo {
     return nades;
   };
 
-  byUser = async (steamId: string): Promise<NadeDTO[]> => {
+  getByUser = async (steamId: string): Promise<NadeDTO[]> => {
     const nadeDocs = await query(this.collection, [
       where("steamId", "==", steamId),
       order("createdAt", "desc"),
@@ -131,13 +130,6 @@ export class NadeRepo {
 
     const allNades = nadeDocs.map(this.toNadeDTO);
     const nades = allNades.filter((n) => n.status !== "deleted");
-    return nades;
-  };
-
-  list = async (ids: string[]): Promise<NadeDTO[]> => {
-    const nadeDocs = await getMany(this.collection, ids);
-    const nades = nadeDocs.map(this.toNadeDTO);
-
     return nades;
   };
 
@@ -153,14 +145,6 @@ export class NadeRepo {
     const nade = await add(this.collection, nadeModel);
 
     return this.toNadeDTO(nade);
-  };
-
-  setCreatedAtNowForNade = async (nadeId: string) => {
-    let modelUpdates: ModelUpdate<NadeModel> = {
-      createdAt: value("serverDate"),
-      updatedAt: value("serverDate"),
-    };
-    await update(this.collection, nadeId, modelUpdates);
   };
 
   update = async (
@@ -180,7 +164,7 @@ export class NadeRepo {
 
     await update(this.collection, nadeId, modelUpdates);
 
-    const nade = await this.byId(nadeId);
+    const nade = await this.getById(nadeId);
 
     return nade;
   };
@@ -211,7 +195,7 @@ export class NadeRepo {
       favoriteCount: value("increment", 1),
     });
 
-    return this.byId(nadeId);
+    return this.getById(nadeId);
   };
 
   decrementFavoriteCount = async (nadeId: string) => {
@@ -219,7 +203,7 @@ export class NadeRepo {
       favoriteCount: value("increment", -1),
     });
 
-    return this.byId(nadeId);
+    return this.getById(nadeId);
   };
 
   incrementCommentCount = async (nadeId: string) => {
@@ -227,7 +211,7 @@ export class NadeRepo {
       commentCount: value("increment", 1),
     });
 
-    return this.byId(nadeId);
+    return this.getById(nadeId);
   };
 
   decrementCommentCount = async (nadeId: string) => {
@@ -235,7 +219,7 @@ export class NadeRepo {
       commentCount: value("increment", -1),
     });
 
-    return this.byId(nadeId);
+    return this.getById(nadeId);
   };
 
   incementUpVoteCount = async (nadeId: string) => {
@@ -243,28 +227,28 @@ export class NadeRepo {
       upVoteCount: value("increment", 1),
     });
 
-    return this.byId(nadeId);
+    return this.getById(nadeId);
   };
 
   decrementUpVoteCount = async (nadeId: string) => {
     update(this.collection, nadeId, {
       upVoteCount: value("increment", -1),
     });
-    return this.byId(nadeId);
+    return this.getById(nadeId);
   };
 
   incementDownVoteCount = async (nadeId: string) => {
     update(this.collection, nadeId, {
       downVoteCount: value("increment", 1),
     });
-    return this.byId(nadeId);
+    return this.getById(nadeId);
   };
 
   decrementDownVoteCount = async (nadeId: string) => {
     update(this.collection, nadeId, {
       downVoteCount: value("increment", -1),
     });
-    return this.byId(nadeId);
+    return this.getById(nadeId);
   };
 
   private toNadeDTO = (doc: Doc<NadeModel>): NadeDTO => {

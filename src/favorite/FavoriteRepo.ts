@@ -20,7 +20,7 @@ export class FavoriteRepo {
     this.collection = collection("favorites");
   }
 
-  set = async (favorite: FavoriteCreateModel): Promise<FavoriteDTO> => {
+  addFavorite = async (favorite: FavoriteCreateModel): Promise<FavoriteDTO> => {
     const duplicate = await query(this.collection, [
       where("nadeId", "==", favorite.nadeId),
       where("userId", "==", favorite.userId),
@@ -40,7 +40,7 @@ export class FavoriteRepo {
     return this.docToDto(favDoc);
   };
 
-  unSet = async (favoriteId: string): Promise<FavoriteDTO | null> => {
+  removeFavorite = async (favoriteId: string): Promise<FavoriteDTO | null> => {
     const favorite = this.byId(favoriteId);
 
     if (favorite) {
@@ -50,7 +50,7 @@ export class FavoriteRepo {
     return favorite;
   };
 
-  deleteByNadeId = async (nadeId: string) => {
+  deleteWhereNadeId = async (nadeId: string) => {
     const favsForNadeId = await this.byNadeId(nadeId);
 
     const idsToRemove = favsForNadeId.map((f) => f.id);

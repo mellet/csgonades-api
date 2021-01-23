@@ -33,31 +33,31 @@ export class StatsRepo {
 
   incrementUserCounter = () => {
     return update(this.collection, this.siteDocId, {
-      numUsers: value("increment", 1)
+      numUsers: value("increment", 1),
     });
   };
 
   incrementNadeCounter = () => {
     return update(this.collection, this.siteDocId, {
-      numNades: value("increment", 1)
+      numNades: value("increment", 1),
     });
   };
 
   decrementNadeCounter = () => {
     return update(this.collection, this.siteDocId, {
-      numNades: value("increment", -1)
+      numNades: value("increment", -1),
     });
   };
 
   incrementPendingCounter = () => {
     return update(this.collection, this.siteDocId, {
-      numPending: value("increment", 1)
+      numPending: value("increment", 1),
     });
   };
 
   decrementPendingCounter = () => {
     return update(this.collection, this.siteDocId, {
-      numPending: value("increment", -1)
+      numPending: value("increment", -1),
     });
   };
 }

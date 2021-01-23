@@ -1,17 +1,10 @@
 import { Router } from "express";
-import { CachingService } from "../services/CachingService";
-
-type StatusRouterDeps = {
-  cache: CachingService;
-};
 
 export class StatusRouter {
-  private cache: CachingService;
   private router: Router;
 
-  constructor(deps: StatusRouterDeps) {
+  constructor() {
     this.router = Router();
-    this.cache = deps.cache;
     this.setupRoutes();
   }
 
@@ -29,7 +22,6 @@ export class StatusRouter {
       serverClock: new Date(),
       uptime: format(process.uptime()),
       node_env: process.env.NODE_ENV,
-      cache: this.cache.getStats(),
     });
   };
 }

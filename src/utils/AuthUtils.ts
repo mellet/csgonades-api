@@ -135,3 +135,16 @@ export const extractTokenMiddleware = (config: CSGNConfig) => {
     next();
   };
 };
+
+export const isEntityOwnerOrPrivilegedUser = (
+  entityOwnerId: string,
+  user: RequestUser
+) => {
+  if (user.role === "administrator" || user.role === "moderator") {
+    return true;
+  }
+  if (entityOwnerId === user.steamId) {
+    return true;
+  }
+  return false;
+};

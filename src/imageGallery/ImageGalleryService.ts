@@ -2,28 +2,28 @@ import { nanoid } from "nanoid";
 import sharp from "sharp";
 import { CSGNConfig } from "../config/enironment";
 import { ErrorFactory } from "../utils/ErrorUtil";
-import { ImageRes, ImageStorageRepo } from "./ImageStorageService";
+import { ImageData, ImageStorageRepo } from "./ImageStorageRepo";
 
-type ImageGalleryDeps = {
-  imageRepo: ImageStorageRepo;
+type ImageRepoDeps = {
+  imageStorageRepo: ImageStorageRepo;
   config: CSGNConfig;
 };
 
 export type ImageCollection = "nades" | "lineup";
 
-export class ImageGalleryService {
+export class ImageRepo {
   private IMAGE_LARGE_SIZE = 1600;
   private IMAGE_THUMB_SIZE = 500;
-  private imageRepo: ImageStorageRepo;
+  private imageStorageRepo: ImageStorageRepo;
   private config: CSGNConfig;
 
-  constructor(deps: ImageGalleryDeps) {
-    this.imageRepo = deps.imageRepo;
+  constructor(deps: ImageRepoDeps) {
+    this.imageStorageRepo = deps.imageStorageRepo;
     this.config = deps.config;
   }
 
   getImagesInCollection = async (folder: ImageCollection) => {
-    return this.imageRepo.getImagesInCollection(folder);
+    return this.imageStorageRepo.getImagesInCollection(folder);
   };
 
   createThumbnail = async (
@@ -41,7 +41,7 @@ export class ImageGalleryService {
   createLarge = async (
     imageBase64: string,
     collection: ImageCollection
-  ): Promise<ImageRes> => {
+  ): Promise<ImageData> => {
     return this.saveImage(imageBase64, collection, this.IMAGE_LARGE_SIZE);
   };
 
@@ -56,7 +56,7 @@ export class ImageGalleryService {
 
     const tmpImage = await this.resizeImage(imageBase64, imageName, size);
 
-    const image = await this.imageRepo.saveImage(
+    const image = await this.imageStorageRepo.saveImage(
       tmpImage,
       imageName,
       collection
@@ -66,12 +66,12 @@ export class ImageGalleryService {
   };
 
   deleteImage = (internalPath: string): Promise<void> => {
-    return this.imageRepo.deleteImage(internalPath);
+    return this.imageStorageRepo.deleteImage(internalPath);
   };
 
-  deleteImageResult = (imageRes: ImageRes) => {
+  deleteImageResult = (imageRes: ImageData) => {
     const internalPath = `${imageRes.collection}/${imageRes.id}`;
-    return this.imageRepo.deleteImage(internalPath);
+    return this.imageStorageRepo.deleteImage(internalPath);
   };
 
   private resizeImage = async (

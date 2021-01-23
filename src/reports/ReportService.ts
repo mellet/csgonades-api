@@ -1,19 +1,19 @@
-import { EventBus } from "../services/EventHandler";
+import { NotificationRepo } from "../notifications/NotificationRepo";
 import { ReportDTO, ReportSaveDTO } from "./Report";
 import { ReportRepo } from "./ReportRepo";
 
 type ReportServiceDeps = {
   reportRepo: ReportRepo;
-  eventBus: EventBus;
+  notificationRepo: NotificationRepo;
 };
 
 export class ReportService {
   private reportRepo: ReportRepo;
-  private eventBus: EventBus;
+  private notificationRepo: NotificationRepo;
 
   constructor(deps: ReportServiceDeps) {
+    this.notificationRepo = deps.notificationRepo;
     this.reportRepo = deps.reportRepo;
-    this.eventBus = deps.eventBus;
   }
 
   getAll = async (): Promise<ReportDTO[]> => {
@@ -22,8 +22,7 @@ export class ReportService {
 
   save = async (saveDto: ReportSaveDTO): Promise<ReportDTO> => {
     const report = await this.reportRepo.save(saveDto);
-    this.eventBus.emitNewReport(report);
-
+    this.notificationRepo.newReport();
     return report;
   };
 

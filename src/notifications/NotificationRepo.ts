@@ -12,6 +12,9 @@ import {
   value,
   where,
 } from "typesaurus";
+import { NadeDTO, NadeModel } from "../nade/Nade";
+import { NadeCommentDto } from "../nadecomment/NadeComment";
+import { UserModel } from "../user/UserModel";
 import { assertNever, removeUndefines } from "../utils/Common";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import {
@@ -28,6 +31,7 @@ type RemoveFavNotiOpts = {
 
 export class NotificationRepo {
   private collection: Collection<NotificationModel>;
+  private adminId = "76561198026064832";
 
   constructor() {
     this.collection = collection("notifications");
@@ -53,6 +57,68 @@ export class NotificationRepo {
     }
 
     return this.toDto(notification);
+  };
+
+  newNade = async (nadeId: string) => {
+    this.add({
+      type: "new-nade",
+      nadeId,
+      subjectSteamId: this.adminId,
+    });
+  };
+
+  newReport = async () => {
+    this.add({
+      type: "report",
+      subjectSteamId: this.adminId,
+    });
+  };
+
+  nadeAccepted = async (nade: NadeDTO) => {
+    this.add({
+      type: "accepted-nade",
+      nadeId: nade.id,
+      subjectSteamId: nade.steamId,
+    });
+  };
+
+  nadeDeclined = async (nade: NadeDTO) => {
+    this.add({
+      type: "declined-nade",
+      nadeId: nade.id,
+      subjectSteamId: nade.steamId,
+    });
+  };
+
+  newFavorite = async (nade: NadeDTO, user: UserModel) => {
+    this.add({
+      type: "favorite",
+      subjectSteamId: nade.steamId,
+      nadeId: nade.id,
+      bySteamId: user.steamId,
+      byNickname: user.nickname,
+      nadeSlug: nade.slug,
+      thumnailUrl: nade.images.thumbnailUrl,
+    });
+  };
+
+  newContactMessage = async () => {
+    this.add({
+      type: "contact-msg",
+      subjectSteamId: this.adminId,
+    });
+  };
+
+  newCommentNotification = async (comment: NadeCommentDto, nade: NadeModel) => {
+    this.add({
+      type: "new-comment",
+      nadeId: comment.nadeId,
+      byNickname: comment.nickname,
+      bySteamId: comment.steamId,
+      subjectSteamId: nade.steamId,
+      nadeSlug: nade.slug,
+      thumnailUrl: nade.images.thumbnailUrl,
+    });
   };
 
   add = async (noti: NotificationCreate): Promise<NotificationDTO> => {

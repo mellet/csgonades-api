@@ -53,7 +53,7 @@ export class FavoriteRouter {
       const user = userFromRequest(req);
       const nadeId = sanitizeIt(req.params.nadeId);
 
-      const favorite = await this.favoriteService.createFavoriteForUser(
+      const favorite = await this.favoriteService.addFavorite(
         user.steamId,
         nadeId
       );
@@ -71,7 +71,7 @@ export class FavoriteRouter {
       const favoriteId = sanitizeIt(req.params.favoriteId);
       const user = userFromRequest(req);
 
-      await this.favoriteService.unFavorite(user.steamId, favoriteId);
+      await this.favoriteService.removeFavorite(user.steamId, favoriteId);
 
       return res.status(202).send();
     } catch (error) {

@@ -8,11 +8,11 @@ import { ContactService } from "./ContactService";
 
 export class ContactRouter {
   private router: Router;
-  private contactRepo: ContactService;
+  private contactService: ContactService;
 
-  constructor(contactRepo: ContactService) {
+  constructor(contactService: ContactService) {
     this.router = Router();
-    this.contactRepo = contactRepo;
+    this.contactService = contactService;
     this.setupRoutes();
   }
 
@@ -32,7 +32,7 @@ export class ContactRouter {
 
   private getContactMessages = async (_, res) => {
     try {
-      const contactMessages = await this.contactRepo.getMessages();
+      const contactMessages = await this.contactService.getMessages();
 
       return res.status(200).send(contactMessages);
     } catch (error) {
@@ -45,7 +45,7 @@ export class ContactRouter {
     try {
       const contactData = sanitizeIt(req.body) as ContactDTO;
 
-      await this.contactRepo.addMessage(contactData);
+      await this.contactService.addMessage(contactData);
 
       return res.status(201).send();
     } catch (error) {
@@ -58,7 +58,7 @@ export class ContactRouter {
   private removeContactMessage = async (req, res) => {
     try {
       const id = req.params.id;
-      await this.contactRepo.deleteMessage(id);
+      await this.contactService.deleteMessage(id);
 
       return res.status(204).send();
     } catch (error) {
