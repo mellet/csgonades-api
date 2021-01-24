@@ -4,10 +4,12 @@ import { UserRepo } from "../user/UserRepo";
 import { AppContext } from "../utils/AppContext";
 import { isEntityOwnerOrPrivilegedUser } from "../utils/AuthUtils";
 import { ErrorFactory } from "../utils/ErrorUtil";
-import { CommentCreateDto, CommentDto, CommentUpddateDto } from "./Comment";
-import { CommentRepo } from "./CommentRepo";
+import { CommentCreateDto } from "./dto/CommentCreateDto";
+import { CommentDto } from "./dto/CommentDto";
+import { CommentUpddateDto } from "./dto/CommentUpddateDto";
+import { CommentRepo } from "./repository/CommentRepo";
 
-type CommentServiceDeps = {
+export type CommentServiceDeps = {
   commentRepo: CommentRepo;
   userRepo: UserRepo;
   nadeRepo: NadeRepo;
@@ -49,15 +51,7 @@ export class CommentService {
 
     const nade = await this.nadeRepo.getById(commentBody.nadeId);
 
-    const comment = await this.commentRepo.save({
-      nadeId: commentBody.nadeId,
-      message: commentBody.message,
-      nickname: user.nickname,
-      steamId: user.steamId,
-      avatar: user.avatar,
-      createdAt: new Date(),
-      updatedAt: null,
-    });
+    const comment = await this.commentRepo.save(user, commentBody);
 
     // Don't send notfication when commenting own nade
     if (authUser.steamId !== nade.steamId) {
@@ -72,6 +66,10 @@ export class CommentService {
   update = async (context: AppContext, updateModel: CommentUpddateDto) => {
     const originalComment = await this.commentRepo.getById(updateModel.id);
 
+    if (!originalComment) {
+      throw ErrorFactory.NotFound("Comment not found");
+    }
+
     if (
       !isEntityOwnerOrPrivilegedUser(originalComment.steamId, context.authUser)
     ) {
@@ -85,6 +83,10 @@ export class CommentService {
     const { authUser } = context;
 
     const originalComment = await this.commentRepo.getById(commentId);
+
+    if (!originalComment) {
+      throw ErrorFactory.NotFound("Comment not found");
+    }
 
     if (!isEntityOwnerOrPrivilegedUser(originalComment.steamId, authUser)) {
       throw ErrorFactory.Forbidden("You can only delete your own comments");

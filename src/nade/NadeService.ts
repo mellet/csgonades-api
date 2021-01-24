@@ -1,4 +1,4 @@
-import { CommentRepo } from "../comment/CommentRepo";
+import { CommentRepo } from "../comment/repository/CommentRepo";
 import { GfycatApi } from "../external-api/GfycatApi";
 import { FavoriteRepo } from "../favorite/FavoriteRepo";
 import { ImageRepo } from "../imageGallery/ImageGalleryService";

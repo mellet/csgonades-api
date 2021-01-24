@@ -19,6 +19,12 @@ export type UserLightDTO = {
   createdAt: Date;
 };
 
+export type UserMiniDto = {
+  nickname: string;
+  steamId: string;
+  avatar?: string;
+};
+
 export type UserCreateDto = {
   nickname: string;
   steamId: string;

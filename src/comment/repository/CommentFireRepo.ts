@@ -10,15 +10,19 @@ import {
   value,
   where,
 } from "typesaurus";
-import { UserDto } from "../user/UserDTOs";
-import { ErrorFactory } from "../utils/ErrorUtil";
-import { CommentDoc, CommentDto, CommentUpddateDto } from "./Comment";
+import { UserDto, UserMiniDto } from "../../user/UserDTOs";
+import { ErrorFactory } from "../../utils/ErrorUtil";
+import { CommentCreateDto } from "../dto/CommentCreateDto";
+import { CommentDto } from "../dto/CommentDto";
+import { CommentUpddateDto } from "../dto/CommentUpddateDto";
+import { CommentModel } from "../model/CommentDoc";
+import { CommentRepo } from "./CommentRepo";
 
-export class CommentRepo {
-  private collection: Collection<CommentDoc>;
+export class CommentFireRepo implements CommentRepo {
+  private collection: Collection<CommentModel>;
 
   constructor() {
-    this.collection = collection<CommentDoc>("nadecomments");
+    this.collection = collection<CommentModel>("nadecomments");
   }
 
   getForNade = async (nadeId: string): Promise<CommentDto[]> => {
@@ -46,10 +50,17 @@ export class CommentRepo {
     };
   };
 
-  save = async (articleModel: CommentDoc): Promise<CommentDto> => {
-    const newComment: CommentDoc = {
+  save = async (
+    user: UserMiniDto,
+    articleModel: CommentCreateDto
+  ): Promise<CommentDto> => {
+    const newComment: CommentModel = {
       ...articleModel,
+      steamId: user.steamId,
+      avatar: user.avatar,
+      nickname: user.nickname,
       createdAt: value("serverDate"),
+      updatedAt: value("serverDate"),
     };
 
     const res = await add(this.collection, newComment);

@@ -1,5 +1,6 @@
 import { AuditRepo } from "./audit/AuditRepo";
-import { CommentRepo } from "./comment/CommentRepo";
+import { CommentFireRepo } from "./comment/repository/CommentFireRepo";
+import { CommentRepo } from "./comment/repository/CommentRepo";
 import { ContactRepo } from "./contact/ContactRepo";
 import { FavoriteRepo } from "./favorite/FavoriteRepo";
 import { ImageStorageRepo } from "./imageGallery/ImageStorageRepo";
@@ -32,7 +33,7 @@ export function repoInit(persist: PersistedStorage): AppRepositories {
   const contactRepo = new ContactRepo();
   const reportRepo = new ReportRepo();
   const imageStorageRepo = new ImageStorageRepo(persist.bucket);
-  const commentRepo = new CommentRepo();
+  const commentRepo = new CommentFireRepo();
   const auditRepo = new AuditRepo();
 
   return {

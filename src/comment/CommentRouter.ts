@@ -4,8 +4,9 @@ import { createAppContext } from "../utils/AppContext";
 import { authOnlyHandler } from "../utils/AuthUtils";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { sanitizeIt } from "../utils/Sanitize";
-import { CommentCreateDto, CommentUpddateDto } from "./Comment";
 import { CommentService } from "./CommentService";
+import { CommentCreateDto } from "./dto/CommentCreateDto";
+import { CommentUpddateDto } from "./dto/CommentUpddateDto";
 
 type CommentRouterDeps = {
   commentService: CommentService;

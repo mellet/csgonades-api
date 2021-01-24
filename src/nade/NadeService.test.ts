@@ -1,5 +1,5 @@
 import { instance, mock, resetCalls, verify, when } from "ts-mockito";
-import { CommentRepo } from "../comment/CommentRepo";
+import { CommentRepo } from "../comment/repository/CommentRepo";
 import { GfycatApi } from "../external-api/GfycatApi";
 import { FavoriteRepo } from "../favorite/FavoriteRepo";
 import { ImageRepo } from "../imageGallery/ImageGalleryService";
@@ -99,7 +99,7 @@ describe("Nade service", () => {
     expect(nades).toEqual(fakeResult);
     verify(mockedDeps.nadeRepo.getById(fakeNadeId)).once();
   });
-
+  /*
   it("getBySlug");
 
   it("getByMap");
@@ -111,4 +111,5 @@ describe("Nade service", () => {
   it("delete");
 
   it("update");
+  */
 });

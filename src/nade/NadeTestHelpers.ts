@@ -1,6 +1,9 @@
 import { NadeDTO } from "./Nade";
 
-export const createFakeNade = (nadeId: string): NadeDTO => ({
+export const createFakeNade = (
+  nadeId: string,
+  ownerSteamId?: string
+): NadeDTO => ({
   id: nadeId,
   commentCount: 0,
   createdAt: new Date(),
@@ -18,7 +21,7 @@ export const createFakeNade = (nadeId: string): NadeDTO => ({
   nextUpdateInHours: 1,
   score: 0,
   status: "accepted",
-  steamId: "fakesteamid",
+  steamId: ownerSteamId || "fakesteamid",
   updatedAt: new Date(),
   user: {
     avatar: "",

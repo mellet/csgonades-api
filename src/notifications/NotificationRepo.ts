@@ -12,7 +12,7 @@ import {
   value,
   where,
 } from "typesaurus";
-import { CommentDto } from "../comment/Comment";
+import { CommentDto } from "../comment/dto/CommentDto";
 import { NadeDTO, NadeModel } from "../nade/Nade";
 import { UserModel } from "../user/UserModel";
 import { assertNever, removeUndefines } from "../utils/Common";
