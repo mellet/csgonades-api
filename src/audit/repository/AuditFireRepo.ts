@@ -8,9 +8,12 @@ import {
   query,
   value,
 } from "typesaurus";
-import { AuditDto, AuditModel, CreateAuditDto } from "./AuditModel";
+import { AuditDto } from "../dto/AuditDto";
+import { AuditModel } from "../dto/AuditModel";
+import { CreateAuditDto } from "../dto/CreateAuditDto";
+import { AuditRepo } from "./AuditRepo";
 
-export class AuditRepo {
+export class AuditFireRepo implements AuditRepo {
   private collection: Collection<AuditModel>;
 
   constructor() {

@@ -1,0 +1,31 @@
+import { ImageData } from "../../imageGallery/ImageStorageRepo";
+import { UserLightModel } from "../../user/UserModel";
+import { CsgoMap } from "../nadeSubTypes/CsgoMap";
+import { Movement } from "../nadeSubTypes/Movements";
+import { NadeType } from "../nadeSubTypes/NadeType";
+import { Technique } from "../nadeSubTypes/Technique";
+import { Tickrate } from "../nadeSubTypes/Tickrate";
+import { GfycatData } from "./GfycatData";
+import { MapCoordinates } from "./MapCoordinates";
+import { NadeImages } from "./NadeImages";
+
+export type NadeCreateModel = {
+  commentCount: number;
+  description: string;
+  endPosition: string;
+  favoriteCount: number;
+  gfycat: GfycatData;
+  imageLineupThumb?: ImageData;
+  images: NadeImages;
+  map: CsgoMap;
+  mapEndCoord: MapCoordinates;
+  movement: Movement;
+  oneWay?: boolean;
+  startPosition: string;
+  steamId: string;
+  technique: Technique;
+  tickrate?: Tickrate;
+  type: NadeType;
+  user: UserLightModel;
+  viewCount: number;
+};

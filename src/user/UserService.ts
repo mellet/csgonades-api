@@ -1,11 +1,12 @@
 import { SteamApi } from "../external-api/SteamApi";
 import { NadeRepo } from "../nade/repository/NadeRepo";
-import { StatsRepo } from "../stats/StatsRepo";
+import { StatsRepo } from "../stats/repository/StatsRepo";
 import { AppContext } from "../utils/AppContext";
 import { ErrorFactory } from "../utils/ErrorUtil";
+import { UserFilter } from "./repository/UserFireRepo";
+import { UserRepo } from "./repository/UserRepo";
 import { UserCreateDto, UserUpdateDto } from "./UserDTOs";
 import { UserModel, UserModelAnon } from "./UserModel";
-import { UserFilter, UserRepo } from "./UserRepo";
 
 type UserServiceDeps = {
   nadeRepo: NadeRepo;

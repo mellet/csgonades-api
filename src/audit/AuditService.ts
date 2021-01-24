@@ -1,5 +1,6 @@
-import { AuditDto, CreateAuditDto } from "./AuditModel";
-import { AuditRepo } from "./AuditRepo";
+import { AuditDto } from "./dto/AuditDto";
+import { CreateAuditDto } from "./dto/CreateAuditDto";
+import { AuditRepo } from "./repository/AuditRepo";
 
 type ContactServiceDeps = {
   auditRepo: AuditRepo;

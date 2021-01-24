@@ -1,0 +1,46 @@
+import { ImageData } from "../../imageGallery/ImageStorageRepo";
+import { UserLightModel } from "../../user/UserModel";
+import { CsgoMap } from "../nadeSubTypes/CsgoMap";
+import { Movement } from "../nadeSubTypes/Movements";
+import { NadeStatus } from "../nadeSubTypes/NadeStatus";
+import { NadeType } from "../nadeSubTypes/NadeType";
+import { Technique } from "../nadeSubTypes/Technique";
+import { Tickrate } from "../nadeSubTypes/Tickrate";
+import { GfycatData } from "./GfycatData";
+import { MapCoordinates } from "./MapCoordinates";
+import { NadeImages } from "./NadeImages";
+import { StatusInfo } from "./StatusInfo";
+
+export interface NadeFireModel {
+  commentCount: number;
+  createdAt: Date;
+  description?: string;
+  downVoteCount?: number;
+  endPosition?: string;
+  favoriteCount: number;
+  gfycat: GfycatData;
+  images: NadeImages;
+  imageLineup?: ImageData;
+  imageLineupThumb?: ImageData;
+  imageMain?: ImageData;
+  isPro?: boolean;
+  lastGfycatUpdate: Date;
+  map?: CsgoMap;
+  mapEndCoord?: MapCoordinates;
+  mapStartCoord?: MapCoordinates;
+  movement?: Movement;
+  oneWay?: boolean;
+  slug?: string;
+  startPosition?: string;
+  status: NadeStatus;
+  statusInfo?: StatusInfo;
+  steamId: string;
+  technique?: Technique;
+  tickrate?: Tickrate;
+  title?: string;
+  type?: NadeType;
+  updatedAt: Date;
+  upVoteCount?: number;
+  user: UserLightModel;
+  viewCount: number;
+}

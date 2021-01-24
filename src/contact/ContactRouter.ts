@@ -3,8 +3,8 @@ import { Router } from "express";
 import { adminOnlyHandler } from "../utils/AuthUtils";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { sanitizeIt } from "../utils/Sanitize";
-import { ContactDTO } from "./ContactData";
 import { ContactService } from "./ContactService";
+import { ContactDto } from "./dto/ContactDto";
 
 export class ContactRouter {
   private router: Router;
@@ -43,9 +43,9 @@ export class ContactRouter {
 
   private addContactMessage = async (req, res) => {
     try {
-      const contactData = sanitizeIt(req.body) as ContactDTO;
+      const contactData = sanitizeIt(req.body) as ContactDto;
 
-      await this.contactService.addMessage(contactData);
+      await this.contactService.saveMessage(contactData);
 
       return res.status(201).send();
     } catch (error) {

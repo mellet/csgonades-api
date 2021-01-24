@@ -1,7 +1,8 @@
 import { collection, Collection, get, update, value } from "typesaurus";
-import { SiteStats } from "./SiteStats";
+import { SiteStats } from "../SiteStats";
+import { StatsRepo } from "./StatsRepo";
 
-export class StatsRepo {
+export class StatsFireRepo implements StatsRepo {
   private collection: Collection<SiteStats>;
   private siteDocId = "siteStats";
 
@@ -46,18 +47,6 @@ export class StatsRepo {
   decrementNadeCounter = () => {
     return update(this.collection, this.siteDocId, {
       numNades: value("increment", -1),
-    });
-  };
-
-  incrementPendingCounter = () => {
-    return update(this.collection, this.siteDocId, {
-      numPending: value("increment", 1),
-    });
-  };
-
-  decrementPendingCounter = () => {
-    return update(this.collection, this.siteDocId, {
-      numPending: value("increment", -1),
     });
   };
 }

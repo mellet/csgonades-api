@@ -1,9 +1,9 @@
 import { NadeRepo } from "../nade/repository/NadeRepo";
-import { NotificationRepo } from "../notifications/NotificationRepo";
-import { UserRepo } from "../user/UserRepo";
+import { NotificationRepo } from "../notifications/repository/NotificationRepo";
+import { UserRepo } from "../user/repository/UserRepo";
 import { ErrorFactory } from "../utils/ErrorUtil";
-import { makeFavorite } from "./Favorite";
-import { FavoriteRepo } from "./FavoriteRepo";
+import { makeFavorite } from "./dto/FavoriteFireModel";
+import { FavoriteRepo } from "./repository/FavoriteRepo";
 
 type FavoriteDeps = {
   favoriteRepo: FavoriteRepo;

@@ -1,10 +1,12 @@
 import * as Sentry from "@sentry/node";
 import { RequestHandler, Router } from "express";
-import { CreateAuditDto, UserAudit } from "../audit/AuditModel";
 import { AuditService } from "../audit/AuditService";
+import { CreateAuditDto } from "../audit/dto/CreateAuditDto";
+import { UserAudit } from "../audit/dto/UserAudit";
 import { CommentService } from "../comment/CommentService";
 import { GfycatApi } from "../external-api/GfycatApi";
 import { UserService } from "../user/UserService";
+import { createAppContext } from "../utils/AppContext";
 import {
   adminOnlyHandler,
   adminOrModHandler,
@@ -14,10 +16,15 @@ import { errorCatchConverter } from "../utils/ErrorUtil";
 import { userFromRequest } from "../utils/RouterUtils";
 import { sanitizeIt } from "../utils/Sanitize";
 import { getSessionId } from "../utils/SessionRoute";
-import { GfycatData, NadeDTO, NadeGfycatValidateDTO } from "./Nade";
+import { GfycatData } from "./dto/GfycatData";
+import { NadeDto } from "./dto/NadeDto";
+import { NadeGfycatValidateDto } from "./dto/NadeGfycatValidateDto";
 import { NadeService } from "./NadeService";
 import { CsgoMap } from "./nadeSubTypes/CsgoMap";
-import { validateNadeCreateBody, validateNadeEditBody } from "./NadeValidators";
+import {
+  validateNadeCreateBody,
+  validateNadeEditBody,
+} from "./utils/NadeValidators";
 
 type NadeRouterServices = {
   nadeService: NadeService;
@@ -126,7 +133,7 @@ export class NadeRouter {
     try {
       const id = sanitizeIt(req.params.id);
 
-      let nade: NadeDTO | null = null;
+      let nade: NadeDto | null = null;
 
       if (this.isSlug(id)) {
         nade = await this.nadeService.getBySlug(id);
@@ -190,6 +197,7 @@ export class NadeRouter {
   private updateNade = async (req, res) => {
     try {
       const id = sanitizeIt(req.params.id);
+      const context = createAppContext(req);
       const user = userFromRequest(req);
       const updateDto = validateNadeEditBody(req);
       const preUpdateNade = await this.nadeService.getById(id);
@@ -197,7 +205,7 @@ export class NadeRouter {
       const updatedNade = await this.nadeService.update(id, updateDto, user);
 
       if (updatedNade) {
-        const editingUser = await this.userService.byId(user.steamId);
+        const editingUser = await this.userService.byId(context, user.steamId);
         this.createAuditEntryNadeUpdate(
           {
             nickname: editingUser.nickname,
@@ -235,7 +243,7 @@ export class NadeRouter {
 
   private validateGfy = async (req, res) => {
     try {
-      const validateGfycat = req.body as NadeGfycatValidateDTO;
+      const validateGfycat = req.body as NadeGfycatValidateDto;
 
       const gfyDataResponse = await this.gfycatApi.getGfycatData(
         validateGfycat.gfycatIdOrUrl
@@ -284,8 +292,8 @@ export class NadeRouter {
 
   private createAuditEntryNadeUpdate = (
     byUser: UserAudit,
-    preUpdateNade: NadeDTO,
-    updatedNade: NadeDTO
+    preUpdateNade: NadeDto,
+    updatedNade: NadeDto
   ) => {
     const updatedField: string[] = [];
 

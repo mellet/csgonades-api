@@ -7,22 +7,22 @@ import {
   remove,
   value,
 } from "typesaurus";
-import { ReportDTO, ReportModel, ReportSaveDTO } from "./Report";
+import { ReportDto, ReportModel, ReportSaveDto } from "../Report";
 
-export class ReportRepo {
+export class ReportFireRepo {
   private collection: Collection<ReportModel>;
 
   constructor() {
     this.collection = collection("reports");
   }
 
-  getAll = async (): Promise<ReportDTO[]> => {
+  getAll = async (): Promise<ReportDto[]> => {
     const reports = await all(this.collection);
 
     return reports.map(this.toDto);
   };
 
-  save = async (saveDto: ReportSaveDTO): Promise<ReportDTO> => {
+  save = async (saveDto: ReportSaveDto): Promise<ReportDto> => {
     const res = await add(this.collection, {
       message: saveDto.message,
       nadeId: saveDto.nadeId,
@@ -36,7 +36,7 @@ export class ReportRepo {
     await remove(this.collection, id);
   };
 
-  private toDto = (doc: Doc<ReportModel>): ReportDTO => {
+  private toDto = (doc: Doc<ReportModel>): ReportDto => {
     return {
       ...doc.data,
       id: doc.ref.id,

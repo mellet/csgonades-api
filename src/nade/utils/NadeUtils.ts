@@ -1,11 +1,13 @@
 import moment from "moment";
-import { GfycatApi } from "../external-api/GfycatApi";
-import { RequestUser } from "../utils/AuthUtils";
-import { clamp } from "../utils/Common";
-import { ErrorFactory } from "../utils/ErrorUtil";
-import { NadeDTO, NadeMiniDto, NadeUpdateDTO } from "./Nade";
+import { GfycatApi } from "../../external-api/GfycatApi";
+import { RequestUser } from "../../utils/AuthUtils";
+import { clamp } from "../../utils/Common";
+import { ErrorFactory } from "../../utils/ErrorUtil";
+import { NadeDto } from "../dto/NadeDto";
+import { NadeMiniDto } from "../dto/NadeMiniDto";
+import { NadeUpdateDto } from "../dto/NadeUpdateDto";
 
-export function verifyAllowEdit(nade: NadeDTO, user: RequestUser) {
+export function verifyAllowEdit(nade: NadeDto, user: RequestUser) {
   const isPrivilegedUser =
     user.role === "administrator" || user.role === "moderator";
   const isNadeOwner = user.steamId === nade.steamId;
@@ -17,7 +19,7 @@ export function verifyAllowEdit(nade: NadeDTO, user: RequestUser) {
 
 export function verifyAdminFields(
   user: RequestUser,
-  nadeUpdateDto: NadeUpdateDTO
+  nadeUpdateDto: NadeUpdateDto
 ) {
   if (nadeUpdateDto.slug && user.role !== "administrator") {
     throw ErrorFactory.Forbidden("Only admins can edit nade slug.");
@@ -30,7 +32,7 @@ export function verifyAdminFields(
   }
 }
 
-export function shouldUpdateNadeStats(nade: NadeDTO) {
+export function shouldUpdateNadeStats(nade: NadeDto) {
   if (!nade.lastGfycatUpdate) {
     return true;
   }
@@ -54,7 +56,7 @@ export function shouldUpdateNadeStats(nade: NadeDTO) {
   return shouldUpdate;
 }
 
-export function hoursToNextStatsUpdate(nade: NadeDTO): number {
+export function hoursToNextStatsUpdate(nade: NadeDto): number {
   if (!nade.lastGfycatUpdate) {
     return 24;
   }
@@ -82,7 +84,7 @@ export function hoursToNextStatsUpdate(nade: NadeDTO): number {
   return nextUpdate;
 }
 
-export function convertToLightNadeDto(nadeDto: NadeDTO): NadeMiniDto {
+export function convertToLightNadeDto(nadeDto: NadeDto): NadeMiniDto {
   return {
     id: nadeDto.id,
     commentCount: nadeDto.commentCount,
@@ -113,7 +115,7 @@ export function convertToLightNadeDto(nadeDto: NadeDTO): NadeMiniDto {
   };
 }
 
-export function convertNadesToLightDto(nades: NadeDTO[]): NadeMiniDto[] {
+export function convertNadesToLightDto(nades: NadeDto[]): NadeMiniDto[] {
   return nades.map(convertToLightNadeDto);
 }
 

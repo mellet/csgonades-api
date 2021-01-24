@@ -12,24 +12,20 @@ import {
   value,
   where,
 } from "typesaurus";
-import { CommentDto } from "../comment/dto/CommentDto";
-import { NadeDTO, NadeModel } from "../nade/Nade";
-import { UserModel } from "../user/UserModel";
-import { assertNever, removeUndefines } from "../utils/Common";
-import { ErrorFactory } from "../utils/ErrorUtil";
+import { CommentDto } from "../../comment/dto/CommentDto";
+import { NadeDto } from "../../nade/dto/NadeDto";
+import { UserDto } from "../../user/UserDTOs";
+import { assertNever, removeUndefines } from "../../utils/Common";
+import { ErrorFactory } from "../../utils/ErrorUtil";
 import {
   FavoriteNotification,
-  NotificationCreate,
+  NotificationCreateDto,
   NotificationDTO,
   NotificationModel,
-} from "./Notification";
+} from "../Notification";
+import { NotificationRepo, RemoveFavNotiOpts } from "./NotificationRepo";
 
-type RemoveFavNotiOpts = {
-  nadeId: string;
-  bySteamId: string;
-};
-
-export class NotificationRepo {
+export class NotificationFireRepo implements NotificationRepo {
   private collection: Collection<NotificationModel>;
   private adminId = "76561198026064832";
 
@@ -49,7 +45,7 @@ export class NotificationRepo {
     return notisForUser;
   };
 
-  byId = async (id: string) => {
+  byId = async (id: string): Promise<NotificationDTO | null> => {
     const notification = await get(this.collection, id);
 
     if (!notification) {
@@ -74,7 +70,7 @@ export class NotificationRepo {
     });
   };
 
-  nadeAccepted = async (nade: NadeDTO) => {
+  nadeAccepted = async (nade: NadeDto) => {
     this.add({
       type: "accepted-nade",
       nadeId: nade.id,
@@ -82,7 +78,7 @@ export class NotificationRepo {
     });
   };
 
-  nadeDeclined = async (nade: NadeDTO) => {
+  nadeDeclined = async (nade: NadeDto) => {
     this.add({
       type: "declined-nade",
       nadeId: nade.id,
@@ -90,7 +86,7 @@ export class NotificationRepo {
     });
   };
 
-  newFavorite = async (nade: NadeDTO, user: UserModel) => {
+  newFavorite = async (nade: NadeDto, user: UserDto) => {
     this.add({
       type: "favorite",
       subjectSteamId: nade.steamId,
@@ -109,7 +105,7 @@ export class NotificationRepo {
     });
   };
 
-  newCommentNotification = async (comment: CommentDto, nade: NadeModel) => {
+  newCommentNotification = async (comment: CommentDto, nade: NadeDto) => {
     this.add({
       type: "new-comment",
       nadeId: comment.nadeId,
@@ -121,7 +117,7 @@ export class NotificationRepo {
     });
   };
 
-  add = async (noti: NotificationCreate): Promise<NotificationDTO> => {
+  add = async (noti: NotificationCreateDto): Promise<NotificationDTO> => {
     const res = await this.addOfType(noti);
 
     return this.toDto(res);
@@ -152,7 +148,7 @@ export class NotificationRepo {
   };
 
   private addOfType = (
-    noti: NotificationCreate
+    noti: NotificationCreateDto
   ): Promise<Doc<NotificationModel>> => {
     const commonValues = {
       viewed: false,
@@ -207,7 +203,7 @@ export class NotificationRepo {
   };
 
   private addFavoriteNotification = async (
-    noti: NotificationCreate
+    noti: NotificationCreateDto
   ): Promise<Doc<NotificationModel>> => {
     if (noti.type !== "favorite") {
       throw ErrorFactory.InternalServerError(

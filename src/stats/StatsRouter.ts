@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { errorCatchConverter } from "../utils/ErrorUtil";
-import { StatsRepo } from "./StatsRepo";
+import { StatsRepo } from "./repository/StatsRepo";
 
 export const makeStatsRouter = (statsRepo: StatsRepo): Router => {
   const StatsRouter = Router();

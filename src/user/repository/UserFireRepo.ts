@@ -1,8 +1,9 @@
 import { collection, Collection, get, set, update, value } from "typesaurus";
 import { ModelUpdate } from "typesaurus/update";
-import { removeUndefines } from "../utils/Common";
-import { UserCreateDto, UserDto, UserUpdateDto } from "./UserDTOs";
-import { UserModel } from "./UserModel";
+import { removeUndefines } from "../../utils/Common";
+import { UserCreateDto, UserDto, UserUpdateDto } from "../UserDTOs";
+import { UserModel } from "../UserModel";
+import { UserRepo } from "./UserRepo";
 
 export type UserFilter = {
   limit?: number;
@@ -10,7 +11,7 @@ export type UserFilter = {
   byActivity?: boolean;
 };
 
-export class UserRepo {
+export class UserFireRepo implements UserRepo {
   private collection: Collection<UserModel>;
   private db: FirebaseFirestore.Firestore;
 

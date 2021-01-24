@@ -1,6 +1,6 @@
 import { NadeRepo } from "../nade/repository/NadeRepo";
-import { NotificationRepo } from "../notifications/NotificationRepo";
-import { UserRepo } from "../user/UserRepo";
+import { NotificationRepo } from "../notifications/repository/NotificationRepo";
+import { UserRepo } from "../user/repository/UserRepo";
 import { AppContext } from "../utils/AppContext";
 import { isEntityOwnerOrPrivilegedUser } from "../utils/AuthUtils";
 import { ErrorFactory } from "../utils/ErrorUtil";

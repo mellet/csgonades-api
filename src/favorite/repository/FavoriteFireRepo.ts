@@ -10,17 +10,20 @@ import {
   value,
   where,
 } from "typesaurus";
-import { ErrorFactory } from "../utils/ErrorUtil";
-import { FavoriteCreateModel, FavoriteDTO, FavoriteModel } from "./Favorite";
+import { ErrorFactory } from "../../utils/ErrorUtil";
+import { FavoriteCreateModel } from "../dto/FavoriteCreateModel";
+import { FavoriteDto } from "../dto/FavoriteDto";
+import { FavoriteFireModel } from "../dto/FavoriteFireModel";
+import { FavoriteRepo } from "./FavoriteRepo";
 
-export class FavoriteRepo {
-  private collection: Collection<FavoriteModel>;
+export class FavoriteFireRepo implements FavoriteRepo {
+  private collection: Collection<FavoriteFireModel>;
 
   constructor() {
     this.collection = collection("favorites");
   }
 
-  addFavorite = async (favorite: FavoriteCreateModel): Promise<FavoriteDTO> => {
+  addFavorite = async (favorite: FavoriteCreateModel): Promise<FavoriteDto> => {
     const duplicate = await query(this.collection, [
       where("nadeId", "==", favorite.nadeId),
       where("userId", "==", favorite.userId),
@@ -30,7 +33,7 @@ export class FavoriteRepo {
       throw ErrorFactory.BadRequest("This nade is allready favorited by you.");
     }
 
-    const newFavorite: FavoriteModel = {
+    const newFavorite: FavoriteFireModel = {
       ...favorite,
       createdAt: value("serverDate"),
     };
@@ -40,7 +43,7 @@ export class FavoriteRepo {
     return this.docToDto(favDoc);
   };
 
-  removeFavorite = async (favoriteId: string): Promise<FavoriteDTO | null> => {
+  removeFavorite = async (favoriteId: string): Promise<FavoriteDto | null> => {
     const favorite = this.byId(favoriteId);
 
     if (favorite) {
@@ -64,7 +67,7 @@ export class FavoriteRepo {
     await commit();
   };
 
-  byId = async (favoriteId: string): Promise<FavoriteDTO | null> => {
+  byId = async (favoriteId: string): Promise<FavoriteDto | null> => {
     const doc = await get(this.collection, favoriteId);
 
     if (!doc) {
@@ -74,7 +77,7 @@ export class FavoriteRepo {
     return this.docToDto(doc);
   };
 
-  byUser = async (steamId: string): Promise<FavoriteDTO[]> => {
+  byUser = async (steamId: string): Promise<FavoriteDto[]> => {
     const docs = await query(this.collection, [where("userId", "==", steamId)]);
 
     const favorites = docs.map(this.docToDto);
@@ -82,13 +85,13 @@ export class FavoriteRepo {
     return favorites;
   };
 
-  private byNadeId = async (nadeId: string): Promise<FavoriteDTO[]> => {
+  private byNadeId = async (nadeId: string): Promise<FavoriteDto[]> => {
     const docs = await query(this.collection, [where("nadeId", "==", nadeId)]);
     const favs = docs.map(this.docToDto);
     return favs;
   };
 
-  private docToDto = (doc: Doc<FavoriteModel>): FavoriteDTO => {
+  private docToDto = (doc: Doc<FavoriteFireModel>): FavoriteDto => {
     return {
       ...doc.data,
       id: doc.ref.id,

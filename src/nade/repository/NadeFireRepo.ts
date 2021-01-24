@@ -19,12 +19,14 @@ import { ModelUpdate } from "typesaurus/update";
 import { UserLightModel } from "../../user/UserModel";
 import { removeUndefines } from "../../utils/Common";
 import { ErrorFactory } from "../../utils/ErrorUtil";
-import { NadeCreateModel, NadeDTO, NadeModel } from "../Nade";
+import { NadeCreateModel } from "../dto/NadeCreateModel";
+import { NadeDto } from "../dto/NadeDto";
+import { NadeFireModel } from "../dto/NadeFireModel";
 import { CsgoMap } from "../nadeSubTypes/CsgoMap";
 import { NadeRepo } from "./NadeRepo";
 
 export class NadeFireRepo implements NadeRepo {
-  private collection: Collection<NadeModel>;
+  private collection: Collection<NadeFireModel>;
 
   constructor() {
     this.collection = collection("nades");
@@ -40,8 +42,8 @@ export class NadeFireRepo implements NadeRepo {
     return false;
   };
 
-  getAll = async (nadeLimit?: number): Promise<NadeDTO[]> => {
-    const queryBuilder: Query<NadeModel, keyof NadeModel>[] = [
+  getAll = async (nadeLimit?: number): Promise<NadeDto[]> => {
+    const queryBuilder: Query<NadeFireModel, keyof NadeFireModel>[] = [
       where("status", "==", "accepted"),
       order("createdAt", "desc"),
     ];
@@ -57,7 +59,7 @@ export class NadeFireRepo implements NadeRepo {
     return nades;
   };
 
-  getPending = async (): Promise<NadeDTO[]> => {
+  getPending = async (): Promise<NadeDto[]> => {
     const pendingDocs = await query(this.collection, [
       where("status", "==", "pending"),
       order("createdAt", "desc"),
@@ -67,7 +69,7 @@ export class NadeFireRepo implements NadeRepo {
     return pendingNades;
   };
 
-  getDeclined = async (): Promise<NadeDTO[]> => {
+  getDeclined = async (): Promise<NadeDto[]> => {
     const declinedDocs = await query(this.collection, [
       where("status", "==", "declined"),
       order("createdAt", "desc"),
@@ -77,7 +79,7 @@ export class NadeFireRepo implements NadeRepo {
     return declinedNades;
   };
 
-  getById = async (nadeId: string): Promise<NadeDTO> => {
+  getById = async (nadeId: string): Promise<NadeDto> => {
     const nadeDoc = await get(this.collection, nadeId);
 
     if (!nadeDoc) {
@@ -92,7 +94,7 @@ export class NadeFireRepo implements NadeRepo {
     };
   };
 
-  getBySlug = async (slug: string): Promise<NadeDTO> => {
+  getBySlug = async (slug: string): Promise<NadeDto> => {
     const nadeDocs = await query(this.collection, [where("slug", "==", slug)]);
 
     if (!nadeDocs.length) {
@@ -109,8 +111,8 @@ export class NadeFireRepo implements NadeRepo {
     };
   };
 
-  getByMap = async (csgoMap: CsgoMap): Promise<NadeDTO[]> => {
-    const queryBuilder: Query<NadeModel, keyof NadeModel>[] = [
+  getByMap = async (csgoMap: CsgoMap): Promise<NadeDto[]> => {
+    const queryBuilder: Query<NadeFireModel, keyof NadeFireModel>[] = [
       where("status", "==", "accepted"),
       where("map", "==", csgoMap),
       order("createdAt", "desc"),
@@ -123,7 +125,7 @@ export class NadeFireRepo implements NadeRepo {
     return nades;
   };
 
-  getByUser = async (steamId: string): Promise<NadeDTO[]> => {
+  getByUser = async (steamId: string): Promise<NadeDto[]> => {
     const nadeDocs = await query(this.collection, [
       where("steamId", "==", steamId),
       order("createdAt", "desc"),
@@ -134,8 +136,8 @@ export class NadeFireRepo implements NadeRepo {
     return nades;
   };
 
-  save = async (nadeCreate: NadeCreateModel): Promise<NadeDTO> => {
-    const nadeModel: NadeModel = {
+  save = async (nadeCreate: NadeCreateModel): Promise<NadeDto> => {
+    const nadeModel: NadeFireModel = {
       ...nadeCreate,
       createdAt: value("serverDate"),
       updatedAt: value("serverDate"),
@@ -150,10 +152,10 @@ export class NadeFireRepo implements NadeRepo {
 
   update = async (
     nadeId: string,
-    updates: Partial<NadeModel>,
+    updates: Partial<NadeFireModel>,
     setNewUpdateNade?: boolean
-  ): Promise<NadeDTO> => {
-    let modelUpdates: ModelUpdate<NadeModel> = {
+  ): Promise<NadeDto> => {
+    let modelUpdates: ModelUpdate<NadeFireModel> = {
       ...updates,
       lastGfycatUpdate: updates.lastGfycatUpdate
         ? value("serverDate")
@@ -252,7 +254,7 @@ export class NadeFireRepo implements NadeRepo {
     return this.getById(nadeId);
   };
 
-  private toNadeDTO = (doc: Doc<NadeModel>): NadeDTO => {
+  private toNadeDTO = (doc: Doc<NadeFireModel>): NadeDto => {
     return {
       ...doc.data,
       id: doc.ref.id,
@@ -261,7 +263,7 @@ export class NadeFireRepo implements NadeRepo {
     };
   };
 
-  private calcScore = (nade: NadeModel): number => {
+  private calcScore = (nade: NadeFireModel): number => {
     const addedHoursAgo = moment().diff(moment(nade.createdAt), "hours", false);
     const proBonus = nade.isPro ? 1.02 : 1.0;
 

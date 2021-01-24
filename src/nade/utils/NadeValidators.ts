@@ -1,16 +1,17 @@
 import Joi from "@hapi/joi";
 import { Request } from "express-serve-static-core";
-import { NadeCreateDTO, NadeUpdateDTO } from "./Nade";
-import { nadeValidMaps } from "./nadeSubTypes/CsgoMap";
-import { nadeValidMovements } from "./nadeSubTypes/Movements";
-import { nadeValidStatus } from "./nadeSubTypes/NadeStatus";
-import { nadeValidTypes } from "./nadeSubTypes/NadeType";
-import { nadeValidTechniques } from "./nadeSubTypes/Technique";
-import { nadeValidTickrate } from "./nadeSubTypes/Tickrate";
+import { NadeCreateDto } from "../dto/NadeCreateDto";
+import { NadeUpdateDto } from "../dto/NadeUpdateDto";
+import { nadeValidMaps } from "../nadeSubTypes/CsgoMap";
+import { nadeValidMovements } from "../nadeSubTypes/Movements";
+import { nadeValidStatus } from "../nadeSubTypes/NadeStatus";
+import { nadeValidTypes } from "../nadeSubTypes/NadeType";
+import { nadeValidTechniques } from "../nadeSubTypes/Technique";
+import { nadeValidTickrate } from "../nadeSubTypes/Tickrate";
 
-export const validateNadeCreateBody = (req: Request): NadeCreateDTO => {
-  const body = req.body as NadeCreateDTO;
-  const schema = Joi.object<NadeCreateDTO>({
+export const validateNadeCreateBody = (req: Request): NadeCreateDto => {
+  const body = req.body as NadeCreateDto;
+  const schema = Joi.object<NadeCreateDto>({
     // gfycat: GfycatData;
     gfycat: Joi.object()
       .keys({
@@ -63,14 +64,14 @@ export const validateNadeCreateBody = (req: Request): NadeCreateDTO => {
     oneWay: Joi.boolean().optional(),
   }).unknown(false);
 
-  const value = Joi.attempt(body, schema) as NadeCreateDTO;
+  const value = Joi.attempt(body, schema) as NadeCreateDto;
 
   return value;
 };
 
-export const validateNadeEditBody = (req: Request): NadeUpdateDTO => {
-  const body = req.body as NadeUpdateDTO;
-  const schema = Joi.object<NadeUpdateDTO>({
+export const validateNadeEditBody = (req: Request): NadeUpdateDto => {
+  const body = req.body as NadeUpdateDto;
+  const schema = Joi.object<NadeUpdateDto>({
     // gfycat?: GfycatData;
     gfycat: Joi.object()
       .keys({
@@ -128,7 +129,7 @@ export const validateNadeEditBody = (req: Request): NadeUpdateDTO => {
     isPro: Joi.boolean().optional(),
   }).unknown(false);
 
-  const value = Joi.attempt(body, schema) as NadeUpdateDTO;
+  const value = Joi.attempt(body, schema) as NadeUpdateDto;
 
   return value;
 };

@@ -1,34 +1,32 @@
 import { CommentRepo } from "../comment/repository/CommentRepo";
 import { GfycatApi } from "../external-api/GfycatApi";
-import { FavoriteRepo } from "../favorite/FavoriteRepo";
+import { FavoriteRepo } from "../favorite/repository/FavoriteRepo";
 import { ImageRepo } from "../imageGallery/ImageGalleryService";
 import { ImageData } from "../imageGallery/ImageStorageRepo";
-import { NotificationRepo } from "../notifications/NotificationRepo";
-import { StatsRepo } from "../stats/StatsRepo";
+import { NotificationRepo } from "../notifications/repository/NotificationRepo";
+import { StatsRepo } from "../stats/repository/StatsRepo";
+import { UserRepo } from "../user/repository/UserRepo";
 import { UserLightModel } from "../user/UserModel";
-import { UserRepo } from "../user/UserRepo";
 import { RequestUser } from "../utils/AuthUtils";
 import { removeUndefines } from "../utils/Common";
 import { ErrorFactory } from "../utils/ErrorUtil";
-import {
-  NadeCreateDTO,
-  NadeCreateModel,
-  NadeDTO,
-  NadeImages,
-  NadeMiniDto,
-  NadeModel,
-  NadeUpdateDTO,
-} from "./Nade";
+import { NadeCreateDto } from "./dto/NadeCreateDto";
+import { NadeCreateModel } from "./dto/NadeCreateModel";
+import { NadeDto } from "./dto/NadeDto";
+import { NadeFireModel } from "./dto/NadeFireModel";
+import { NadeImages } from "./dto/NadeImages";
+import { NadeMiniDto } from "./dto/NadeMiniDto";
+import { NadeUpdateDto } from "./dto/NadeUpdateDto";
 import { CsgoMap } from "./nadeSubTypes/CsgoMap";
 import { NadeStatus } from "./nadeSubTypes/NadeStatus";
+import { NadeRepo } from "./repository/NadeRepo";
 import {
   convertNadesToLightDto,
   newStatsFromGfycat,
   shouldUpdateNadeStats,
   verifyAdminFields,
   verifyAllowEdit,
-} from "./NadeUtils";
-import { NadeRepo } from "./repository/NadeRepo";
+} from "./utils/NadeUtils";
 
 export type NadeServiceDeps = {
   nadeRepo: NadeRepo;
@@ -38,6 +36,7 @@ export type NadeServiceDeps = {
   gfycatApi: GfycatApi;
   notificationRepo: NotificationRepo;
   favoriteRepo: FavoriteRepo;
+  userRepo: UserRepo;
 };
 
 export class NadeService {
@@ -59,6 +58,7 @@ export class NadeService {
       commentRepo,
       notificationRepo,
       favoriteRepo,
+      userRepo,
     } = deps;
 
     this.nadeRepo = nadeRepo;
@@ -68,6 +68,7 @@ export class NadeService {
     this.commentRepo = commentRepo;
     this.notificationRepo = notificationRepo;
     this.favoriteRepo = favoriteRepo;
+    this.userRepo = userRepo;
   }
 
   isSlugAvailable = async (slug: string) => {
@@ -92,14 +93,14 @@ export class NadeService {
     return convertNadesToLightDto(declinedNades);
   };
 
-  getById = async (nadeId: string): Promise<NadeDTO> => {
+  getById = async (nadeId: string): Promise<NadeDto> => {
     const nade = await this.nadeRepo.getById(nadeId);
     await this.tryUpdateViewCounter(nade);
 
     return nade;
   };
 
-  getBySlug = async (slug: string): Promise<NadeDTO> => {
+  getBySlug = async (slug: string): Promise<NadeDto> => {
     const nade = await this.nadeRepo.getBySlug(slug);
     await this.tryUpdateViewCounter(nade);
 
@@ -119,9 +120,9 @@ export class NadeService {
   };
 
   save = async (
-    body: NadeCreateDTO,
+    body: NadeCreateDto,
     steamID: string
-  ): Promise<NadeDTO | null> => {
+  ): Promise<NadeDto | null> => {
     const imageBuilder: NadeImages = {
       thumbnailId: "",
       thumbnailUrl: "",
@@ -216,15 +217,15 @@ export class NadeService {
 
   update = async (
     nadeId: string,
-    nadeUpdateDto: NadeUpdateDTO,
+    nadeUpdateDto: NadeUpdateDto,
     user: RequestUser
-  ): Promise<NadeDTO | null> => {
+  ): Promise<NadeDto | null> => {
     const originalNade = await this.getById(nadeId);
 
     verifyAllowEdit(originalNade, user);
     verifyAdminFields(user, nadeUpdateDto);
 
-    let newNadeData: Partial<NadeModel> = {
+    let newNadeData: Partial<NadeFireModel> = {
       gfycat: nadeUpdateDto.gfycat,
       startPosition: nadeUpdateDto.startPosition,
       endPosition: nadeUpdateDto.endPosition,
@@ -274,7 +275,7 @@ export class NadeService {
   };
 
   private handleNadeUpdateNotification = async (
-    nade: NadeDTO,
+    nade: NadeDto,
     oldStatus: NadeStatus,
     newStatus: NadeStatus
   ) => {
@@ -289,7 +290,7 @@ export class NadeService {
   };
 
   private replaceLineUpImageIfPresent = async (
-    originalNade: NadeDTO,
+    originalNade: NadeDto,
     lineupImageBase64?: string
   ) => {
     if (!lineupImageBase64) {
@@ -320,7 +321,7 @@ export class NadeService {
   };
 
   private replaceMainImageIfPresent = async (
-    originalNade: NadeDTO,
+    originalNade: NadeDto,
     mainImageBase64?: string
   ) => {
     if (!mainImageBase64) {
@@ -339,7 +340,7 @@ export class NadeService {
     return mainImage;
   };
 
-  private tryUpdateViewCounter = async (nade: NadeDTO): Promise<NadeDTO> => {
+  private tryUpdateViewCounter = async (nade: NadeDto): Promise<NadeDto> => {
     if (!shouldUpdateNadeStats(nade)) {
       return nade;
     }

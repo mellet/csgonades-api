@@ -1,9 +1,9 @@
 import { anything, instance, mock, verify, when } from "ts-mockito";
-import { createFakeNade } from "../nade/NadeTestHelpers";
 import { NadeRepo } from "../nade/repository/NadeRepo";
-import { NotificationRepo } from "../notifications/NotificationRepo";
+import { createFakeNade } from "../nade/test-utils/NadeTestHelpers";
+import { NotificationRepo } from "../notifications/repository/NotificationRepo";
+import { UserRepo } from "../user/repository/UserRepo";
 import { UserDto } from "../user/UserDTOs";
-import { UserRepo } from "../user/UserRepo";
 import { AppContext } from "../utils/AppContext";
 import { CommentService, CommentServiceDeps } from "./CommentService";
 import { CommentDto } from "./dto/CommentDto";
@@ -17,8 +17,8 @@ describe("Comment service", () => {
     deps = {
       commentRepo: mock<CommentRepo>(),
       nadeRepo: mock<NadeRepo>(),
-      notificationRepo: mock(NotificationRepo),
-      userRepo: mock(UserRepo),
+      notificationRepo: mock<NotificationRepo>(),
+      userRepo: mock<UserRepo>(),
     };
 
     commentService = new CommentService({

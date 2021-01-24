@@ -1,6 +1,6 @@
 import { AppContext } from "../utils/AppContext";
 import { ErrorFactory } from "../utils/ErrorUtil";
-import { NotificationRepo } from "./NotificationRepo";
+import { NotificationRepo } from "./repository/NotificationRepo";
 
 type NotificationServiceDeps = {
   notificationRepo: NotificationRepo;

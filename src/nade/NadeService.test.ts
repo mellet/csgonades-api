@@ -1,13 +1,14 @@
 import { instance, mock, resetCalls, verify, when } from "ts-mockito";
 import { CommentRepo } from "../comment/repository/CommentRepo";
 import { GfycatApi } from "../external-api/GfycatApi";
-import { FavoriteRepo } from "../favorite/FavoriteRepo";
+import { FavoriteRepo } from "../favorite/repository/FavoriteRepo";
 import { ImageRepo } from "../imageGallery/ImageGalleryService";
-import { NotificationRepo } from "../notifications/NotificationRepo";
-import { StatsRepo } from "../stats/StatsRepo";
+import { NotificationRepo } from "../notifications/repository/NotificationRepo";
+import { StatsRepo } from "../stats/repository/StatsRepo";
+import { UserRepo } from "../user/repository/UserRepo";
 import { NadeService, NadeServiceDeps } from "./NadeService";
-import { createFakeNade } from "./NadeTestHelpers";
 import { NadeRepo } from "./repository/NadeRepo";
+import { createFakeNade } from "./test-utils/NadeTestHelpers";
 
 describe("Nade service", () => {
   let nadeService: NadeService;
@@ -17,12 +18,13 @@ describe("Nade service", () => {
   beforeAll(() => {
     mockedDeps = {
       commentRepo: mock<CommentRepo>(),
-      favoriteRepo: mock(FavoriteRepo),
+      favoriteRepo: mock<FavoriteRepo>(),
       gfycatApi: mock(GfycatApi),
       imageRepo: mock(ImageRepo),
       nadeRepo: mock<NadeRepo>(),
-      notificationRepo: mock(NotificationRepo),
-      statsRepo: mock(StatsRepo),
+      notificationRepo: mock<NotificationRepo>(),
+      statsRepo: mock<StatsRepo>(),
+      userRepo: mock<UserRepo>(),
     };
 
     deps = {
@@ -33,6 +35,7 @@ describe("Nade service", () => {
       nadeRepo: instance(mockedDeps.nadeRepo),
       notificationRepo: instance(mockedDeps.notificationRepo),
       statsRepo: instance(mockedDeps.statsRepo),
+      userRepo: instance(mockedDeps.userRepo),
     };
   });
 

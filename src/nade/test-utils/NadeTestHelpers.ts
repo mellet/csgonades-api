@@ -1,9 +1,9 @@
-import { NadeDTO } from "./Nade";
+import { NadeDto } from "../dto/NadeDto";
 
 export const createFakeNade = (
   nadeId: string,
   ownerSteamId?: string
-): NadeDTO => ({
+): NadeDto => ({
   id: nadeId,
   commentCount: 0,
   createdAt: new Date(),

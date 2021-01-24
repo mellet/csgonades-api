@@ -3,7 +3,7 @@ import { Router } from "express";
 import { createAppContext } from "../utils/AppContext";
 import { adminOrModHandler, authOnlyHandler } from "../utils/AuthUtils";
 import { errorCatchConverter } from "../utils/ErrorUtil";
-import { UserFilter } from "./UserRepo";
+import { UserFilter } from "./repository/UserFireRepo";
 import { UserService } from "./UserService";
 import { validateSteamId, validateUserUpdateDTO } from "./UserValidators";
 

@@ -1,13 +1,6 @@
-export type FavoriteModel = {
-  nadeId: string;
-  userId: string;
-  createdAt: Date;
-};
+import { FavoriteCreateModel } from "./FavoriteCreateModel";
 
-export type FavoriteCreateModel = Omit<FavoriteModel, "createdAt" | "id">;
-
-export type FavoriteDTO = {
-  id: string;
+export type FavoriteFireModel = {
   nadeId: string;
   userId: string;
   createdAt: Date;

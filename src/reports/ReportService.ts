@@ -1,14 +1,14 @@
-import { NotificationRepo } from "../notifications/NotificationRepo";
-import { ReportDTO, ReportSaveDTO } from "./Report";
-import { ReportRepo } from "./ReportRepo";
+import { NotificationRepo } from "../notifications/repository/NotificationRepo";
+import { ReportDto, ReportSaveDto } from "./Report";
+import { ReportFireRepo } from "./reposityory/ReportFireRepo";
 
 type ReportServiceDeps = {
-  reportRepo: ReportRepo;
+  reportRepo: ReportFireRepo;
   notificationRepo: NotificationRepo;
 };
 
 export class ReportService {
-  private reportRepo: ReportRepo;
+  private reportRepo: ReportFireRepo;
   private notificationRepo: NotificationRepo;
 
   constructor(deps: ReportServiceDeps) {
@@ -16,11 +16,11 @@ export class ReportService {
     this.reportRepo = deps.reportRepo;
   }
 
-  getAll = async (): Promise<ReportDTO[]> => {
+  getAll = async (): Promise<ReportDto[]> => {
     return this.reportRepo.getAll();
   };
 
-  save = async (saveDto: ReportSaveDTO): Promise<ReportDTO> => {
+  save = async (saveDto: ReportSaveDto): Promise<ReportDto> => {
     const report = await this.reportRepo.save(saveDto);
     this.notificationRepo.newReport();
     return report;
