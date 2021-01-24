@@ -5,7 +5,7 @@ import { StatsRepo } from "./StatsRepo";
 export const makeStatsRouter = (statsRepo: StatsRepo): Router => {
   const StatsRouter = Router();
 
-  StatsRouter.get("/stats", async (req, res) => {
+  StatsRouter.get("/stats", async (_, res) => {
     try {
       const result = await statsRepo.getStats();
 

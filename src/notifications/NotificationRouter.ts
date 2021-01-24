@@ -1,4 +1,5 @@
-import { Router } from "express";
+import { RequestHandler, Router } from "express";
+import { createAppContext } from "../utils/AppContext";
 import { authOnlyHandler } from "../utils/AuthUtils";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { userFromRequest } from "../utils/RouterUtils";
@@ -27,7 +28,7 @@ export class NotificationRouter {
     );
   };
 
-  private getNotifications = async (req, res) => {
+  private getNotifications: RequestHandler = async (req, res) => {
     try {
       const user = userFromRequest(req);
 
@@ -43,12 +44,12 @@ export class NotificationRouter {
     }
   };
 
-  private viewedNotifcation = async (req, res) => {
+  private viewedNotifcation: RequestHandler = async (req, res) => {
     try {
-      const user = userFromRequest(req);
-      const id = req.params.id;
+      const { id } = req.params;
+      const context = createAppContext(req);
 
-      await this.notificationService.markAsRead(id, user);
+      await this.notificationService.markAsRead(context, id);
 
       return res.status(202).send();
     } catch (error) {
