@@ -12,32 +12,28 @@ import {
 } from "typesaurus";
 import { UserDto } from "../user/UserDTOs";
 import { ErrorFactory } from "../utils/ErrorUtil";
-import {
-  NadeCommentDoc,
-  NadeCommentDto,
-  NadeCommentUpdateDTO,
-} from "./NadeComment";
+import { CommentDoc, CommentDto, CommentUpddateDto } from "./Comment";
 
-export class NadeCommentRepo {
-  private collection: Collection<NadeCommentDoc>;
+export class CommentRepo {
+  private collection: Collection<CommentDoc>;
 
   constructor() {
-    this.collection = collection<NadeCommentDoc>("nadecomments");
+    this.collection = collection<CommentDoc>("nadecomments");
   }
 
-  getForNade = async (nadeId: string): Promise<NadeCommentDto[]> => {
+  getForNade = async (nadeId: string): Promise<CommentDto[]> => {
     const nadeCommentDocs = await query(this.collection, [
       where("nadeId", "==", nadeId),
     ]);
 
-    const nadeComments: NadeCommentDto[] = nadeCommentDocs.map((doc) => ({
+    const nadeComments: CommentDto[] = nadeCommentDocs.map((doc) => ({
       id: doc.ref.id,
       ...doc.data,
     }));
     return nadeComments;
   };
 
-  getById = async (commentId: string): Promise<NadeCommentDto> => {
+  getById = async (commentId: string): Promise<CommentDto> => {
     const commentDoc = await get(this.collection, commentId);
 
     if (!commentDoc) {
@@ -50,8 +46,8 @@ export class NadeCommentRepo {
     };
   };
 
-  save = async (articleModel: NadeCommentDoc): Promise<NadeCommentDto> => {
-    const newComment: NadeCommentDoc = {
+  save = async (articleModel: CommentDoc): Promise<CommentDto> => {
+    const newComment: CommentDoc = {
       ...articleModel,
       createdAt: value("serverDate"),
     };
@@ -64,9 +60,7 @@ export class NadeCommentRepo {
     };
   };
 
-  update = async (
-    updateModel: NadeCommentUpdateDTO
-  ): Promise<NadeCommentDto> => {
+  update = async (updateModel: CommentUpddateDto): Promise<CommentDto> => {
     await update(this.collection, updateModel.id, {
       message: updateModel.message,
     });

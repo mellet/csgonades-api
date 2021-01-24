@@ -138,8 +138,11 @@ export const extractTokenMiddleware = (config: CSGNConfig) => {
 
 export const isEntityOwnerOrPrivilegedUser = (
   entityOwnerId: string,
-  user: RequestUser
+  user?: RequestUser
 ) => {
+  if (!user) {
+    return false;
+  }
   if (user.role === "administrator" || user.role === "moderator") {
     return true;
   }

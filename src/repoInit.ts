@@ -1,9 +1,9 @@
 import { AuditRepo } from "./audit/AuditRepo";
+import { CommentRepo } from "./comment/CommentRepo";
 import { ContactRepo } from "./contact/ContactRepo";
 import { FavoriteRepo } from "./favorite/FavoriteRepo";
 import { ImageStorageRepo } from "./imageGallery/ImageStorageRepo";
 import { NadeRepo } from "./nade/NadeRepo";
-import { NadeCommentRepo } from "./nadecomment/NadeCommentRepo";
 import { NotificationRepo } from "./notifications/NotificationRepo";
 import { PersistedStorage } from "./persistInit";
 import { ReportRepo } from "./reports/ReportRepo";
@@ -19,7 +19,7 @@ export interface AppRepositories {
   contactRepo: ContactRepo;
   reportRepo: ReportRepo;
   imageStorageRepo: ImageStorageRepo;
-  commentRepo: NadeCommentRepo;
+  commentRepo: CommentRepo;
   auditRepo: AuditRepo;
 }
 
@@ -32,7 +32,7 @@ export function repoInit(persist: PersistedStorage): AppRepositories {
   const contactRepo = new ContactRepo();
   const reportRepo = new ReportRepo();
   const imageStorageRepo = new ImageStorageRepo(persist.bucket);
-  const commentRepo = new NadeCommentRepo();
+  const commentRepo = new CommentRepo();
   const auditRepo = new AuditRepo();
 
   return {

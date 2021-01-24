@@ -2,8 +2,8 @@ import * as Sentry from "@sentry/node";
 import { RequestHandler, Router } from "express";
 import { CreateAuditDto, UserAudit } from "../audit/AuditModel";
 import { AuditService } from "../audit/AuditService";
+import { CommentService } from "../comment/CommentService";
 import { GfycatApi } from "../external-api/GfycatApi";
-import { NadeCommentService } from "../nadecomment/NadeCommentService";
 import { UserService } from "../user/UserService";
 import {
   adminOnlyHandler,
@@ -24,7 +24,7 @@ type NadeRouterServices = {
   gfycatApi: GfycatApi;
   auditService: AuditService;
   userService: UserService;
-  commentService: NadeCommentService;
+  commentService: CommentService;
 };
 
 export class NadeRouter {

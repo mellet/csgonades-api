@@ -1,4 +1,4 @@
-export type NadeCommentDoc = {
+export type CommentDoc = {
   nadeId: string;
   steamId: string;
   nickname: string;
@@ -8,17 +8,17 @@ export type NadeCommentDoc = {
   updatedAt: Date | null;
 };
 
-export type NadeCommentCreateDTO = {
+export type CommentCreateDto = {
   nadeId: string;
   message: string;
 };
 
-export type NadeCommentUpdateDTO = {
+export type CommentUpddateDto = {
   id: string;
   message: string;
 };
 
-export type NadeCommentDto = {
+export type CommentDto = {
   id: string;
   nadeId: string;
   steamId: string;

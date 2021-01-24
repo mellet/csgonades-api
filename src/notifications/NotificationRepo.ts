@@ -12,8 +12,8 @@ import {
   value,
   where,
 } from "typesaurus";
+import { CommentDto } from "../comment/Comment";
 import { NadeDTO, NadeModel } from "../nade/Nade";
-import { NadeCommentDto } from "../nadecomment/NadeComment";
 import { UserModel } from "../user/UserModel";
 import { assertNever, removeUndefines } from "../utils/Common";
 import { ErrorFactory } from "../utils/ErrorUtil";
@@ -109,7 +109,7 @@ export class NotificationRepo {
     });
   };
 
-  newCommentNotification = async (comment: NadeCommentDto, nade: NadeModel) => {
+  newCommentNotification = async (comment: CommentDto, nade: NadeModel) => {
     this.add({
       type: "new-comment",
       nadeId: comment.nadeId,

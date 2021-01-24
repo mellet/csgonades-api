@@ -1,44 +1,52 @@
 import { NadeRepo } from "../nade/NadeRepo";
 import { NotificationRepo } from "../notifications/NotificationRepo";
 import { UserRepo } from "../user/UserRepo";
-import { isEntityOwnerOrPrivilegedUser, RequestUser } from "../utils/AuthUtils";
+import { AppContext } from "../utils/AppContext";
+import { isEntityOwnerOrPrivilegedUser } from "../utils/AuthUtils";
 import { ErrorFactory } from "../utils/ErrorUtil";
-import {
-  NadeCommentCreateDTO,
-  NadeCommentDto,
-  NadeCommentUpdateDTO,
-} from "./NadeComment";
-import { NadeCommentRepo } from "./NadeCommentRepo";
+import { CommentCreateDto, CommentDto, CommentUpddateDto } from "./Comment";
+import { CommentRepo } from "./CommentRepo";
 
-type NadeCommentServiceDeps = {
-  commentRepo: NadeCommentRepo;
+type CommentServiceDeps = {
+  commentRepo: CommentRepo;
   userRepo: UserRepo;
   nadeRepo: NadeRepo;
   notificationRepo: NotificationRepo;
 };
 
-export class NadeCommentService {
-  private commentRepo: NadeCommentRepo;
+export class CommentService {
+  private commentRepo: CommentRepo;
   private userRepo: UserRepo;
   private notificationRepo: NotificationRepo;
   private nadeRepo: NadeRepo;
 
-  constructor(deps: NadeCommentServiceDeps) {
+  constructor(deps: CommentServiceDeps) {
     this.commentRepo = deps.commentRepo;
     this.notificationRepo = deps.notificationRepo;
     this.userRepo = deps.userRepo;
     this.nadeRepo = deps.nadeRepo;
   }
 
-  getForNade = async (nadeId: string): Promise<NadeCommentDto[]> => {
+  getForNade = async (nadeId: string): Promise<CommentDto[]> => {
     return this.commentRepo.getForNade(nadeId);
   };
 
   save = async (
-    commentBody: NadeCommentCreateDTO,
-    bySteamId: string
-  ): Promise<NadeCommentDto> => {
-    const user = await this.userRepo.byId(bySteamId);
+    context: AppContext,
+    commentBody: CommentCreateDto
+  ): Promise<CommentDto> => {
+    const { authUser } = context;
+
+    if (!authUser) {
+      throw ErrorFactory.Forbidden("Not authenticated");
+    }
+
+    const user = await this.userRepo.byId(authUser.steamId);
+
+    if (!user) {
+      throw ErrorFactory.BadRequest("No user found to create comment");
+    }
+
     const nade = await this.nadeRepo.getById(commentBody.nadeId);
 
     const comment = await this.commentRepo.save({
@@ -52,7 +60,7 @@ export class NadeCommentService {
     });
 
     // Don't send notfication when commenting own nade
-    if (bySteamId !== nade.steamId) {
+    if (authUser.steamId !== nade.steamId) {
       this.notificationRepo.newCommentNotification(comment, nade);
     }
 
@@ -61,20 +69,24 @@ export class NadeCommentService {
     return comment;
   };
 
-  update = async (updateModel: NadeCommentUpdateDTO, user: RequestUser) => {
+  update = async (context: AppContext, updateModel: CommentUpddateDto) => {
     const originalComment = await this.commentRepo.getById(updateModel.id);
 
-    if (!isEntityOwnerOrPrivilegedUser(originalComment.steamId, user)) {
+    if (
+      !isEntityOwnerOrPrivilegedUser(originalComment.steamId, context.authUser)
+    ) {
       throw ErrorFactory.Forbidden("You can only edit your own comments");
     }
 
     return this.commentRepo.update(updateModel);
   };
 
-  delete = async (commentId: string, user: RequestUser) => {
+  delete = async (context: AppContext, commentId: string) => {
+    const { authUser } = context;
+
     const originalComment = await this.commentRepo.getById(commentId);
 
-    if (!isEntityOwnerOrPrivilegedUser(originalComment.steamId, user)) {
+    if (!isEntityOwnerOrPrivilegedUser(originalComment.steamId, authUser)) {
       throw ErrorFactory.Forbidden("You can only delete your own comments");
     }
 

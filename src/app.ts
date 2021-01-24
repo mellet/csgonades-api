@@ -5,13 +5,13 @@ import express from "express";
 import helmet from "helmet";
 import passport from "passport";
 import { AuditRouter } from "./audit/AuditRouter";
+import { CommentRouter } from "./comment/CommentRouter";
 import { CSGNConfig } from "./config/enironment";
 import { ContactRouter } from "./contact/ContactRouter";
 import { GfycatApi } from "./external-api/GfycatApi";
 import { SteamApi } from "./external-api/SteamApi";
 import { FavoriteRouter } from "./favorite/FavoriteRouter";
 import { NadeRouter } from "./nade/NadeRouter";
-import { NadeCommentRouter } from "./nadecomment/NadeCommentRouter";
 import { NotificationRouter } from "./notifications/NotificationRouter";
 import { persistInit } from "./persistInit";
 import { repoInit } from "./repoInit";
@@ -95,7 +95,7 @@ export const AppServer = (config: CSGNConfig) => {
   const notificationRouter = new NotificationRouter(
     notificationService
   ).getRouter();
-  const nadeCommentRouter = new NadeCommentRouter({ commentService });
+  const nadeCommentRouter = new CommentRouter({ commentService });
   const auditRouter = new AuditRouter(auditService);
 
   app.use(nadeRouter.getRouter());

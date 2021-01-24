@@ -1,8 +1,8 @@
+import { CommentRepo } from "../comment/CommentRepo";
 import { GfycatApi } from "../external-api/GfycatApi";
 import { FavoriteRepo } from "../favorite/FavoriteRepo";
 import { ImageRepo } from "../imageGallery/ImageGalleryService";
 import { ImageData } from "../imageGallery/ImageStorageRepo";
-import { NadeCommentRepo } from "../nadecomment/NadeCommentRepo";
 import { NotificationRepo } from "../notifications/NotificationRepo";
 import { StatsRepo } from "../stats/StatsRepo";
 import { UserLightModel } from "../user/UserModel";
@@ -32,7 +32,7 @@ import {
 
 export type NadeServiceDeps = {
   nadeRepo: NadeRepo;
-  commentRepo: NadeCommentRepo;
+  commentRepo: CommentRepo;
   statsRepo: StatsRepo;
   imageRepo: ImageRepo;
   gfycatApi: GfycatApi;
@@ -46,7 +46,7 @@ export class NadeService {
   private imageRepo: ImageRepo;
   private gfycatApi: GfycatApi;
   private statsRepo: StatsRepo;
-  private commentRepo: NadeCommentRepo;
+  private commentRepo: CommentRepo;
   private notificationRepo: NotificationRepo;
   private favoriteRepo: FavoriteRepo;
 
@@ -128,6 +128,10 @@ export class NadeService {
     };
 
     const user = await this.userRepo.byId(steamID);
+
+    if (!user) {
+      throw ErrorFactory.BadRequest("User not found");
+    }
 
     const userLight: UserLightModel = {
       nickname: user.nickname,

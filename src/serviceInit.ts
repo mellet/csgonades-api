@@ -1,4 +1,5 @@
 import { AuditService } from "./audit/AuditService";
+import { CommentService } from "./comment/CommentService";
 import { CSGNConfig } from "./config/enironment";
 import { ContactService } from "./contact/ContactService";
 import { GfycatApi } from "./external-api/GfycatApi";
@@ -6,7 +7,6 @@ import { SteamApi } from "./external-api/SteamApi";
 import { FavoriteService } from "./favorite/FavoriteService";
 import { ImageRepo } from "./imageGallery/ImageGalleryService";
 import { NadeService } from "./nade/NadeService";
-import { NadeCommentService } from "./nadecomment/NadeCommentService";
 import { NotificationService } from "./notifications/NotificationService";
 import { AppRepositories } from "./repoInit";
 import { ReportService } from "./reports/ReportService";
@@ -73,7 +73,7 @@ export function serviceInit(
     notificationRepo,
   });
 
-  const commentService = new NadeCommentService({
+  const commentService = new CommentService({
     commentRepo,
     nadeRepo,
     notificationRepo,

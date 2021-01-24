@@ -1,8 +1,8 @@
 import { instance, mock, resetCalls, verify, when } from "ts-mockito";
+import { CommentRepo } from "../comment/CommentRepo";
 import { GfycatApi } from "../external-api/GfycatApi";
 import { FavoriteRepo } from "../favorite/FavoriteRepo";
 import { ImageRepo } from "../imageGallery/ImageGalleryService";
-import { NadeCommentRepo } from "../nadecomment/NadeCommentRepo";
 import { NotificationRepo } from "../notifications/NotificationRepo";
 import { StatsRepo } from "../stats/StatsRepo";
 import { NadeRepo } from "./NadeRepo";
@@ -16,7 +16,7 @@ describe("Nade service", () => {
 
   beforeAll(() => {
     mockedDeps = {
-      commentRepo: mock(NadeCommentRepo),
+      commentRepo: mock(CommentRepo),
       favoriteRepo: mock(FavoriteRepo),
       gfycatApi: mock(GfycatApi),
       imageRepo: mock(ImageRepo),
