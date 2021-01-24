@@ -1,7 +1,9 @@
 import { SteamApi } from "../external-api/SteamApi";
 import { NadeRepo } from "../nade/NadeRepo";
 import { StatsRepo } from "../stats/StatsRepo";
-import { UserCreateDTO, UserUpdateDTO } from "./UserDTOs";
+import { AppContext } from "../utils/AppContext";
+import { ErrorFactory } from "../utils/ErrorUtil";
+import { UserCreateDto, UserUpdateDto } from "./UserDTOs";
 import { UserModel, UserModelAnon } from "./UserModel";
 import { UserFilter, UserRepo } from "./UserRepo";
 
@@ -29,49 +31,77 @@ export class UserService {
     return this.userRepo.all(filter);
   };
 
-  byId = (steamId: string) => {
-    return this.userRepo.byId(steamId);
-  };
-
-  byIdAnon = async (steamId: string): Promise<UserModelAnon> => {
+  byId = async (
+    context: AppContext,
+    steamId: string
+  ): Promise<UserModel | UserModelAnon> => {
+    const { authUser } = context;
     const user = await this.userRepo.byId(steamId);
-    delete user["email"];
+
+    if (!user) {
+      throw ErrorFactory.NotFound("User not found");
+    }
+
+    const isUser = authUser?.role === "user";
+    const requestingSelf = authUser?.steamId === steamId;
+    const shouldAnonomize = !requestingSelf && isUser;
+
+    if (shouldAnonomize) {
+      delete user["email"];
+    }
 
     return user;
   };
 
   getOrCreate = async (steamId: string): Promise<UserModel> => {
-    try {
-      const user = await this.userRepo.byId(steamId);
-      return user;
-    } catch (error) {
-      const player = await this.steamApi.getPlayerBySteamID(steamId);
+    const user = await this.userRepo.byId(steamId);
 
-      const newUser: UserCreateDTO = {
-        steamId: player.steamID,
-        nickname: player.nickname,
-        avatar: player.avatar.medium,
-        role: "user",
-      };
-      const user = await this.userRepo.create(newUser);
-      await this.statsRepo.incrementUserCounter();
-
+    if (user) {
       return user;
     }
+
+    const player = await this.steamApi.getPlayerBySteamID(steamId);
+
+    const createUserDto: UserCreateDto = {
+      steamId: player.steamID,
+      nickname: player.nickname,
+      avatar: player.avatar.medium,
+      role: "user",
+    };
+
+    const newUser = await this.userRepo.create(createUserDto);
+    await this.statsRepo.incrementUserCounter();
+
+    return newUser;
   };
 
-  update = async (steamId: string, update: UserUpdateDTO) => {
-    const res = await this.userRepo.update(steamId, update);
+  update = async (
+    context: AppContext,
+    steamId: string,
+    userUpdateDto: UserUpdateDto
+  ) => {
+    const { authUser } = context;
 
-    if (res) {
-      this.nadeRepo.updateUserOnNades(steamId, {
-        nickname: res.nickname,
-        avatar: res.avatar,
-        steamId: steamId,
-      });
+    const isUpdatingSelf = authUser?.steamId === steamId;
+    const isPrivilegedUser = authUser?.role === "administrator";
+
+    if (!isUpdatingSelf && !isPrivilegedUser) {
+      throw ErrorFactory.Forbidden("You are not allowed to edit this user");
     }
 
-    return res;
+    const updatedUser = await this.userRepo.update(steamId, userUpdateDto);
+
+    if (!updatedUser) {
+      throw ErrorFactory.InternalServerError("Failed to update user");
+    }
+
+    await this.nadeRepo.updateUserOnNades(steamId, {
+      nickname: updatedUser.nickname,
+      avatar: updatedUser.avatar,
+      steamId: steamId,
+    });
+
+    return updatedUser;
   };
 
   updateActivity = (steamId: string) => {

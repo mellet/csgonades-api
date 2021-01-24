@@ -1,43 +1,28 @@
-import { getModelForClass, prop, Typegoose } from "@typegoose/typegoose";
-import { ValidatorFunction } from "@typegoose/typegoose/lib/types";
-import { Role } from "./UserModel";
+import { getModelForClass, prop } from "@typegoose/typegoose";
 
-const validateEmail: ValidatorFunction = (email: any) => {
-  var emailRegex = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
-  return emailRegex.test(email.text);
-};
+export type Role = "administrator" | "moderator" | "user";
 
-class User extends Typegoose {
+class User {
   @prop({ required: true })
-  public nickname: string;
+  public nickname!: string;
 
   @prop({ required: true })
-  public steamId: string;
+  public steamId!: string;
 
   @prop({ required: true })
-  public avatar: string;
+  public avatar!: string;
 
-  @prop({ required: true, default: "user" })
-  public role: Role;
+  @prop({ required: true })
+  public role!: Role;
 
-  @prop({ validate: validateEmail })
-  public email?: string;
+  @prop({ required: true })
+  public lastActive: Date;
 
   @prop()
-  public bio?: string;
+  public email?: String;
 
-  @prop({ required: true, default: Date.now })
-  public createdAt: Date;
-
-  @prop({ required: true, default: Date.now })
-  public updatedAt: Date;
-
-  @prop({ required: true, default: Date.now })
-  public lastActive: Date;
+  @prop()
+  public bio?: String;
 }
 
-export const UserModelV2 = new User().getModelForClass(User);
-
-const test = getModelForClass(User);
-
-test.create();
+export const UserModelV2 = getModelForClass(User);

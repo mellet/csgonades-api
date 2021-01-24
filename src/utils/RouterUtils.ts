@@ -8,7 +8,7 @@ export const userFromRequest = (request: Express.Request): RequestUser => {
 
 export const maybeUserFromRequest = (request: Express.Request) => {
   if (!request.user) {
-    return null;
+    return;
   }
   const user = sanitizeIt(request.user) as RequestUser;
   return user;

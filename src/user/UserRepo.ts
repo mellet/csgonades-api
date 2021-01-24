@@ -1,8 +1,7 @@
 import { collection, Collection, get, set, update, value } from "typesaurus";
 import { ModelUpdate } from "typesaurus/update";
 import { removeUndefines } from "../utils/Common";
-import { ErrorFactory } from "../utils/ErrorUtil";
-import { UserCreateDTO, UserDTO, UserUpdateDTO } from "./UserDTOs";
+import { UserCreateDto, UserDto, UserUpdateDto } from "./UserDTOs";
 import { UserModel } from "./UserModel";
 
 export type UserFilter = {
@@ -20,11 +19,11 @@ export class UserRepo {
     this.db = db;
   }
 
-  all = async (filter: UserFilter): Promise<UserDTO[]> => {
+  all = async (filter: UserFilter): Promise<UserDto[]> => {
     const userFilter = {
       ...filter,
       limit: filter.limit || 5,
-      page: filter.page || 1
+      page: filter.page || 1,
     };
 
     let offset = userFilter.limit * (userFilter.page - 1);
@@ -40,7 +39,7 @@ export class UserRepo {
 
     let userDocs: UserModel[] = [];
 
-    querySnap.forEach(snap => {
+    querySnap.forEach((snap) => {
       const userDoc = snap.data();
       const userModel: UserModel = {
         createdAt: userDoc.createdAt.toDate(),
@@ -51,13 +50,13 @@ export class UserRepo {
         role: userDoc.role,
         steamId: userDoc.steamId,
         bio: userDoc.bio,
-        email: userDoc.email
+        email: userDoc.email,
       };
       userDocs.push(userModel);
     });
 
     const users = userDocs.map(
-      (userDoc): UserDTO => ({
+      (userDoc): UserDto => ({
         steamId: userDoc.steamId,
         nickname: userDoc.nickname,
         avatar: userDoc.avatar,
@@ -66,29 +65,29 @@ export class UserRepo {
         role: userDoc.role,
         updatedAt: userDoc.updatedAt,
         bio: userDoc.bio,
-        email: userDoc.email
+        email: userDoc.email,
       })
     );
 
     return users;
   };
 
-  byId = async (steamId: string): Promise<UserModel> => {
+  byId = async (steamId: string): Promise<UserModel | null> => {
     const userDoc = await get(this.collection, steamId);
 
     if (!userDoc) {
-      throw ErrorFactory.NotFound("User not found");
+      return null;
     }
 
     return userDoc.data;
   };
 
-  create = async (userCreate: UserCreateDTO): Promise<UserModel> => {
+  create = async (userCreate: UserCreateDto): Promise<UserModel> => {
     const userModel: UserModel = {
       ...userCreate,
       createdAt: value("serverDate"),
       updatedAt: value("serverDate"),
-      lastActive: value("serverDate")
+      lastActive: value("serverDate"),
     };
 
     const user = await set(this.collection, userCreate.steamId, userModel);
@@ -98,7 +97,7 @@ export class UserRepo {
 
   update = async (
     steamId: string,
-    updateFields: UserUpdateDTO
+    updateFields: UserUpdateDto
   ): Promise<UserModel | null> => {
     let updateModel: ModelUpdate<UserModel> = {
       nickname: updateFields.nickname,
@@ -106,7 +105,7 @@ export class UserRepo {
       bio: updateFields.bio,
       createdAt: updateFields.createdAt
         ? new Date(updateFields.createdAt)
-        : undefined
+        : undefined,
     };
 
     updateModel = removeUndefines(updateModel);
@@ -118,7 +117,7 @@ export class UserRepo {
 
   updateActivity = async (steamId: string) => {
     await update(this.collection, steamId, {
-      lastActive: value("serverDate")
+      lastActive: value("serverDate"),
     });
   };
 }

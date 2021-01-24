@@ -10,7 +10,7 @@ import {
   value,
   where,
 } from "typesaurus";
-import { UserDTO } from "../user/UserDTOs";
+import { UserDto } from "../user/UserDTOs";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import {
   NadeCommentDoc,
@@ -92,7 +92,7 @@ export class NadeCommentRepo {
     await commit();
   };
 
-  updateUserDetailsForComments = async (user: UserDTO) => {
+  updateUserDetailsForComments = async (user: UserDto) => {
     const commentsByUser = await query(this.collection, [
       where("steamId", "==", user.steamId),
     ]);

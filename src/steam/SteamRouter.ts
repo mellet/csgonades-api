@@ -4,6 +4,7 @@ import { PassportStatic } from "passport";
 import SteamStrategy from "passport-steam";
 import { CSGNConfig } from "../config/enironment";
 import { UserService } from "../user/UserService";
+import { createAppContext } from "../utils/AppContext";
 import {
   createAccessToken,
   createRefreshToken,
@@ -82,7 +83,9 @@ export const makeSteamRouter = (
         csgonadestoken
       );
 
-      const user = await userService.byId(payload.steamId);
+      const context = createAppContext(req);
+
+      const user = await userService.byId(context, payload.steamId);
 
       const accessToken = createAccessToken(config.secrets.server_key, user);
       const refreshToken = createRefreshToken(config.secrets.server_key, user);

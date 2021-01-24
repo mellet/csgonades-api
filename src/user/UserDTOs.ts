@@ -1,6 +1,6 @@
 import { Role } from "./UserModel";
 
-export type UserDTO = {
+export type UserDto = {
   nickname: string;
   steamId: string;
   role: Role;
@@ -19,14 +19,14 @@ export type UserLightDTO = {
   createdAt: Date;
 };
 
-export type UserCreateDTO = {
+export type UserCreateDto = {
   nickname: string;
   steamId: string;
   role: Role;
   avatar: string;
 };
 
-export type UserUpdateDTO = {
+export type UserUpdateDto = {
   nickname?: string;
   bio?: string;
   email?: string;

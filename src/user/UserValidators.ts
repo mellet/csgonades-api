@@ -1,20 +1,20 @@
 import Joi from "@hapi/joi";
 import { Request } from "express-serve-static-core";
 import { sanitizeIt } from "../utils/Sanitize";
-import { UserUpdateDTO } from "./UserDTOs";
+import { UserUpdateDto } from "./UserDTOs";
 
-export const validateUserUpdateDTO = (req: Request): UserUpdateDTO => {
-  const body = req.body as UserUpdateDTO;
-  const articleUpdateSchema = Joi.object<UserUpdateDTO>({
+export const validateUserUpdateDTO = (req: Request): UserUpdateDto => {
+  const body = req.body as UserUpdateDto;
+  const articleUpdateSchema = Joi.object<UserUpdateDto>({
     nickname: Joi.string().optional(),
     bio: Joi.string().allow("").optional(),
     email: Joi.string().allow("").optional(),
     createdAt: Joi.string().optional(),
   }).unknown(false);
 
-  const value = Joi.attempt(body, articleUpdateSchema) as UserUpdateDTO;
+  const value = Joi.attempt(body, articleUpdateSchema) as UserUpdateDto;
 
-  const dto = sanitizeIt<UserUpdateDTO>(value);
+  const dto = sanitizeIt<UserUpdateDto>(value);
 
   return dto;
 };

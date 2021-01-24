@@ -1,12 +1,8 @@
 import * as Sentry from "@sentry/node";
 import { Router } from "express";
-import {
-  adminOrModHandler,
-  authOnlyHandler,
-  RequestUser,
-} from "../utils/AuthUtils";
-import { errorCatchConverter, ErrorFactory } from "../utils/ErrorUtil";
-import { maybeUserFromRequest, userFromRequest } from "../utils/RouterUtils";
+import { createAppContext } from "../utils/AppContext";
+import { adminOrModHandler, authOnlyHandler } from "../utils/AuthUtils";
+import { errorCatchConverter } from "../utils/ErrorUtil";
 import { UserFilter } from "./UserRepo";
 import { UserService } from "./UserService";
 import { validateSteamId, validateUserUpdateDTO } from "./UserValidators";
@@ -16,8 +12,9 @@ export const makeUserRouter = (userService: UserService): Router => {
 
   UserRouter.get("/users/self", authOnlyHandler, async (req, res) => {
     try {
-      const requestUser = userFromRequest(req);
-      const user = await userService.byId(requestUser.steamId);
+      const context = createAppContext(req);
+
+      const user = await userService.byId(context, context.authUser!.steamId);
 
       return res.status(200).send(user);
     } catch (error) {
@@ -30,22 +27,11 @@ export const makeUserRouter = (userService: UserService): Router => {
   UserRouter.get("/users/:steamId", async (req, res) => {
     try {
       const { steamId } = validateSteamId(req);
-      const requestUser = maybeUserFromRequest(req);
+      const context = createAppContext(req);
 
-      const isAdminOrMod =
-        requestUser?.role === "administrator" ||
-        requestUser?.role === "moderator";
-      const isRequestingSelf = requestUser?.steamId === steamId;
+      const user = await userService.byId(context, steamId);
 
-      if (isAdminOrMod || isRequestingSelf) {
-        const user = await userService.byId(steamId);
-
-        return res.status(200).send(user);
-      }
-
-      const result = await userService.byIdAnon(steamId);
-
-      return res.status(200).send(result);
+      return res.status(200).send(user);
     } catch (error) {
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
@@ -54,14 +40,12 @@ export const makeUserRouter = (userService: UserService): Router => {
 
   UserRouter.get("/users", adminOrModHandler, async (req, res) => {
     try {
-      const limit = req.query.limit ? Number(req.query.limit) : undefined;
-      const page = req.query.page ? Number(req.query.page) : undefined;
-      const sortActive = req.query.sortActive === "true";
+      const { limit, page, sortActive } = req.query;
 
       const userFilter: UserFilter = {
-        byActivity: sortActive,
-        limit,
-        page,
+        byActivity: sortActive === "true",
+        limit: limit ? Number(limit) : undefined,
+        page: page ? Number(page) : undefined,
       };
 
       const users = await userService.all(userFilter);
@@ -76,16 +60,10 @@ export const makeUserRouter = (userService: UserService): Router => {
   UserRouter.patch("/users/:steamId", authOnlyHandler, async (req, res) => {
     try {
       const { steamId } = validateSteamId(req);
-      const requestUser = userFromRequest(req); // TODO: Check privileges for role and createdAt
       const userUpdateFields = validateUserUpdateDTO(req);
+      const context = createAppContext(req);
 
-      checkUserUpdatePrivileges(requestUser, steamId);
-
-      const user = await userService.update(steamId, userUpdateFields);
-
-      if (!user) {
-        throw ErrorFactory.NotFound("No user found");
-      }
+      const user = await userService.update(context, steamId, userUpdateFields);
 
       return res.status(202).send(user);
     } catch (error) {
@@ -98,9 +76,3 @@ export const makeUserRouter = (userService: UserService): Router => {
 
   return UserRouter;
 };
-
-function checkUserUpdatePrivileges(requestUser: RequestUser, steamId: string) {
-  if (requestUser.role !== "administrator" && requestUser.steamId !== steamId) {
-    throw ErrorFactory.Forbidden("You can't update this user.");
-  }
-}
