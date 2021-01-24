@@ -5,9 +5,9 @@ import { FavoriteRepo } from "../favorite/FavoriteRepo";
 import { ImageRepo } from "../imageGallery/ImageGalleryService";
 import { NotificationRepo } from "../notifications/NotificationRepo";
 import { StatsRepo } from "../stats/StatsRepo";
-import { NadeRepo } from "./NadeRepo";
 import { NadeService, NadeServiceDeps } from "./NadeService";
 import { createFakeNade } from "./NadeTestHelpers";
+import { NadeRepo } from "./repository/NadeRepo";
 
 describe("Nade service", () => {
   let nadeService: NadeService;
@@ -16,11 +16,11 @@ describe("Nade service", () => {
 
   beforeAll(() => {
     mockedDeps = {
-      commentRepo: mock(CommentRepo),
+      commentRepo: mock<CommentRepo>(),
       favoriteRepo: mock(FavoriteRepo),
       gfycatApi: mock(GfycatApi),
       imageRepo: mock(ImageRepo),
-      nadeRepo: mock(NadeRepo),
+      nadeRepo: mock<NadeRepo>(),
       notificationRepo: mock(NotificationRepo),
       statsRepo: mock(StatsRepo),
     };

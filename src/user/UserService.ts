@@ -1,5 +1,5 @@
 import { SteamApi } from "../external-api/SteamApi";
-import { NadeRepo } from "../nade/NadeRepo";
+import { NadeRepo } from "../nade/repository/NadeRepo";
 import { StatsRepo } from "../stats/StatsRepo";
 import { AppContext } from "../utils/AppContext";
 import { ErrorFactory } from "../utils/ErrorUtil";

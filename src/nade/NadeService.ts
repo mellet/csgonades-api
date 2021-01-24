@@ -19,7 +19,6 @@ import {
   NadeModel,
   NadeUpdateDTO,
 } from "./Nade";
-import { NadeRepo } from "./NadeRepo";
 import { CsgoMap } from "./nadeSubTypes/CsgoMap";
 import { NadeStatus } from "./nadeSubTypes/NadeStatus";
 import {
@@ -29,6 +28,7 @@ import {
   verifyAdminFields,
   verifyAllowEdit,
 } from "./NadeUtils";
+import { NadeRepo } from "./repository/NadeRepo";
 
 export type NadeServiceDeps = {
   nadeRepo: NadeRepo;

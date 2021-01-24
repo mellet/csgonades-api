@@ -1,4 +1,4 @@
-import { NadeRepo } from "../nade/NadeRepo";
+import { NadeRepo } from "../nade/repository/NadeRepo";
 import { NotificationRepo } from "../notifications/NotificationRepo";
 import { UserRepo } from "../user/UserRepo";
 import { AppContext } from "../utils/AppContext";

@@ -8,10 +8,11 @@
   },
   "scripts": {
     "test": "jest --watch --runInBand",
-    "coverage": "jest --coverage --runInBand",
+    "coverage": "jest --watch --coverage",
     "build": "rimraf ./build && tsc",
     "dev": "NODE_ENV=development nodemon",
-    "start": "NODE_ENV=production node dist/index.js"
+    "start": "NODE_ENV=production node dist/index.js",
+    "view:coverage": "serve coverage/lcov-report"
   },
   "dependencies": {
     "@hapi/joi": "^17.1.1",
@@ -65,6 +66,7 @@
     "mongodb-memory-server": "^6.6.1",
     "nodemon": "^2.0.6",
     "rimraf": "^3.0.2",
+    "serve": "^11.3.2",
     "supertest": "^4.0.2",
     "ts-jest": "^26.4.4",
     "ts-mockito": "^2.6.1",

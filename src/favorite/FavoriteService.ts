@@ -1,4 +1,4 @@
-import { NadeRepo } from "../nade/NadeRepo";
+import { NadeRepo } from "../nade/repository/NadeRepo";
 import { NotificationRepo } from "../notifications/NotificationRepo";
 import { UserRepo } from "../user/UserRepo";
 import { ErrorFactory } from "../utils/ErrorUtil";
@@ -35,6 +35,10 @@ export class FavoriteService {
   addFavorite = async (steamId: string, nadeId: string) => {
     const nadeBeingFavorited = await this.nadeRepo.getById(nadeId);
     const userFavoriting = await this.userRepo.byId(steamId);
+
+    if (!userFavoriting) {
+      throw ErrorFactory.NotFound("User not found");
+    }
 
     const newFavorite = makeFavorite(nadeId, steamId);
     const favorite = await this.favoriteRepo.addFavorite(newFavorite);

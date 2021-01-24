@@ -16,13 +16,14 @@ import {
   where,
 } from "typesaurus";
 import { ModelUpdate } from "typesaurus/update";
-import { UserLightModel } from "../user/UserModel";
-import { removeUndefines } from "../utils/Common";
-import { ErrorFactory } from "../utils/ErrorUtil";
-import { NadeCreateModel, NadeDTO, NadeModel } from "./Nade";
-import { CsgoMap } from "./nadeSubTypes/CsgoMap";
+import { UserLightModel } from "../../user/UserModel";
+import { removeUndefines } from "../../utils/Common";
+import { ErrorFactory } from "../../utils/ErrorUtil";
+import { NadeCreateModel, NadeDTO, NadeModel } from "../Nade";
+import { CsgoMap } from "../nadeSubTypes/CsgoMap";
+import { NadeRepo } from "./NadeRepo";
 
-export class NadeRepo {
+export class NadeFireRepo implements NadeRepo {
   private collection: Collection<NadeModel>;
 
   constructor() {

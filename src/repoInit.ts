@@ -4,7 +4,8 @@ import { CommentRepo } from "./comment/repository/CommentRepo";
 import { ContactRepo } from "./contact/ContactRepo";
 import { FavoriteRepo } from "./favorite/FavoriteRepo";
 import { ImageStorageRepo } from "./imageGallery/ImageStorageRepo";
-import { NadeRepo } from "./nade/NadeRepo";
+import { NadeFireRepo } from "./nade/repository/NadeFireRepo";
+import { NadeRepo } from "./nade/repository/NadeRepo";
 import { NotificationRepo } from "./notifications/NotificationRepo";
 import { PersistedStorage } from "./persistInit";
 import { ReportRepo } from "./reports/ReportRepo";
@@ -27,7 +28,7 @@ export interface AppRepositories {
 export function repoInit(persist: PersistedStorage): AppRepositories {
   const notificationRepo = new NotificationRepo();
   const userRepo = new UserRepo(persist.db);
-  const nadeRepo = new NadeRepo();
+  const nadeRepo = new NadeFireRepo();
   const favoriteRepo = new FavoriteRepo();
   const statsRepo = new StatsRepo();
   const contactRepo = new ContactRepo();
