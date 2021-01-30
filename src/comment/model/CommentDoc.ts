@@ -4,6 +4,6 @@ export type CommentModel = {
   nickname: string;
   avatar?: string;
   message: string;
-  createdAt: Readonly<Date>;
-  updatedAt: Readonly<Date>;
+  createdAt: Date;
+  updatedAt: Date;
 };

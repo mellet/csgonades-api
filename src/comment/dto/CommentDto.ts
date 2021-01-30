@@ -5,6 +5,6 @@ export type CommentDto = {
   nickname: string;
   avatar?: string;
   message: string;
-  createdAt: Readonly<Date>;
-  updatedAt: Readonly<Date>;
+  createdAt: Date;
+  updatedAt: Date;
 };

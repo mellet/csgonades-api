@@ -5,14 +5,14 @@ const mongod = new MongoMemoryServer();
 
 export class MongoTestDatabase {
   static connect = async () => {
-    const uri = await mongod.getConnectionString();
+    const uri = await mongod.getUri();
 
     await mongoose.connect(uri, {
       useNewUrlParser: true,
       useFindAndModify: false,
       useUnifiedTopology: true,
       reconnectInterval: 1,
-      autoReconnect: true
+      autoReconnect: true,
     });
   };
 
