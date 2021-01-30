@@ -24,7 +24,7 @@ export class NotificationRouter {
     this.router.patch(
       "/notifications/viewed",
       authOnlyHandler,
-      this.markAllAsRead
+      this.markAllAsViewed
     );
     this.router.patch(
       "/notifications/:id/viewed",
@@ -33,7 +33,7 @@ export class NotificationRouter {
     );
   };
 
-  private markAllAsRead: RequestHandler = async (req, res) => {
+  private markAllAsViewed: RequestHandler = async (req, res) => {
     try {
       const context = createAppContext(req);
 
