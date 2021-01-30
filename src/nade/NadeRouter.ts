@@ -5,6 +5,7 @@ import { CreateAuditDto } from "../audit/dto/CreateAuditDto";
 import { UserAudit } from "../audit/dto/UserAudit";
 import { CommentService } from "../comment/CommentService";
 import { GfycatApi } from "../external-api/GfycatApi";
+import { Logger } from "../logger/Logger";
 import { UserService } from "../user/UserService";
 import { createAppContext } from "../utils/AppContext";
 import {
@@ -80,6 +81,7 @@ export class NadeRouter {
 
       return res.status(200).send(slugIsFree);
     } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
@@ -102,6 +104,7 @@ export class NadeRouter {
 
       return res.status(200).send(nades);
     } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
@@ -113,6 +116,7 @@ export class NadeRouter {
 
       return res.status(200).send(pendingNades);
     } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
@@ -124,6 +128,7 @@ export class NadeRouter {
 
       return res.status(200).send(declinedNades);
     } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
@@ -150,6 +155,7 @@ export class NadeRouter {
 
       return res.status(200).send(nade);
     } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
@@ -162,6 +168,7 @@ export class NadeRouter {
 
       return res.status(200).send(nades);
     } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
@@ -174,6 +181,7 @@ export class NadeRouter {
 
       return res.status(200).send(nades);
     } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
@@ -188,6 +196,7 @@ export class NadeRouter {
 
       return res.status(201).send(nade);
     } catch (error) {
+      Logger.error(error);
       Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
@@ -220,6 +229,7 @@ export class NadeRouter {
 
       return res.status(202).send(updatedNade);
     } catch (error) {
+      Logger.error(error);
       Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);

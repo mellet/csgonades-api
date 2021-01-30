@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/node";
 import { Router } from "express";
+import { Logger } from "../logger/Logger";
 import { createAppContext } from "../utils/AppContext";
 import { adminOrModHandler, authOnlyHandler } from "../utils/AuthHandlers";
 import { errorCatchConverter } from "../utils/ErrorUtil";
@@ -18,6 +19,7 @@ export const makeUserRouter = (userService: UserService): Router => {
 
       return res.status(200).send(user);
     } catch (error) {
+      Logger.error(error);
       Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
@@ -33,6 +35,7 @@ export const makeUserRouter = (userService: UserService): Router => {
 
       return res.status(200).send(user);
     } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
@@ -52,6 +55,7 @@ export const makeUserRouter = (userService: UserService): Router => {
 
       return res.status(200).send(users);
     } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
@@ -67,6 +71,7 @@ export const makeUserRouter = (userService: UserService): Router => {
 
       return res.status(202).send(user);
     } catch (error) {
+      Logger.error(error);
       Sentry.captureException(error);
 
       const err = errorCatchConverter(error);

@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/node";
 import SteamAPI, { SteamPlayerSummary } from "steamapi";
 import { CSGNConfig, makeConfig } from "../config/enironment";
+import { Logger } from "../logger/Logger";
 import { ErrorFactory } from "../utils/ErrorUtil";
 
 export class SteamApi {
@@ -16,6 +17,7 @@ export class SteamApi {
     try {
       return await this.steamApi.getUserSummary(steamID);
     } catch (error) {
+      Logger.error(error);
       Sentry.captureException(error);
       throw ErrorFactory.ExternalError("Steam API down");
     }

@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/node";
 import { RequestHandler, Router } from "express";
+import { Logger } from "../logger/Logger";
 import { adminOrModHandler } from "../utils/AuthHandlers";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { ReportService } from "./ReportService";
@@ -35,6 +36,7 @@ export class ReportRouter {
 
       return res.status(200).send(reports);
     } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
 
       return res.status(err.code).send(err);
@@ -48,6 +50,7 @@ export class ReportRouter {
 
       return res.status(202).send(result);
     } catch (error) {
+      Logger.error(error);
       Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
@@ -60,6 +63,7 @@ export class ReportRouter {
       await this.reportService.delete(id);
       return res.status(204).send();
     } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }

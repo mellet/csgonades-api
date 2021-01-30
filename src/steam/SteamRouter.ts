@@ -3,6 +3,7 @@ import { CookieOptions, Router } from "express";
 import { PassportStatic } from "passport";
 import SteamStrategy from "passport-steam";
 import { CSGNConfig } from "../config/enironment";
+import { Logger } from "../logger/Logger";
 import { UserService } from "../user/UserService";
 import { createAppContext } from "../utils/AppContext";
 import {
@@ -68,6 +69,7 @@ export const makeSteamRouter = (
 
         res.redirect(`${config.client.baseUrl}/auth`);
       } catch (error) {
+        Logger.error(error);
         Sentry.captureException(error);
         res.redirect(config.client.baseUrl);
       }

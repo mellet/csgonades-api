@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/node";
 import { RequestHandler, Router } from "express";
+import { Logger } from "../logger/Logger";
 import { createAppContext } from "../utils/AppContext";
 import { authOnlyHandler } from "../utils/AuthHandlers";
 import { errorCatchConverter } from "../utils/ErrorUtil";
@@ -64,6 +65,7 @@ export class CommentRouter {
 
       return res.status(200).send(nadeComments);
     } catch (error) {
+      Logger.error(error);
       Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
@@ -90,6 +92,7 @@ export class CommentRouter {
 
       return res.status(201).send(comment);
     } catch (error) {
+      Logger.error(error);
       Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
@@ -115,6 +118,7 @@ export class CommentRouter {
       );
       return res.status(201).send(updatedComment);
     } catch (error) {
+      Logger.error(error);
       Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
@@ -129,6 +133,7 @@ export class CommentRouter {
 
       return res.status(204).send();
     } catch (error) {
+      Logger.error(error);
       Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);

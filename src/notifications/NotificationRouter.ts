@@ -1,4 +1,5 @@
 import { RequestHandler, Router } from "express";
+import { Logger } from "../logger/Logger";
 import { createAppContext } from "../utils/AppContext";
 import { authOnlyHandler } from "../utils/AuthHandlers";
 import { errorCatchConverter } from "../utils/ErrorUtil";
@@ -57,6 +58,7 @@ export class NotificationRouter {
 
       return res.status(200).send(notifications);
     } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
 
       return res.status(err.code).send(err);
@@ -72,6 +74,8 @@ export class NotificationRouter {
 
       return res.status(202).send();
     } catch (error) {
+      Logger.error(error);
+
       const err = errorCatchConverter(error);
 
       return res.status(err.code).send(err);

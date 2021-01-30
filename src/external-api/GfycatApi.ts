@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/node";
 import Gfycat, { GfycatDetailsResponse } from "gfycat-sdk";
 import { CSGNConfig } from "../config/enironment";
+import { Logger } from "../logger/Logger";
 import { extractGfyIdFromIdOrUrl } from "../utils/Common";
 
 export class GfycatApi {
@@ -20,6 +21,7 @@ export class GfycatApi {
       const gfyResponse = await this.gfycatSdk.getGifDetails({ gfyId });
       return gfyResponse;
     } catch (error) {
+      Logger.error(error);
       Sentry.captureException(error);
       return null;
     }
