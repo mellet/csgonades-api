@@ -1,4 +1,4 @@
-import { instance, mock, resetCalls, verify, when } from "ts-mockito";
+import { anything, instance, mock, resetCalls, verify, when } from "ts-mockito";
 import { CommentRepo } from "../comment/repository/CommentRepo";
 import { GfycatApi } from "../external-api/GfycatApi";
 import { FavoriteRepo } from "../favorite/repository/FavoriteRepo";
@@ -102,12 +102,59 @@ describe("Nade service", () => {
     expect(nades).toEqual(fakeResult);
     verify(mockedDeps.nadeRepo.getById(fakeNadeId)).once();
   });
+
+  it("getBySlug", async () => {
+    const fakeNadeId = "nade-slug";
+    const fakeResult = createMockedNade(fakeNadeId);
+
+    when(mockedDeps.nadeRepo.getBySlug(fakeNadeId)).thenResolve(fakeResult);
+
+    const result = await nadeService.getBySlug(fakeNadeId);
+    verify(mockedDeps.nadeRepo.getBySlug(fakeNadeId)).once();
+    expect(result).toBeDefined();
+    expect(result).toEqual(fakeResult);
+  });
+
+  it("getByMap", async () => {
+    const askedMap = "dust2";
+    const fakeResult = [];
+
+    when(mockedDeps.nadeRepo.getByMap(askedMap)).thenResolve(fakeResult);
+
+    const nades = await nadeService.getByMap(askedMap);
+
+    verify(mockedDeps.nadeRepo.getByMap(askedMap)).once();
+    expect(nades).toEqual([]);
+  });
+
+  it("getByUser", async () => {
+    const steamId = "123";
+    const fakeResult = [];
+
+    when(mockedDeps.nadeRepo.getByUser(steamId)).thenResolve(fakeResult);
+
+    const nades = await nadeService.getByUser(steamId);
+
+    verify(mockedDeps.nadeRepo.getByUser(steamId)).once();
+    expect(nades).toEqual(fakeResult);
+  });
+
+  it("delete", async () => {
+    const nadeId = "123";
+    const fakeResult = createMockedNade(nadeId);
+
+    when(mockedDeps.nadeRepo.getById(nadeId)).thenResolve(fakeResult);
+
+    await nadeService.delete(nadeId);
+
+    verify(mockedDeps.imageRepo.deleteImage(anything())).once();
+    verify(mockedDeps.commentRepo.deleteForNadeId(nadeId)).once();
+    verify(mockedDeps.favoriteRepo.deleteWhereNadeId(nadeId)).once();
+    verify(mockedDeps.nadeRepo.delete(nadeId)).once();
+    verify(mockedDeps.statsRepo.decrementNadeCounter()).once();
+  });
+
   /*
-  it("getBySlug");
-
-  it("getByMap");
-
-  it("getByUser");
 
   it("save");
 

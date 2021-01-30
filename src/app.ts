@@ -21,7 +21,7 @@ import { makeStatsRouter } from "./stats/StatsRouter";
 import { StatusRouter } from "./status/StatusRouter";
 import { makeSteamRouter } from "./steam/SteamRouter";
 import { makeUserRouter } from "./user/UserRouter";
-import { extractTokenMiddleware } from "./utils/AuthUtils";
+import { extractTokenMiddleware } from "./utils/AuthHandlers";
 import { sessionRoute } from "./utils/SessionRoute";
 
 export const AppServer = (config: CSGNConfig) => {

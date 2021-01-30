@@ -55,6 +55,7 @@ export function serviceInit(
     commentRepo,
     notificationRepo,
     favoriteRepo,
+    userRepo,
   });
 
   const favoriteService = new FavoriteService({
