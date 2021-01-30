@@ -90,7 +90,6 @@ export class NadeFireRepo implements NadeRepo {
       ...nadeDoc.data,
       id: nadeDoc.ref.id,
       score: this.calcScore(nadeDoc.data),
-      nextUpdateInHours: 0,
     };
   };
 
@@ -107,7 +106,6 @@ export class NadeFireRepo implements NadeRepo {
       ...nade.data,
       id: nade.ref.id,
       score: this.calcScore(nade.data),
-      nextUpdateInHours: 0,
     };
   };
 
@@ -259,7 +257,6 @@ export class NadeFireRepo implements NadeRepo {
       ...doc.data,
       id: doc.ref.id,
       score: this.calcScore(doc.data),
-      nextUpdateInHours: 0,
     };
   };
 

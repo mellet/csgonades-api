@@ -1,7 +1,6 @@
 import moment from "moment";
 import { GfycatApi } from "../../external-api/GfycatApi";
 import { RequestUser } from "../../utils/AuthUtils";
-import { clamp } from "../../utils/Common";
 import { ErrorFactory } from "../../utils/ErrorUtil";
 import { NadeDto } from "../dto/NadeDto";
 import { NadeMiniDto } from "../dto/NadeMiniDto";
@@ -33,58 +32,18 @@ export function verifyAdminFields(
 }
 
 export function shouldUpdateNadeStats(nade: NadeDto) {
-  if (!nade.lastGfycatUpdate) {
-    return true;
-  }
-
-  const daysAgoSubmitted = moment().diff(moment(nade.createdAt), "days", false);
-
-  const MIN_HOURS_TO_UPDATE = 6;
-  const MAX_HOURS_TO_UPDATE = 72;
-
-  const hoursToWaitForUpdate = clamp(
-    daysAgoSubmitted,
-    MIN_HOURS_TO_UPDATE,
-    MAX_HOURS_TO_UPDATE
+  const hoursSinceUpdate = moment().diff(
+    moment(nade.lastGfycatUpdate),
+    "hours",
+    false
   );
 
-  const lastUpdated = nade.lastGfycatUpdate;
-  const hoursSinceUpdate = moment().diff(moment(lastUpdated), "hours", false);
-
-  const shouldUpdate = hoursSinceUpdate >= hoursToWaitForUpdate;
+  const shouldUpdate = hoursSinceUpdate >= 24;
 
   return shouldUpdate;
 }
 
-export function hoursToNextStatsUpdate(nade: NadeDto): number {
-  if (!nade.lastGfycatUpdate) {
-    return 24;
-  }
-
-  const daysAgoSubmitted = moment().diff(moment(nade.createdAt), "days", false);
-
-  const MIN_HOURS_TO_UPDATE = 6;
-  const MAX_HOURS_TO_UPDATE = 72;
-
-  const hoursToWaitForUpdate = clamp(
-    daysAgoSubmitted,
-    MIN_HOURS_TO_UPDATE,
-    MAX_HOURS_TO_UPDATE
-  );
-
-  const lastUpdated = nade.lastGfycatUpdate;
-  const hoursSinceUpdate = moment().diff(moment(lastUpdated), "hours", false);
-
-  const nextUpdate = hoursToWaitForUpdate - hoursSinceUpdate;
-
-  if (nextUpdate < 0) {
-    return 0;
-  }
-
-  return nextUpdate;
-}
-
-export function convertToLightNadeDto(nadeDto: NadeDto): NadeMiniDto {
+export function convertToNadeMiniDto(nadeDto: NadeDto): NadeMiniDto {
   return {
     id: nadeDto.id,
     commentCount: nadeDto.commentCount,
@@ -98,7 +57,6 @@ export function convertToLightNadeDto(nadeDto: NadeDto): NadeMiniDto {
     isPro: nadeDto.isPro,
     mapEndCoord: nadeDto.mapEndCoord,
     movement: nadeDto.movement,
-    nextUpdateInHours: hoursToNextStatsUpdate(nadeDto),
     oneWay: nadeDto.oneWay,
     score: nadeDto.score,
     slug: nadeDto.slug,
@@ -116,9 +74,10 @@ export function convertToLightNadeDto(nadeDto: NadeDto): NadeMiniDto {
 }
 
 export function convertNadesToLightDto(nades: NadeDto[]): NadeMiniDto[] {
-  return nades.map(convertToLightNadeDto);
+  return nades.map(convertToNadeMiniDto);
 }
 
+// TODO: Probably belongs to GfycatApi
 export async function newStatsFromGfycat(gfyId: string, gfycatApi: GfycatApi) {
   const gfycat = await gfycatApi.getGfycatData(gfyId);
 

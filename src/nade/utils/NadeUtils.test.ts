@@ -4,8 +4,7 @@ import { RequestUser } from "../../utils/AuthUtils";
 import { NadeMiniDto } from "../dto/NadeMiniDto";
 import { createMockedNade } from "../test-utils/NadeTestHelpers";
 import {
-  convertToLightNadeDto,
-  hoursToNextStatsUpdate,
+  convertToNadeMiniDto,
   newStatsFromGfycat,
   shouldUpdateNadeStats,
   verifyAdminFields,
@@ -59,12 +58,26 @@ describe("Nade Utils", () => {
     expect(() => verifyAllowEdit(mockNade, mockOwnerOfNade)).toThrow();
   });
 
-  it("shouldUpdateNadeStats if never updates", () => {
+  it("shouldUpdateNadeStats if long time ago", () => {
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+
     const nade = createMockedNade("123", "123");
-    //@ts-ignore
-    nade.lastGfycatUpdate = undefined;
+    nade.lastGfycatUpdate = twoDaysAgo;
+
     const result = shouldUpdateNadeStats(nade);
     expect(result).toBe(true);
+  });
+
+  it("shouldUpdateNadeStats, no update if less than 24 hours ago", () => {
+    const twoHoursAgo = new Date();
+    twoHoursAgo.setTime(twoHoursAgo.getTime() - 2);
+
+    const nade = createMockedNade("123", "123");
+    nade.lastGfycatUpdate = twoHoursAgo;
+
+    const result = shouldUpdateNadeStats(nade);
+    expect(result).toBe(false);
   });
 
   it("verifyAdminFields, disaalow slug if non admin", () => {
@@ -89,45 +102,6 @@ describe("Nade Utils", () => {
     ).toThrow();
   });
 
-  it("hoursToNextStatsUpdate, if never updated return default", () => {
-    const nade = createMockedNade("123", "123");
-    //@ts-ignore
-    nade.lastGfycatUpdate = undefined;
-
-    const result = hoursToNextStatsUpdate(nade);
-
-    expect(result).toEqual(24);
-  });
-
-  it("hoursToNextStatsUpdate, sets correct hours", () => {
-    const oneDayAgo = new Date();
-    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
-
-    const nade = createMockedNade("123", "123");
-    nade.lastGfycatUpdate = oneDayAgo;
-    nade.createdAt = new Date();
-
-    const result = hoursToNextStatsUpdate(nade);
-
-    expect(result).toEqual(0);
-  });
-
-  it("hoursToNextStatsUpdate, sets correct hours 2", () => {
-    // Created 3 days ago
-    const fakeCreatedAt = new Date();
-    fakeCreatedAt.setDate(fakeCreatedAt.getDate() - 3);
-
-    // Last updated 1 day ago
-    const oneDayAgo = new Date();
-    const nade = createMockedNade("123", "123");
-    nade.lastGfycatUpdate = oneDayAgo;
-    nade.createdAt = fakeCreatedAt;
-
-    const result = hoursToNextStatsUpdate(nade);
-
-    expect(result).toEqual(6);
-  });
-
   it("coverts to light dto", () => {
     const mockNade = createMockedNade("nadeId", "ownerSteamId");
 
@@ -138,7 +112,6 @@ describe("Nade Utils", () => {
       favoriteCount: mockNade.favoriteCount,
       gfycat: mockNade.gfycat,
       images: mockNade.images,
-      nextUpdateInHours: 6,
       score: mockNade.score,
       status: mockNade.status,
       updatedAt: mockNade.updatedAt,
@@ -160,7 +133,7 @@ describe("Nade Utils", () => {
       upVoteCount: mockNade.upVoteCount,
     };
 
-    const result = convertToLightNadeDto(mockNade);
+    const result = convertToNadeMiniDto(mockNade);
 
     expect(result).toBeDefined();
     expect(result).toMatchObject(expected);
