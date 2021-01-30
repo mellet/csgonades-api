@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "jest --watch --runInBand",
-    "coverage": "jest --watch --coverage",
+    "coverage": "jest --coverage",
     "build": "rimraf ./build && tsc",
     "dev": "NODE_ENV=development nodemon",
     "start": "NODE_ENV=production node dist/index.js",
