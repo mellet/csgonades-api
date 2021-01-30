@@ -1,14 +1,15 @@
-import { AuditDto, CreateAuditDto } from "./AuditModel";
-import { AuditRepo } from "./AuditRepo";
+import { AuditDto } from "./dto/AuditDto";
+import { CreateAuditDto } from "./dto/CreateAuditDto";
+import { AuditRepo } from "./repository/AuditRepo";
 
-type ContactServiceDeps = {
+export type AuditServiceDependencies = {
   auditRepo: AuditRepo;
 };
 
 export class AuditService {
   private auditRepo: AuditRepo;
 
-  constructor(deps: ContactServiceDeps) {
+  constructor(deps: AuditServiceDependencies) {
     this.auditRepo = deps.auditRepo;
   }
 

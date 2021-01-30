@@ -1,36 +1,50 @@
 import * as Sentry from "@sentry/node";
 import { RequestHandler, Router } from "express";
-import { CreateAuditDto, UserAudit } from "../audit/AuditModel";
 import { AuditService } from "../audit/AuditService";
-import { GfycatService } from "../services/GfycatService";
+import { CreateAuditDto } from "../audit/dto/CreateAuditDto";
+import { UserAudit } from "../audit/dto/UserAudit";
+import { CommentService } from "../comment/CommentService";
+import { GfycatApi } from "../external-api/GfycatApi";
+import { Logger } from "../logger/Logger";
 import { UserService } from "../user/UserService";
-import { adminOrModHandler, authOnlyHandler } from "../utils/AuthUtils";
+import { createAppContext } from "../utils/AppContext";
+import {
+  adminOnlyHandler,
+  adminOrModHandler,
+  authOnlyHandler,
+} from "../utils/AuthHandlers";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { userFromRequest } from "../utils/RouterUtils";
 import { sanitizeIt } from "../utils/Sanitize";
 import { getSessionId } from "../utils/SessionRoute";
-import { GfycatData, NadeDTO, NadeGfycatValidateDTO } from "./Nade";
+import { GfycatData } from "./dto/GfycatData";
+import { NadeDto } from "./dto/NadeDto";
+import { NadeGfycatValidateDto } from "./dto/NadeGfycatValidateDto";
 import { NadeService } from "./NadeService";
 import { CsgoMap } from "./nadeSubTypes/CsgoMap";
-import { validateNadeCreateBody, validateNadeEditBody } from "./NadeValidators";
+import {
+  validateNadeCreateBody,
+  validateNadeEditBody,
+} from "./utils/NadeValidators";
 
 type NadeRouterServices = {
   nadeService: NadeService;
-  gfycatService: GfycatService;
+  gfycatApi: GfycatApi;
   auditService: AuditService;
   userService: UserService;
+  commentService: CommentService;
 };
 
 export class NadeRouter {
   private router: Router;
   private nadeService: NadeService;
-  private gfycatService: GfycatService;
+  private gfycatApi: GfycatApi;
   private auditServer: AuditService;
   private userService: UserService;
 
   constructor(services: NadeRouterServices) {
     this.nadeService = services.nadeService;
-    this.gfycatService = services.gfycatService;
+    this.gfycatApi = services.gfycatApi;
     this.auditServer = services.auditService;
     this.userService = services.userService;
     this.router = Router();
@@ -56,18 +70,18 @@ export class NadeRouter {
     this.router.put("/nades/:id", authOnlyHandler, this.updateNade);
     this.router.post("/nades/:id/countView", this.incrementViewCount);
     this.router.post("/nades/validateGfycat", this.validateGfy);
-    this.router.delete("/nades/:id", adminOrModHandler, this.deleteNade);
-    this.router.post("/nades/list", this.getByIdList);
+    this.router.delete("/nades/:id", adminOnlyHandler, this.deleteNade);
     this.router.get("/nades/:id/checkslug", this.checkSlug);
   };
 
   private checkSlug: RequestHandler = async (req, res) => {
     try {
       const slug = req.params.id;
-      const slugIsFree = await this.nadeService.slugIsFree(slug);
+      const slugIsFree = await this.nadeService.isSlugAvailable(slug);
 
       return res.status(200).send(slugIsFree);
     } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
@@ -77,21 +91,20 @@ export class NadeRouter {
     try {
       const limitParam = req?.query?.limit;
       let limit: number | undefined = undefined;
-      let noCache = false;
 
       if (!limitParam) {
         limit = 8;
       } else if (limitParam === "all") {
         limit = undefined;
-        noCache = true;
       } else {
         limit = Number(limit);
       }
 
-      const nades = await this.nadeService.fetchNades(limit, noCache);
+      const nades = await this.nadeService.getRecent(limit);
 
       return res.status(200).send(nades);
     } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
@@ -99,10 +112,11 @@ export class NadeRouter {
 
   private getPendingNades: RequestHandler = async (_, res) => {
     try {
-      const pendingNades = await this.nadeService.pending();
+      const pendingNades = await this.nadeService.getPending();
 
       return res.status(200).send(pendingNades);
     } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
@@ -110,10 +124,11 @@ export class NadeRouter {
 
   private getDeclinedNades: RequestHandler = async (_, res) => {
     try {
-      const declinedNades = await this.nadeService.declined();
+      const declinedNades = await this.nadeService.getDeclined();
 
       return res.status(200).send(declinedNades);
     } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
@@ -123,12 +138,12 @@ export class NadeRouter {
     try {
       const id = sanitizeIt(req.params.id);
 
-      let nade: NadeDTO | null = null;
+      let nade: NadeDto | null = null;
 
       if (this.isSlug(id)) {
-        nade = await this.nadeService.bySlug(id);
+        nade = await this.nadeService.getBySlug(id);
       } else {
-        nade = await this.nadeService.byId(id);
+        nade = await this.nadeService.getById(id);
       }
 
       if (!nade) {
@@ -140,29 +155,7 @@ export class NadeRouter {
 
       return res.status(200).send(nade);
     } catch (error) {
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
-    }
-  };
-
-  private getByIdList = async (req, res) => {
-    try {
-      const nadeList = req.body.nadeIds as string[];
-
-      if (!nadeList) {
-        return res
-          .status(400)
-          .send({ status: 400, message: "Missing nade ids in body" });
-      }
-
-      if (nadeList.length === 0) {
-        return res.status(200).send([]);
-      }
-
-      const nades = await this.nadeService.list(nadeList);
-
-      return res.status(200).send(nades);
-    } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
@@ -171,10 +164,11 @@ export class NadeRouter {
   private getByMap = async (req, res) => {
     try {
       const mapName = sanitizeIt(req.params.mapname) as CsgoMap;
-      const nades = await this.nadeService.byMap(mapName);
+      const nades = await this.nadeService.getByMap(mapName);
 
       return res.status(200).send(nades);
     } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
@@ -183,10 +177,11 @@ export class NadeRouter {
   private getByUser = async (req, res) => {
     try {
       const steamId = sanitizeIt(req.params.steamId);
-      const nades = await this.nadeService.byUser(steamId);
+      const nades = await this.nadeService.getByUser(steamId);
 
       return res.status(200).send(nades);
     } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
@@ -201,6 +196,7 @@ export class NadeRouter {
 
       return res.status(201).send(nade);
     } catch (error) {
+      Logger.error(error);
       Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
@@ -210,32 +206,15 @@ export class NadeRouter {
   private updateNade = async (req, res) => {
     try {
       const id = sanitizeIt(req.params.id);
+      const context = createAppContext(req);
       const user = userFromRequest(req);
       const updateDto = validateNadeEditBody(req);
+      const preUpdateNade = await this.nadeService.getById(id);
 
-      const isAllowedEdit = await this.nadeService.isAllowedEdit(
-        id,
-        user.steamId
-      );
-
-      if (updateDto.slug && user.role !== "administrator") {
-        return res.status(401).send({ error: "Not allowed to update slug" });
-      }
-
-      if (updateDto.status && user.role === "user") {
-        return res.status(401).send({ error: "Not allowed edit status" });
-      }
-
-      if (!isAllowedEdit) {
-        return res.status(401).send({ error: "Not allowed to edit this nade" });
-      }
-
-      const preUpdateNade = await this.nadeService.byId(id);
-
-      const updatedNade = await this.nadeService.update(id, updateDto);
+      const updatedNade = await this.nadeService.update(id, updateDto, user);
 
       if (updatedNade) {
-        const editingUser = await this.userService.byId(user.steamId);
+        const editingUser = await this.userService.byId(context, user.steamId);
         this.createAuditEntryNadeUpdate(
           {
             nickname: editingUser.nickname,
@@ -250,6 +229,7 @@ export class NadeRouter {
 
       return res.status(202).send(updatedNade);
     } catch (error) {
+      Logger.error(error);
       Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
@@ -258,11 +238,9 @@ export class NadeRouter {
 
   private incrementViewCount = async (req, res) => {
     try {
-      const id = sanitizeIt(req.params.id);
       const identifier = getSessionId(req);
 
       if (identifier) {
-        await this.gfycatService.registerView(id, identifier);
         return res.status(202).send();
       } else {
         return res.status(406).send();
@@ -275,9 +253,9 @@ export class NadeRouter {
 
   private validateGfy = async (req, res) => {
     try {
-      const validateGfycat = req.body as NadeGfycatValidateDTO;
+      const validateGfycat = req.body as NadeGfycatValidateDto;
 
-      const gfyDataResponse = await this.gfycatService.getGfycatData(
+      const gfyDataResponse = await this.gfycatApi.getGfycatData(
         validateGfycat.gfycatIdOrUrl
       );
 
@@ -324,8 +302,8 @@ export class NadeRouter {
 
   private createAuditEntryNadeUpdate = (
     byUser: UserAudit,
-    preUpdateNade: NadeDTO,
-    updatedNade: NadeDTO
+    preUpdateNade: NadeDto,
+    updatedNade: NadeDto
   ) => {
     const updatedField: string[] = [];
 

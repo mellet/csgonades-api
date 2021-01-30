@@ -4,11 +4,11 @@ export interface ReportModel {
   createdAt: Date;
 }
 
-export interface ReportDTO extends ReportModel {
+export interface ReportDto extends ReportModel {
   id: string;
 }
 
-export interface ReportSaveDTO {
+export interface ReportSaveDto {
   nadeId: string;
   message: string;
 }

@@ -58,7 +58,7 @@ export type NotificationModel =
 
 export type NotificationDTO = NotificationModel & { id: string };
 
-export type NotificationCreate = DistributiveOmit<
+export type NotificationCreateDto = DistributiveOmit<
   NotificationDTO,
   "createdAt" | "id" | "viewed" | "count"
 >;

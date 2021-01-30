@@ -4,54 +4,25 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import passport from "passport";
-import { ArticleController } from "./article/ArticleController";
-import { ArticleRepo } from "./article/ArticleRepo";
-import { ArticleService } from "./article/ArticleService";
-import { AuditRepo } from "./audit/AuditRepo";
 import { AuditRouter } from "./audit/AuditRouter";
-import { AuditService } from "./audit/AuditService";
+import { CommentRouter } from "./comment/CommentRouter";
 import { CSGNConfig } from "./config/enironment";
-import { ContactRepo } from "./contact/ContactRepo";
 import { ContactRouter } from "./contact/ContactRouter";
-import { ContactService } from "./contact/ContactService";
-import { FavoriteRepo } from "./favorite/FavoriteRepo";
+import { GfycatApi } from "./external-api/GfycatApi";
+import { SteamApi } from "./external-api/SteamApi";
 import { FavoriteRouter } from "./favorite/FavoriteRouter";
-import { FavoriteService } from "./favorite/FavoriteService";
-import { ImageGalleryService } from "./imageGallery/ImageGalleryService";
-import { ImageStorageRepo } from "./imageGallery/ImageStorageService";
-import { NadeRepo } from "./nade/NadeRepo";
 import { NadeRouter } from "./nade/NadeRouter";
-import { NadeService } from "./nade/NadeService";
-import { NadeCommentRepo } from "./nadecomment/NadeCommentRepo";
-import { NadeCommentRouter } from "./nadecomment/NadeCommentRouter";
-import { NadeCommentService } from "./nadecomment/NadeCommentService";
-import { NotificationRepo } from "./notifications/NotificationRepo";
 import { NotificationRouter } from "./notifications/NotificationRouter";
-import { NotificationService } from "./notifications/NotificationService";
-import { ReportRepo } from "./reports/ReportRepo";
+import { persistInit } from "./persistInit";
+import { repoInit } from "./repoInit";
 import { ReportRouter } from "./reports/ReportRouter";
-import { ReportService } from "./reports/ReportService";
-import { CachingService } from "./services/CachingService";
-import { EventBus } from "./services/EventHandler";
-import { makeGfycatService } from "./services/GfycatService";
-import { StatsRepo } from "./stats/StatsRepo";
+import { serviceInit } from "./serviceInit";
 import { makeStatsRouter } from "./stats/StatsRouter";
-import { StatsService } from "./stats/StatsService";
 import { StatusRouter } from "./status/StatusRouter";
 import { makeSteamRouter } from "./steam/SteamRouter";
-import { SteamService } from "./steam/SteamService";
-import { makePersistedStorage } from "./storage/FirebaseFirestore";
-import { TournamentController } from "./tournament/TournamentController";
-import { TournamentRepo } from "./tournament/TournamentRepo";
-import { TournamentService } from "./tournament/TournamentService";
-import { UserRepo } from "./user/UserRepo";
 import { makeUserRouter } from "./user/UserRouter";
-import { UserService } from "./user/UserService";
-import { extractTokenMiddleware } from "./utils/AuthUtils";
+import { extractTokenMiddleware } from "./utils/AuthHandlers";
 import { sessionRoute } from "./utils/SessionRoute";
-import { VoteRepo } from "./votes/VoteRepo";
-import { VoteRouter } from "./votes/VoteRouter";
-import { VoteService } from "./votes/VoteService";
 
 export const AppServer = (config: CSGNConfig) => {
   const app = express();
@@ -89,106 +60,42 @@ export const AppServer = (config: CSGNConfig) => {
   app.disable("x-powered-by");
   app.use(extractTokenMiddleware(config));
 
-  // Storage
-  const { bucket, db } = makePersistedStorage(config);
+  const gfycatApi = new GfycatApi(config);
+  const steamApi = new SteamApi(config);
 
-  // Repos
-  const notificationRepo = new NotificationRepo();
-
-  const userRepo = new UserRepo(db);
-  const nadeRepo = new NadeRepo();
-  const favoriteRepo = new FavoriteRepo();
-  const statsRepo = new StatsRepo();
-  const contactRepo = new ContactRepo();
-  const articleRepo = new ArticleRepo();
-  const tournamentRepo = new TournamentRepo();
-  const reportRepo = new ReportRepo();
-  const imageRepo = new ImageStorageRepo(bucket);
-  const nadeCommentRepo = new NadeCommentRepo();
-  const voteRepo = new VoteRepo();
-  const auditRepo = new AuditRepo();
-
-  // Event bus so services can send events that others can subscribe to
-  const eventBus = new EventBus();
-
-  // Services
-  const auditService = new AuditService({ auditRepo });
-  const cacheService = new CachingService();
-  const steamService = new SteamService(config);
-  const statsService = new StatsService({
-    eventBus,
-    statsRepo,
-    cacheService,
-  });
-  const galleryService = new ImageGalleryService({
-    config,
-    imageRepo,
-  });
-  const gfycatService = makeGfycatService(config);
-
-  const reporService = new ReportService({ eventBus, reportRepo });
-  const userService = new UserService({
-    eventBus,
-    steamService,
-    userRepo,
-  });
-  const nadeService = new NadeService({
-    cache: cacheService,
-    gfycatService,
-    galleryService,
-    nadeRepo,
-    userService,
-    eventBus,
-  });
-  const favoriteService = new FavoriteService({ favoriteRepo, eventBus });
-  const tournamentService = new TournamentService(tournamentRepo, cacheService);
-
-  const notificationService = new NotificationService({
-    eventBus,
-    notificationRepo,
+  const persist = persistInit(config);
+  const repositories = repoInit(persist);
+  const {
+    auditService,
+    commentService,
+    contactService,
+    favoriteService,
     nadeService,
-    userService,
-  });
-
-  const contactService = new ContactService({
-    contactRepo,
     notificationService,
-  });
-
-  const articleService = new ArticleService({
-    articleRepo,
-  });
-
-  const nadeCommentService = new NadeCommentService({
-    nadeCommentRepo,
+    reporService,
     userService,
-    eventBus,
-  });
-  const voteService = new VoteService({ eventBus, voteRepo });
+  } = serviceInit(config, repositories, gfycatApi, steamApi);
 
   // Routers
-  const statusRouter = new StatusRouter({ cache: cacheService });
+  const statusRouter = new StatusRouter();
   const nadeRouter = new NadeRouter({
-    gfycatService,
+    gfycatApi,
     nadeService,
     auditService,
     userService,
+    commentService,
   });
+
   const steamRouter = makeSteamRouter(userService, passport, config);
   const userRouter = makeUserRouter(userService);
   const favoriteRouter = new FavoriteRouter({ favoriteService });
-  const statsRouter = makeStatsRouter(statsService);
+  const statsRouter = makeStatsRouter(repositories.statsRepo);
   const contactRouter = new ContactRouter(contactService).getRouter();
-  const articleRouter = new ArticleController(articleService).getRouter();
-  const tournamentRouter = new TournamentController(
-    tournamentService
-  ).getRouter();
   const reportRouter = new ReportRouter(reporService).getRouter();
   const notificationRouter = new NotificationRouter(
     notificationService
   ).getRouter();
-  const nadeCommentRouter = new NadeCommentRouter({ nadeCommentService });
-  const voteRouter = new VoteRouter({ voteService });
+  const nadeCommentRouter = new CommentRouter({ commentService });
   const auditRouter = new AuditRouter(auditService);
 
   app.use(nadeRouter.getRouter());
@@ -198,12 +105,9 @@ export const AppServer = (config: CSGNConfig) => {
   app.use(favoriteRouter.getRouter());
   app.use(statsRouter);
   app.use(contactRouter);
-  app.use(articleRouter);
-  app.use(tournamentRouter);
   app.use(reportRouter);
   app.use(notificationRouter);
   app.use(nadeCommentRouter.getRouter());
-  app.use(voteRouter.getRouter());
   app.use(auditRouter.getRouter());
 
   app.get("/", (_, res) => {

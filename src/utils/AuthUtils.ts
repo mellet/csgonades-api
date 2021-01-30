@@ -1,7 +1,5 @@
 import jwt from "jsonwebtoken";
-import { CSGNConfig } from "../config/enironment";
 import { Role, UserModel } from "../user/UserModel";
-import { userFromRequest } from "./RouterUtils";
 
 type JWTPayload = {
   exp: number;
@@ -46,92 +44,18 @@ export const payloadFromToken = (secret: string, token: string): JWTPayload => {
   return decoded;
 };
 
-export const authOnlyHandler = (req, res, next) => {
-  const user = userFromRequest(req);
-  if (!user || !(user && user.role) || !(user && user.steamId)) {
-    return res.status(401).send({
-      error: "Access denied. No user detected.",
-    });
-  }
-  next();
-};
-
-export const adminOrModHandler = (req, res, next) => {
-  const user = userFromRequest(req);
+export const isEntityOwnerOrPrivilegedUser = (
+  entityOwnerId: string,
+  user?: RequestUser
+) => {
   if (!user) {
-    return res.status(401).send({
-      error: "Access denied. No user detected.",
-    });
+    return false;
   }
-
-  if (user.role === "user") {
-    return res.status(403).send({
-      error: "Only allowed by admin or moderator.",
-    });
+  if (user.role === "administrator" || user.role === "moderator") {
+    return true;
   }
-
-  next();
-};
-
-export const adminOnlyHandler = (req, res, next) => {
-  const user = userFromRequest(req);
-  if (!user) {
-    return res.status(401).send({
-      error: "Access denied. No user detected.",
-    });
+  if (entityOwnerId === user.steamId) {
+    return true;
   }
-
-  if (user.role !== "administrator") {
-    return res.status(403).send({
-      error: "Only allowed by admin.",
-    });
-  }
-
-  next();
-};
-
-export const extractTokenMiddleware = (config: CSGNConfig) => {
-  return (req, res, next) => {
-    const token = (req.headers["x-access-token"] ||
-      req.headers["authorization"]) as string;
-    if (token) {
-      try {
-        const decoded = payloadFromToken(config.secrets.server_key, token);
-        const requestUser: RequestUser = {
-          steamId: decoded.steamId,
-          role: decoded.role,
-        };
-        req.user = requestUser;
-      } catch (error) {
-        console.warn(
-          "Expired or invalid access token in request",
-          error.message
-        );
-      }
-    }
-
-    const csgonadestoken =
-      req.signedCookies &&
-      (req.signedCookies.csgonadestoken as string | undefined);
-
-    if (csgonadestoken) {
-      try {
-        const decoded = payloadFromToken(
-          config.secrets.server_key,
-          csgonadestoken
-        );
-        const requestUser: RequestUser = {
-          steamId: decoded.steamId,
-          role: decoded.role,
-        };
-        req.user = requestUser;
-      } catch (error) {
-        console.warn(
-          "Expired or invalid refresh token in request",
-          error.message
-        );
-      }
-    }
-    next();
-  };
+  return false;
 };

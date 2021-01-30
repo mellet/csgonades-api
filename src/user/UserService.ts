@@ -1,70 +1,108 @@
-import { EventBus } from "../services/EventHandler";
-import { ISteamService } from "../steam/SteamService";
-import { UserCreateDTO, UserUpdateDTO } from "./UserDTOs";
+import { SteamApi } from "../external-api/SteamApi";
+import { NadeRepo } from "../nade/repository/NadeRepo";
+import { StatsRepo } from "../stats/repository/StatsRepo";
+import { AppContext } from "../utils/AppContext";
+import { ErrorFactory } from "../utils/ErrorUtil";
+import { UserFilter } from "./repository/UserFireRepo";
+import { UserRepo } from "./repository/UserRepo";
+import { UserCreateDto, UserUpdateDto } from "./UserDTOs";
 import { UserModel, UserModelAnon } from "./UserModel";
-import { UserFilter, UserRepo } from "./UserRepo";
 
 type UserServiceDeps = {
+  nadeRepo: NadeRepo;
   userRepo: UserRepo;
-  steamService: ISteamService;
-  eventBus: EventBus;
+  statsRepo: StatsRepo;
+  steamApi: SteamApi;
 };
 
 export class UserService {
   private userRepo: UserRepo;
-  private steamService: ISteamService;
-  private eventBus: EventBus;
+  private steamApi: SteamApi;
+  private statsRepo: StatsRepo;
+  private nadeRepo: NadeRepo;
 
   constructor(deps: UserServiceDeps) {
     this.userRepo = deps.userRepo;
-    this.steamService = deps.steamService;
-    this.eventBus = deps.eventBus;
+    this.steamApi = deps.steamApi;
+    this.statsRepo = deps.statsRepo;
+    this.nadeRepo = deps.nadeRepo;
   }
 
   all = (filter: UserFilter) => {
     return this.userRepo.all(filter);
   };
 
-  byId = (steamId: string) => {
-    return this.userRepo.byId(steamId);
-  };
-
-  byIdAnon = async (steamId: string): Promise<UserModelAnon> => {
+  byId = async (
+    context: AppContext,
+    steamId: string
+  ): Promise<UserModel | UserModelAnon> => {
+    const { authUser } = context;
     const user = await this.userRepo.byId(steamId);
-    delete user["email"];
+
+    if (!user) {
+      throw ErrorFactory.NotFound("User not found");
+    }
+
+    const isUser = authUser?.role === "user";
+    const requestingSelf = authUser?.steamId === steamId;
+    const shouldAnonomize = !requestingSelf && isUser;
+
+    if (shouldAnonomize) {
+      delete user["email"];
+    }
 
     return user;
   };
 
   getOrCreate = async (steamId: string): Promise<UserModel> => {
-    try {
-      const user = await this.userRepo.byId(steamId);
-      return user;
-    } catch (error) {
-      const player = await this.steamService.getPlayerBySteamID(steamId);
+    const user = await this.userRepo.byId(steamId);
 
-      const newUser: UserCreateDTO = {
-        steamId: player.steamID,
-        nickname: player.nickname,
-        avatar: player.avatar.medium,
-        role: "user",
-      };
-      const user = await this.userRepo.create(newUser);
-
-      this.eventBus.emitNewUser(user);
-
+    if (user) {
       return user;
     }
+
+    const player = await this.steamApi.getPlayerBySteamID(steamId);
+
+    const createUserDto: UserCreateDto = {
+      steamId: player.steamID,
+      nickname: player.nickname,
+      avatar: player.avatar.medium,
+      role: "user",
+    };
+
+    const newUser = await this.userRepo.create(createUserDto);
+    await this.statsRepo.incrementUserCounter();
+
+    return newUser;
   };
 
-  update = async (steamId: string, update: UserUpdateDTO) => {
-    const res = await this.userRepo.update(steamId, update);
+  update = async (
+    context: AppContext,
+    steamId: string,
+    userUpdateDto: UserUpdateDto
+  ) => {
+    const { authUser } = context;
 
-    if (res) {
-      this.eventBus.emitUserDetailsUpdate(res);
+    const isUpdatingSelf = authUser?.steamId === steamId;
+    const isPrivilegedUser = authUser?.role === "administrator";
+
+    if (!isUpdatingSelf && !isPrivilegedUser) {
+      throw ErrorFactory.Forbidden("You are not allowed to edit this user");
     }
 
-    return res;
+    const updatedUser = await this.userRepo.update(steamId, userUpdateDto);
+
+    if (!updatedUser) {
+      throw ErrorFactory.InternalServerError("Failed to update user");
+    }
+
+    await this.nadeRepo.updateUserOnNades(steamId, {
+      nickname: updatedUser.nickname,
+      avatar: updatedUser.avatar,
+      steamId: steamId,
+    });
+
+    return updatedUser;
   };
 
   updateActivity = (steamId: string) => {

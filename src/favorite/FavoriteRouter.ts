@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/node";
 import { Router } from "express";
-import { authOnlyHandler } from "../utils/AuthUtils";
+import { Logger } from "../logger/Logger";
+import { authOnlyHandler } from "../utils/AuthHandlers";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { userFromRequest } from "../utils/RouterUtils";
 import { sanitizeIt } from "../utils/Sanitize";
@@ -43,6 +44,7 @@ export class FavoriteRouter {
 
       return res.status(200).send(favorites);
     } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
@@ -53,13 +55,14 @@ export class FavoriteRouter {
       const user = userFromRequest(req);
       const nadeId = sanitizeIt(req.params.nadeId);
 
-      const favorite = await this.favoriteService.createFavoriteForUser(
+      const favorite = await this.favoriteService.addFavorite(
         user.steamId,
         nadeId
       );
 
       return res.status(201).send(favorite);
     } catch (error) {
+      Logger.error(error);
       Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
@@ -71,10 +74,11 @@ export class FavoriteRouter {
       const favoriteId = sanitizeIt(req.params.favoriteId);
       const user = userFromRequest(req);
 
-      await this.favoriteService.unFavorite(user.steamId, favoriteId);
+      await this.favoriteService.removeFavorite(user.steamId, favoriteId);
 
       return res.status(202).send();
     } catch (error) {
+      Logger.error(error);
       Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);

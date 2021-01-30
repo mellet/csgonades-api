@@ -1,28 +1,29 @@
-import { NotificationService } from "../notifications/NotificationService";
-import { ContactDTO, ContactSaveDTO } from "./ContactData";
-import { ContactRepo } from "./ContactRepo";
+import { NotificationRepo } from "../notifications/repository/NotificationRepo";
+import { ContactDto } from "./dto/ContactDto";
+import { ContactSaveDto } from "./dto/ContactSaveDto";
+import { ContactRepo } from "./repository/ContactRepo";
 
 type ContactServiceDeps = {
   contactRepo: ContactRepo;
-  notificationService: NotificationService;
+  notificationRepo: NotificationRepo;
 };
 
 export class ContactService {
-  private notificationService: NotificationService;
+  private notificationRepo: NotificationRepo;
   private contactRepo: ContactRepo;
 
   constructor(deps: ContactServiceDeps) {
-    this.notificationService = deps.notificationService;
+    this.notificationRepo = deps.notificationRepo;
     this.contactRepo = deps.contactRepo;
   }
 
-  getMessages = (): Promise<ContactDTO[]> => {
+  getMessages = (): Promise<ContactDto[]> => {
     return this.contactRepo.getMessages();
   };
 
-  addMessage = (data: ContactSaveDTO): Promise<ContactDTO> => {
-    this.notificationService.newContactMsg();
-    return this.contactRepo.addMessage(data);
+  saveMessage = (data: ContactSaveDto): Promise<ContactDto> => {
+    this.notificationRepo.newContactMessage();
+    return this.contactRepo.saveMessage(data);
   };
 
   deleteMessage = (id: string): Promise<void> => {

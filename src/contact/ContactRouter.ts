@@ -1,18 +1,19 @@
 import * as Sentry from "@sentry/node";
 import { Router } from "express";
-import { adminOnlyHandler } from "../utils/AuthUtils";
+import { Logger } from "../logger/Logger";
+import { adminOnlyHandler } from "../utils/AuthHandlers";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { sanitizeIt } from "../utils/Sanitize";
-import { ContactDTO } from "./ContactData";
 import { ContactService } from "./ContactService";
+import { ContactDto } from "./dto/ContactDto";
 
 export class ContactRouter {
   private router: Router;
-  private contactRepo: ContactService;
+  private contactService: ContactService;
 
-  constructor(contactRepo: ContactService) {
+  constructor(contactService: ContactService) {
     this.router = Router();
-    this.contactRepo = contactRepo;
+    this.contactService = contactService;
     this.setupRoutes();
   }
 
@@ -32,10 +33,11 @@ export class ContactRouter {
 
   private getContactMessages = async (_, res) => {
     try {
-      const contactMessages = await this.contactRepo.getMessages();
+      const contactMessages = await this.contactService.getMessages();
 
       return res.status(200).send(contactMessages);
     } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }
@@ -43,12 +45,13 @@ export class ContactRouter {
 
   private addContactMessage = async (req, res) => {
     try {
-      const contactData = sanitizeIt(req.body) as ContactDTO;
+      const contactData = sanitizeIt(req.body) as ContactDto;
 
-      await this.contactRepo.addMessage(contactData);
+      await this.contactService.saveMessage(contactData);
 
       return res.status(201).send();
     } catch (error) {
+      Logger.error(error);
       Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
@@ -58,10 +61,11 @@ export class ContactRouter {
   private removeContactMessage = async (req, res) => {
     try {
       const id = req.params.id;
-      await this.contactRepo.deleteMessage(id);
+      await this.contactService.deleteMessage(id);
 
       return res.status(204).send();
     } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }

@@ -1,5 +1,7 @@
-import { Router } from "express";
-import { authOnlyHandler } from "../utils/AuthUtils";
+import { RequestHandler, Router } from "express";
+import { Logger } from "../logger/Logger";
+import { createAppContext } from "../utils/AppContext";
+import { authOnlyHandler } from "../utils/AuthHandlers";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { userFromRequest } from "../utils/RouterUtils";
 import { NotificationService } from "./NotificationService";
@@ -21,13 +23,32 @@ export class NotificationRouter {
   private setUpRoutes = () => {
     this.router.get("/notifications", authOnlyHandler, this.getNotifications);
     this.router.patch(
+      "/notifications/viewed",
+      authOnlyHandler,
+      this.markAllAsViewed
+    );
+    this.router.patch(
       "/notifications/:id/viewed",
       authOnlyHandler,
       this.viewedNotifcation
     );
   };
 
-  private getNotifications = async (req, res) => {
+  private markAllAsViewed: RequestHandler = async (req, res) => {
+    try {
+      const context = createAppContext(req);
+
+      await this.notificationService.markAllAsRead(context);
+
+      return res.status(202).send();
+    } catch (error) {
+      const err = errorCatchConverter(error);
+
+      return res.status(err.code).send(err);
+    }
+  };
+
+  private getNotifications: RequestHandler = async (req, res) => {
     try {
       const user = userFromRequest(req);
 
@@ -37,21 +58,24 @@ export class NotificationRouter {
 
       return res.status(200).send(notifications);
     } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
 
       return res.status(err.code).send(err);
     }
   };
 
-  private viewedNotifcation = async (req, res) => {
+  private viewedNotifcation: RequestHandler = async (req, res) => {
     try {
-      const user = userFromRequest(req);
-      const id = req.params.id;
+      const { id } = req.params;
+      const context = createAppContext(req);
 
-      await this.notificationService.markAsRead(id, user);
+      await this.notificationService.markAsRead(context, id);
 
       return res.status(202).send();
     } catch (error) {
+      Logger.error(error);
+
       const err = errorCatchConverter(error);
 
       return res.status(err.code).send(err);

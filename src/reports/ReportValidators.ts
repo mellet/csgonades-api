@@ -1,17 +1,17 @@
 import Joi from "@hapi/joi";
 import { Request } from "express-serve-static-core";
 import { sanitizeIt } from "../utils/Sanitize";
-import { ReportSaveDTO } from "./Report";
+import { ReportSaveDto } from "./Report";
 
-export const validateReportSaveDTO = (req: Request): ReportSaveDTO => {
-  const body = req.body as ReportSaveDTO;
+export const validateReportSaveDTO = (req: Request): ReportSaveDto => {
+  const body = req.body as ReportSaveDto;
 
   const schema = Joi.object({
     nadeId: Joi.string().required(),
     message: Joi.string().required(),
   }).unknown(false);
 
-  const value = Joi.attempt(body, schema) as ReportSaveDTO;
+  const value = Joi.attempt(body, schema) as ReportSaveDto;
 
   return value;
 };

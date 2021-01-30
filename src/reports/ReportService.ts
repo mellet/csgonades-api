@@ -1,29 +1,28 @@
-import { EventBus } from "../services/EventHandler";
-import { ReportDTO, ReportSaveDTO } from "./Report";
-import { ReportRepo } from "./ReportRepo";
+import { NotificationRepo } from "../notifications/repository/NotificationRepo";
+import { ReportDto, ReportSaveDto } from "./Report";
+import { ReportFireRepo } from "./reposityory/ReportFireRepo";
 
 type ReportServiceDeps = {
-  reportRepo: ReportRepo;
-  eventBus: EventBus;
+  reportRepo: ReportFireRepo;
+  notificationRepo: NotificationRepo;
 };
 
 export class ReportService {
-  private reportRepo: ReportRepo;
-  private eventBus: EventBus;
+  private reportRepo: ReportFireRepo;
+  private notificationRepo: NotificationRepo;
 
   constructor(deps: ReportServiceDeps) {
+    this.notificationRepo = deps.notificationRepo;
     this.reportRepo = deps.reportRepo;
-    this.eventBus = deps.eventBus;
   }
 
-  getAll = async (): Promise<ReportDTO[]> => {
+  getAll = async (): Promise<ReportDto[]> => {
     return this.reportRepo.getAll();
   };
 
-  save = async (saveDto: ReportSaveDTO): Promise<ReportDTO> => {
+  save = async (saveDto: ReportSaveDto): Promise<ReportDto> => {
     const report = await this.reportRepo.save(saveDto);
-    this.eventBus.emitNewReport(report);
-
+    this.notificationRepo.newReport();
     return report;
   };
 

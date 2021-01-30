@@ -3,7 +3,9 @@ import { CookieOptions, Router } from "express";
 import { PassportStatic } from "passport";
 import SteamStrategy from "passport-steam";
 import { CSGNConfig } from "../config/enironment";
+import { Logger } from "../logger/Logger";
 import { UserService } from "../user/UserService";
+import { createAppContext } from "../utils/AppContext";
 import {
   createAccessToken,
   createRefreshToken,
@@ -67,6 +69,7 @@ export const makeSteamRouter = (
 
         res.redirect(`${config.client.baseUrl}/auth`);
       } catch (error) {
+        Logger.error(error);
         Sentry.captureException(error);
         res.redirect(config.client.baseUrl);
       }
@@ -82,7 +85,9 @@ export const makeSteamRouter = (
         csgonadestoken
       );
 
-      const user = await userService.byId(payload.steamId);
+      const context = createAppContext(req);
+
+      const user = await userService.byId(context, payload.steamId);
 
       const accessToken = createAccessToken(config.secrets.server_key, user);
       const refreshToken = createRefreshToken(config.secrets.server_key, user);
