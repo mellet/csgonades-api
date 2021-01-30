@@ -5,7 +5,7 @@ type ApiError = {
   message: string;
 };
 
-class CustomErr extends CustomError {
+export class CustomErr extends CustomError {
   constructor(public code: number, message?: string) {
     super(message);
     this.code = code;
@@ -35,9 +35,9 @@ export class ErrorFactory {
 }
 
 export const errorCatchConverter = (error: any): ApiError => {
-  console.error(error);
+  console.warn(error);
   return {
     code: error.code || 500,
-    message: error.message || "Unknown error"
+    message: error.message || "Unknown error",
   };
 };

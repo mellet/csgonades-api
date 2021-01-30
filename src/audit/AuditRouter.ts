@@ -1,5 +1,5 @@
 import { RequestHandler, Router } from "express";
-import { adminOrModHandler } from "../utils/AuthUtils";
+import { adminOrModHandler } from "../utils/AuthHandlers";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { AuditService } from "./AuditService";
 
