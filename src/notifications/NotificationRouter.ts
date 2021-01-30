@@ -22,10 +22,29 @@ export class NotificationRouter {
   private setUpRoutes = () => {
     this.router.get("/notifications", authOnlyHandler, this.getNotifications);
     this.router.patch(
+      "/notifications/viewed",
+      authOnlyHandler,
+      this.markAllAsRead
+    );
+    this.router.patch(
       "/notifications/:id/viewed",
       authOnlyHandler,
       this.viewedNotifcation
     );
+  };
+
+  private markAllAsRead: RequestHandler = async (req, res) => {
+    try {
+      const context = createAppContext(req);
+
+      await this.notificationService.markAllAsRead(context);
+
+      return res.status(202).send();
+    } catch (error) {
+      const err = errorCatchConverter(error);
+
+      return res.status(err.code).send(err);
+    }
   };
 
   private getNotifications: RequestHandler = async (req, res) => {

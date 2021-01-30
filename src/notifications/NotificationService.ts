@@ -31,4 +31,12 @@ export class NotificationService {
 
     return this.notiRepo.markAsViewed(id);
   };
+
+  markAllAsRead = async (context: AppContext) => {
+    if (!context.authUser) {
+      return;
+    }
+
+    await this.notiRepo.markAllAsViewed(context.authUser.steamId);
+  };
 }

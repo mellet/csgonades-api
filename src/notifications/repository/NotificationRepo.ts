@@ -21,4 +21,5 @@ export interface NotificationRepo {
   add: (noti: NotificationCreateDto) => Promise<NotificationDTO>;
   removeFavoriteNotification: (opts: RemoveFavNotiOpts) => Promise<void>;
   markAsViewed: (id: string) => Promise<void>;
+  markAllAsViewed: (steamId: string) => Promise<void>;
 }

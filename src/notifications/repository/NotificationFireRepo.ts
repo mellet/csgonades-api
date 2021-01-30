@@ -247,6 +247,22 @@ export class NotificationFireRepo implements NotificationRepo {
     await commit();
   };
 
+  markAllAsViewed = async (steamId: string) => {
+    const notificationsForUser = await query(this.collection, [
+      where("subjectSteamId", "==", steamId),
+    ]);
+
+    const { update, commit } = batch();
+
+    for (let notification of notificationsForUser) {
+      update(this.collection, notification.ref.id, {
+        viewed: true,
+      });
+    }
+
+    await commit();
+  };
+
   private removeOldViewedNotification = async (
     shouldRemove: NotificationDTO[]
   ): Promise<NotificationDTO[]> => {
