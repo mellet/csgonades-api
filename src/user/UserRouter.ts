@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/node";
 import { Router } from "express";
 import { createAppContext } from "../utils/AppContext";
-import { adminOrModHandler, authOnlyHandler } from "../utils/AuthUtils";
+import { adminOrModHandler, authOnlyHandler } from "../utils/AuthHandlers";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { UserFilter } from "./repository/UserFireRepo";
 import { UserService } from "./UserService";

@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/node";
 import { Router } from "express";
-import { adminOnlyHandler } from "../utils/AuthUtils";
+import { adminOnlyHandler } from "../utils/AuthHandlers";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { sanitizeIt } from "../utils/Sanitize";
 import { ContactService } from "./ContactService";

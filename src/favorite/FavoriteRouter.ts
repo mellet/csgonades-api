@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/node";
 import { Router } from "express";
-import { authOnlyHandler } from "../utils/AuthUtils";
+import { authOnlyHandler } from "../utils/AuthHandlers";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { userFromRequest } from "../utils/RouterUtils";
 import { sanitizeIt } from "../utils/Sanitize";

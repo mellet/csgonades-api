@@ -11,7 +11,7 @@ import {
   adminOnlyHandler,
   adminOrModHandler,
   authOnlyHandler,
-} from "../utils/AuthUtils";
+} from "../utils/AuthHandlers";
 import { errorCatchConverter } from "../utils/ErrorUtil";
 import { userFromRequest } from "../utils/RouterUtils";
 import { sanitizeIt } from "../utils/Sanitize";
