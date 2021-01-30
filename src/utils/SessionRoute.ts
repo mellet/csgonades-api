@@ -2,21 +2,13 @@ import { CookieOptions, Request, Response } from "express-serve-static-core";
 import uniqid from "uniqid";
 
 export function sessionRoute(req: Request, res: Response) {
-  const sessionId = getSessionId(req);
+  setSessionCookieIfNotPresent(req, res);
 
-  if (sessionId) {
-    return res.status(200).send();
-  }
+  const authenticated = isAuthenticated(req);
 
-  const id = uniqid();
-  const oneDay = 1000 * 60 * 60 * 24;
-  const config: CookieOptions = {
-    httpOnly: true,
-    maxAge: oneDay,
-    signed: true,
-  };
-  res.cookie("csgonadessession", id, config);
-  return res.status(200).send();
+  return res.status(200).send({
+    authenticated,
+  });
 }
 
 export function getSessionId(req: Request): string | null {
@@ -27,4 +19,27 @@ export function getSessionId(req: Request): string | null {
   }
 
   return id;
+}
+
+function setSessionCookieIfNotPresent(req: Request, res: Response) {
+  if (req.signedCookies.csgonadessession) {
+    return;
+  }
+
+  const id = uniqid();
+  const oneDay = 1000 * 60 * 60 * 24;
+  const config: CookieOptions = {
+    httpOnly: true,
+    maxAge: oneDay,
+    signed: true,
+  };
+  res.cookie("csgonadessession", id, config);
+}
+
+function isAuthenticated(req: Request) {
+  if (req.signedCookies.csgonadestoken) {
+    return true;
+  }
+
+  return false;
 }
