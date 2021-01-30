@@ -1,6 +1,6 @@
 import { NadeDto } from "../dto/NadeDto";
 
-export const createFakeNade = (
+export const createMockedNade = (
   nadeId: string,
   ownerSteamId?: string
 ): NadeDto => ({
@@ -9,13 +9,13 @@ export const createFakeNade = (
   createdAt: new Date(),
   favoriteCount: 0,
   gfycat: {
-    gfyId: "fakegfy",
-    largeVideoUrl: "fakeurl",
-    smallVideoUrl: "fakeurl",
+    gfyId: "gfyId",
+    largeVideoUrl: "largeVideoUrl",
+    smallVideoUrl: "smallVideoUrl",
   },
   images: {
-    thumbnailId: "fakethumbid",
-    thumbnailUrl: "fakethumburl",
+    thumbnailId: "thumbnailId",
+    thumbnailUrl: "thumbnailUrl",
   },
   lastGfycatUpdate: new Date(),
   nextUpdateInHours: 1,
@@ -24,15 +24,15 @@ export const createFakeNade = (
   steamId: ownerSteamId || "fakesteamid",
   updatedAt: new Date(),
   user: {
-    avatar: "",
-    nickname: "",
-    steamId: "",
+    avatar: "avatar",
+    nickname: "nickname",
+    steamId: "steamId",
   },
   viewCount: 0,
   description: "",
   imageLineupThumb: {
-    id: "",
-    collection: "",
-    url: "",
+    id: "id",
+    collection: "collection",
+    url: "url",
   },
 });

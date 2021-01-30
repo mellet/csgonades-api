@@ -1,6 +1,6 @@
 import { anything, instance, mock, verify, when } from "ts-mockito";
 import { NadeRepo } from "../nade/repository/NadeRepo";
-import { createFakeNade } from "../nade/test-utils/NadeTestHelpers";
+import { createMockedNade } from "../nade/test-utils/NadeTestHelpers";
 import { NotificationRepo } from "../notifications/repository/NotificationRepo";
 import { UserRepo } from "../user/repository/UserRepo";
 import { UserDto } from "../user/UserDTOs";
@@ -69,7 +69,7 @@ describe("Comment service", () => {
       // Mock dependency responses
       when(userRepo.byId(testSteamId)).thenResolve(testUser);
       when(nadeRepo.getById("123")).thenResolve(
-        createFakeNade("123", testSteamId)
+        createMockedNade("123", testSteamId)
       );
       when(commentRepo.save(testUser, commentDto)).thenResolve(expectedComment);
 
@@ -102,7 +102,7 @@ describe("Comment service", () => {
       // Mock dependency responses
       when(userRepo.byId(testSteamId)).thenResolve(testUser);
       when(nadeRepo.getById("123")).thenResolve(
-        createFakeNade("123", "other-steam-id")
+        createMockedNade("123", "other-steam-id")
       );
       when(commentRepo.save(testUser, commentDto)).thenResolve(expectedComment);
       when(notificationRepo.newContactMessage()).thenResolve();
@@ -178,7 +178,7 @@ describe("Comment service", () => {
       // Mock dependency responses
       when(userRepo.byId(testSteamId)).thenResolve(testUser);
       when(nadeRepo.getById("123")).thenResolve(
-        createFakeNade("123", "other-steam-id")
+        createMockedNade("123", "other-steam-id")
       );
       when(commentRepo.save(testUser, commentDto)).thenResolve(expectedComment);
       when(notificationRepo.newContactMessage()).thenResolve();

@@ -8,7 +8,7 @@ import { StatsRepo } from "../stats/repository/StatsRepo";
 import { UserRepo } from "../user/repository/UserRepo";
 import { NadeService, NadeServiceDeps } from "./NadeService";
 import { NadeRepo } from "./repository/NadeRepo";
-import { createFakeNade } from "./test-utils/NadeTestHelpers";
+import { createMockedNade } from "./test-utils/NadeTestHelpers";
 
 describe("Nade service", () => {
   let nadeService: NadeService;
@@ -93,7 +93,7 @@ describe("Nade service", () => {
 
   it("getById", async () => {
     const fakeNadeId = "nadeid";
-    const fakeResult = createFakeNade(fakeNadeId);
+    const fakeResult = createMockedNade(fakeNadeId);
 
     when(mockedDeps.nadeRepo.getById(fakeNadeId)).thenResolve(fakeResult);
 

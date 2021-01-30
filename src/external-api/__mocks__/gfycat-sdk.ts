@@ -9,6 +9,10 @@ export default class Gfycat {
         statusCode: 200,
         gfyItem: {
           gfyId: "idioticadventurousarabianoryx",
+          mobileUrl: "mobileUrl",
+          mp4Url: "mp4Url",
+          frameRate: 24,
+          numFrames: 24 * 60, // one minute long
         },
       };
     }
