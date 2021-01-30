@@ -18,7 +18,6 @@ export const createMockedNade = (
     thumbnailUrl: "thumbnailUrl",
   },
   lastGfycatUpdate: new Date(),
-  nextUpdateInHours: 1,
   score: 0,
   status: "accepted",
   steamId: ownerSteamId || "fakesteamid",
