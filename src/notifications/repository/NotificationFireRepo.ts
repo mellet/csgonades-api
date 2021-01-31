@@ -239,6 +239,8 @@ export class NotificationFireRepo implements NotificationRepo {
       where("createdAt", ">", timeAgo),
     ]);
 
+    const itemsToDelete = staleNotification.slice(0, 400);
+
     console.log(
       "> Cleanup > Removing stale notification",
       staleNotification.length
@@ -246,7 +248,7 @@ export class NotificationFireRepo implements NotificationRepo {
 
     const { remove, commit } = batch();
 
-    for (let staleNoti of staleNotification) {
+    for (let staleNoti of itemsToDelete) {
       remove(this.collection, staleNoti.ref.id);
     }
 
