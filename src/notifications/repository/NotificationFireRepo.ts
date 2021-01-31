@@ -6,6 +6,7 @@ import {
   collection,
   Doc,
   get,
+  limit,
   query,
   remove,
   update,
@@ -237,9 +238,8 @@ export class NotificationFireRepo implements NotificationRepo {
 
     const staleNotification = await query(this.collection, [
       where("createdAt", "<", timeAgo),
+      limit(400),
     ]);
-
-    const itemsToDelete = staleNotification.slice(0, 400);
 
     console.log(
       "> Cleanup > Removing stale notification",
@@ -248,7 +248,7 @@ export class NotificationFireRepo implements NotificationRepo {
 
     const { remove, commit } = batch();
 
-    for (let staleNoti of itemsToDelete) {
+    for (let staleNoti of staleNotification) {
       remove(this.collection, staleNoti.ref.id);
     }
 
