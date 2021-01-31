@@ -236,7 +236,7 @@ export class NotificationFireRepo implements NotificationRepo {
     timeAgo.setMonth(timeAgo.getMonth() - 3);
 
     const staleNotification = await query(this.collection, [
-      where("createdAt", ">", timeAgo),
+      where("createdAt", "<", timeAgo),
     ]);
 
     const itemsToDelete = staleNotification.slice(0, 400);
