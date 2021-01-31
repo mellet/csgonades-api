@@ -239,7 +239,10 @@ export class NotificationFireRepo implements NotificationRepo {
       where("createdAt", ">", timeAgo),
     ]);
 
-    console.log("> Removing stale notification", staleNotification);
+    console.log(
+      "> Cleanup > Removing stale notification",
+      staleNotification.length
+    );
 
     const { remove, commit } = batch();
 
