@@ -31,6 +31,7 @@ export class NotificationFireRepo implements NotificationRepo {
 
   constructor() {
     this.collection = collection("notifications");
+    this.cleanStaleNotification();
   }
 
   forUser = async (steamId: string) => {
@@ -231,12 +232,14 @@ export class NotificationFireRepo implements NotificationRepo {
   };
 
   cleanStaleNotification = async () => {
-    const twoMonthsAgo = new Date();
-    twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+    const timeAgo = new Date();
+    timeAgo.setMonth(timeAgo.getMonth() - 3);
 
     const staleNotification = await query(this.collection, [
-      where("createdAt", ">", twoMonthsAgo),
+      where("createdAt", ">", timeAgo),
     ]);
+
+    console.log("> Removing stale notification", staleNotification);
 
     const { remove, commit } = batch();
 
@@ -265,9 +268,8 @@ export class NotificationFireRepo implements NotificationRepo {
 
   private removeOldViewedNotification = async (
     shouldRemove: NotificationDTO[]
-  ): Promise<NotificationDTO[]> => {
+  ) => {
     const removableNotification = shouldRemove.filter(this.shouldRemove);
-    const okNotifications = shouldRemove.filter((n) => !this.shouldRemove(n));
 
     if (removableNotification.length) {
       const { remove, commit } = batch();
@@ -278,8 +280,6 @@ export class NotificationFireRepo implements NotificationRepo {
 
       await commit();
     }
-
-    return okNotifications;
   };
 
   private shouldRemove = (notification: NotificationDTO) => {
@@ -288,7 +288,7 @@ export class NotificationFireRepo implements NotificationRepo {
       "hours",
       false
     );
-    const isOld = hoursAddedAgo > 1;
+    const isOld = hoursAddedAgo > 24;
 
     return isOld && notification.viewed;
   };
