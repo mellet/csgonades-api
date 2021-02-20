@@ -73,7 +73,7 @@ export class UserService {
       }*/
 
       const updatedUser = await this.userRepo.update(steamId, {
-        avatar: player.avatar.small,
+        avatar: player.avatar.medium,
       });
 
       if (!updatedUser) {
