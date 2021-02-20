@@ -104,6 +104,7 @@ export class UserFireRepo implements UserRepo {
       nickname: updateFields.nickname,
       email: updateFields.email,
       bio: updateFields.bio,
+      avatar: updateFields.avatar,
       createdAt: updateFields.createdAt
         ? new Date(updateFields.createdAt)
         : undefined,

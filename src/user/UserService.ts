@@ -57,11 +57,13 @@ export class UserService {
   getOrCreate = async (steamId: string): Promise<UserModel> => {
     const user = await this.userRepo.byId(steamId);
 
+    const player = await this.steamApi.getPlayerBySteamID(steamId);
+
+    // Update vatar on login
     if (user) {
+      await this.userRepo.update(steamId, { avatar: player.avatar.small });
       return user;
     }
-
-    const player = await this.steamApi.getPlayerBySteamID(steamId);
 
     const createUserDto: UserCreateDto = {
       steamId: player.steamID,
