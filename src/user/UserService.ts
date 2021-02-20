@@ -1,3 +1,4 @@
+import { CommentRepo } from "../comment/repository/CommentRepo";
 import { SteamApi } from "../external-api/SteamApi";
 import { NadeRepo } from "../nade/repository/NadeRepo";
 import { StatsRepo } from "../stats/repository/StatsRepo";
@@ -12,6 +13,7 @@ type UserServiceDeps = {
   nadeRepo: NadeRepo;
   userRepo: UserRepo;
   statsRepo: StatsRepo;
+  commentRepo: CommentRepo;
   steamApi: SteamApi;
 };
 
@@ -20,12 +22,14 @@ export class UserService {
   private steamApi: SteamApi;
   private statsRepo: StatsRepo;
   private nadeRepo: NadeRepo;
+  private commentRepo: CommentRepo;
 
   constructor(deps: UserServiceDeps) {
     this.userRepo = deps.userRepo;
     this.steamApi = deps.steamApi;
     this.statsRepo = deps.statsRepo;
     this.nadeRepo = deps.nadeRepo;
+    this.commentRepo = deps.commentRepo;
   }
 
   all = (filter: UserFilter) => {
@@ -61,7 +65,24 @@ export class UserService {
 
     // Update vatar on login
     if (user) {
-      await this.userRepo.update(steamId, { avatar: player.avatar.small });
+      const hasNewAvatar = player.avatar.small !== user.avatar;
+
+      if (!hasNewAvatar) {
+        return user;
+      }
+
+      const updatedUser = await this.userRepo.update(steamId, {
+        avatar: player.avatar.small,
+      });
+
+      if (!updatedUser) {
+        // This should never happen, throw error
+        return user;
+      }
+
+      await this.nadeRepo.updateUserOnNades(steamId, updatedUser);
+      await this.commentRepo.updateUserDetailsForComments(updatedUser);
+
       return user;
     }
 

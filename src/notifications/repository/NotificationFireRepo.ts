@@ -238,13 +238,12 @@ export class NotificationFireRepo implements NotificationRepo {
 
     const staleNotification = await query(this.collection, [
       where("createdAt", "<", timeAgo),
-      limit(400),
+      limit(500),
     ]);
 
-    console.log(
-      "> Cleanup > Removing stale notification",
-      staleNotification.length
-    );
+    if (staleNotification.length === 0) {
+      return;
+    }
 
     const { remove, commit } = batch();
 

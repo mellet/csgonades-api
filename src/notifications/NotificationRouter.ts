@@ -42,6 +42,7 @@ export class NotificationRouter {
 
       return res.status(202).send();
     } catch (error) {
+      Logger.error(error);
       const err = errorCatchConverter(error);
 
       return res.status(err.code).send(err);

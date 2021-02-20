@@ -45,6 +45,7 @@ export function serviceInit(
     userRepo,
     nadeRepo,
     statsRepo,
+    commentRepo,
   });
 
   const nadeService = new NadeService({

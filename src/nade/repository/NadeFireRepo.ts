@@ -184,7 +184,11 @@ export class NadeFireRepo implements NadeRepo {
     nadeDocsByUser.forEach((doc) => {
       update(this.collection, doc.ref.id, {
         steamId: user.steamId,
-        user,
+        user: {
+          nickname: user.nickname,
+          steamId: user.steamId,
+          avatar: user.avatar,
+        },
       });
     });
 
