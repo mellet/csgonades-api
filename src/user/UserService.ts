@@ -65,11 +65,12 @@ export class UserService {
 
     // Update vatar on login
     if (user) {
-      const hasNewAvatar = player.avatar.small !== user.avatar;
+      //const hasNewAvatar = player.avatar.small !== user.avatar;
 
-      if (!hasNewAvatar) {
+      // Can reintroduce later
+      /*if (!hasNewAvatar) {
         return user;
-      }
+      }*/
 
       const updatedUser = await this.userRepo.update(steamId, {
         avatar: player.avatar.small,
