@@ -55,37 +55,20 @@ export class UserService {
       delete user["email"];
     }
 
+    this.tryAvatarRefresh(user);
+
     return user;
   };
 
   getOrCreate = async (steamId: string): Promise<UserModel> => {
     const user = await this.userRepo.byId(steamId);
 
-    const player = await this.steamApi.getPlayerBySteamID(steamId);
-
-    // Update vatar on login
     if (user) {
-      //const hasNewAvatar = player.avatar.small !== user.avatar;
-
-      // Can reintroduce later
-      /*if (!hasNewAvatar) {
-        return user;
-      }*/
-
-      const updatedUser = await this.userRepo.update(steamId, {
-        avatar: player.avatar.medium,
-      });
-
-      if (!updatedUser) {
-        // This should never happen, throw error
-        return user;
-      }
-
-      await this.nadeRepo.updateUserOnNades(steamId, updatedUser);
-      await this.commentRepo.updateUserDetailsForComments(updatedUser);
-
+      this.tryAvatarRefresh(user);
       return user;
     }
+
+    const player = await this.steamApi.getPlayerBySteamID(steamId);
 
     const createUserDto: UserCreateDto = {
       steamId: player.steamID,
@@ -132,4 +115,26 @@ export class UserService {
   updateActivity = (steamId: string) => {
     return this.userRepo.updateActivity(steamId);
   };
+
+  private async tryAvatarRefresh(user: UserModel) {
+    const { steamId } = user;
+    const player = await this.steamApi.getPlayerBySteamID(user.steamId);
+
+    const hasNewAvatar = player.avatar.medium !== user.avatar;
+
+    if (!hasNewAvatar) {
+      return;
+    }
+
+    const updatedUser = await this.userRepo.update(steamId, {
+      avatar: player.avatar.medium,
+    });
+
+    if (!updatedUser) {
+      return;
+    }
+
+    await this.nadeRepo.updateUserOnNades(steamId, updatedUser);
+    await this.commentRepo.updateUserDetailsForComments(updatedUser);
+  }
 }
