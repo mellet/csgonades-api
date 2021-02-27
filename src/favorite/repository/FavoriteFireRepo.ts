@@ -53,6 +53,25 @@ export class FavoriteFireRepo implements FavoriteRepo {
     return favorite;
   };
 
+  reomveFavoriteForNade = async (
+    nadeId: string,
+    steamId: string
+  ): Promise<void> => {
+    const favorites = await query(this.collection, [
+      where("nadeId", "==", nadeId),
+      where("userId", "==", steamId),
+    ]);
+
+    const idsToRemove = favorites.map((f) => f.ref.id);
+    const { commit, remove } = batch();
+
+    idsToRemove.forEach((id) => {
+      remove(this.collection, id);
+    });
+
+    await commit();
+  };
+
   deleteWhereNadeId = async (nadeId: string) => {
     const favsForNadeId = await this.byNadeId(nadeId);
 

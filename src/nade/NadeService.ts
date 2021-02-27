@@ -75,6 +75,50 @@ export class NadeService {
     return this.nadeRepo.isSlugAvailable(slug);
   };
 
+  favoriteNade = async (nadeId: string, steamId: string) => {
+    const nade = await this.getById(nadeId);
+    const userFavoriting = await this.userRepo.byId(steamId);
+
+    if (!nade || !userFavoriting) {
+      throw ErrorFactory.NotFound("Nade or user not found");
+    }
+
+    const isOwnNade = nade.steamId === steamId;
+
+    const favorite = await this.favoriteRepo.addFavorite({
+      nadeId,
+      userId: steamId,
+    });
+
+    await this.nadeRepo.incrementFavoriteCount(nadeId);
+
+    if (!isOwnNade) {
+      await this.notificationRepo.newFavorite(nade, userFavoriting);
+    }
+
+    return favorite;
+  };
+
+  unFavoriteNade = async (nadeId: string, steamId: string) => {
+    const nade = await this.getById(nadeId);
+
+    if (!nade) {
+      throw ErrorFactory.NotFound("Nade not found");
+    }
+
+    const isOwnNade = nade.steamId === steamId;
+
+    await this.favoriteRepo.reomveFavoriteForNade(nadeId, steamId);
+    await this.nadeRepo.decrementFavoriteCount(nadeId);
+
+    if (!isOwnNade) {
+      await this.notificationRepo.removeFavoriteNotification({
+        bySteamId: steamId,
+        nadeId,
+      });
+    }
+  };
+
   getRecent = async (limit?: number): Promise<NadeMiniDto[]> => {
     const nades = await this.nadeRepo.getAll(limit);
 

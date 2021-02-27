@@ -13,7 +13,7 @@ import {
   adminOrModHandler,
   authOnlyHandler,
 } from "../utils/AuthHandlers";
-import { errorCatchConverter } from "../utils/ErrorUtil";
+import { errorCatchConverter, ErrorFactory } from "../utils/ErrorUtil";
 import { userFromRequest } from "../utils/RouterUtils";
 import { sanitizeIt } from "../utils/Sanitize";
 import { getSessionId } from "../utils/SessionRoute";
@@ -72,6 +72,58 @@ export class NadeRouter {
     this.router.post("/nades/validateGfycat", this.validateGfy);
     this.router.delete("/nades/:id", adminOnlyHandler, this.deleteNade);
     this.router.get("/nades/:id/checkslug", this.checkSlug);
+
+    // Favorite routes
+    this.router.post("/nades/:id/favorite", authOnlyHandler, this.favorite);
+    this.router.delete("/nades/:id/favorite", authOnlyHandler, this.unFavorite);
+  };
+
+  private favorite: RequestHandler = async (req, res) => {
+    try {
+      const user = userFromRequest(req);
+      const nadeId = sanitizeIt(req.params.id);
+
+      if (!user || !user.steamId) {
+        throw ErrorFactory.Forbidden("Not signed in");
+      }
+
+      if (!nadeId) {
+        throw ErrorFactory.BadRequest("Not signed in or no nade selected");
+      }
+
+      const favorite = await this.nadeService.favoriteNade(
+        nadeId,
+        user.steamId
+      );
+
+      return res.status(201).send(favorite);
+    } catch (error) {
+      Logger.error(error);
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
+    }
+  };
+
+  private unFavorite: RequestHandler = async (req, res) => {
+    try {
+      const user = userFromRequest(req);
+      const nadeId = sanitizeIt(req.params.id);
+
+      if (!user || !user.steamId) {
+        throw ErrorFactory.Forbidden("Not signed in");
+      }
+
+      if (!nadeId) {
+        throw ErrorFactory.BadRequest("Not signed in or no nade selected");
+      }
+
+      await this.nadeService.unFavoriteNade(nadeId, user.steamId);
+      return res.status(204).send();
+    } catch (error) {
+      Logger.error(error);
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
+    }
   };
 
   private checkSlug: RequestHandler = async (req, res) => {
