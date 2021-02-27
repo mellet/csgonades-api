@@ -38,7 +38,7 @@ export function shouldUpdateNadeStats(nade: NadeDto) {
     false
   );
 
-  const shouldUpdate = hoursSinceUpdate >= 24;
+  const shouldUpdate = hoursSinceUpdate >= 48;
 
   return shouldUpdate;
 }
