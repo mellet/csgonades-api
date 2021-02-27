@@ -95,7 +95,7 @@ export class NadeService {
 
   getById = async (nadeId: string): Promise<NadeDto> => {
     const nade = await this.nadeRepo.getById(nadeId);
-    await this.tryUpdateViewCounter(nade);
+    // await this.tryUpdateViewCounter(nade);
 
     return nade;
   };
