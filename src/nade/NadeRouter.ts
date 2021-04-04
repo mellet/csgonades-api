@@ -64,6 +64,7 @@ export class NadeRouter {
       this.getDeclinedNades
     );
     this.router.get("/nades/:id", this.getById);
+
     this.router.get("/nades/map/:mapname", this.getByMap);
     this.router.get("/nades/user/:steamId", this.getByUser);
     this.router.post("/nades", authOnlyHandler, this.addNade);
@@ -76,6 +77,25 @@ export class NadeRouter {
     // Favorite routes
     this.router.post("/nades/:id/favorite", authOnlyHandler, this.favorite);
     this.router.delete("/nades/:id/favorite", authOnlyHandler, this.unFavorite);
+
+    // Moderator routes
+    this.router.get(
+      "/admin/flaggedNades",
+      adminOrModHandler,
+      this.getFlaggedNades
+    );
+  };
+
+  private getFlaggedNades: RequestHandler = async (_, res) => {
+    try {
+      const nades = await this.nadeService.getFlagged();
+
+      return res.status(200).send(nades);
+    } catch (error) {
+      Logger.error(error);
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
+    }
   };
 
   private favorite: RequestHandler = async (req, res) => {

@@ -71,6 +71,18 @@ export class NadeService {
     this.userRepo = userRepo;
   }
 
+  getFlagged = async () => {
+    const nades = await this.nadeRepo.getAll();
+
+    const missingTeam = nades.filter((n) => !n.teamSide);
+    const missingLineup = nades.filter((n) => {
+      const hasLineup = !!n.imageLineupThumb;
+      return !hasLineup;
+    });
+
+    return [...missingTeam, ...missingLineup];
+  };
+
   isSlugAvailable = async (slug: string) => {
     return this.nadeRepo.isSlugAvailable(slug);
   };
