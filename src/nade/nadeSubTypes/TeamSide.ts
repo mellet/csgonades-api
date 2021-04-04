@@ -1,7 +1,7 @@
 export const NadeTeamSide = {
   both: "Both",
-  counterTerrorist: "CT",
-  terrorist: "T",
+  counterTerrorist: "Counter-Terrorist",
+  terrorist: "Terrorist",
 };
 
 export type TeamSide = keyof typeof NadeTeamSide;
