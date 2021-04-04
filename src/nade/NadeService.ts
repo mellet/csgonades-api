@@ -80,7 +80,9 @@ export class NadeService {
       return !hasLineup;
     });
 
-    return [...missingTeam, ...missingLineup];
+    const combined = [...missingTeam, ...missingLineup];
+
+    return combined.filter((n) => n.map !== "cobblestone");
   };
 
   isSlugAvailable = async (slug: string) => {

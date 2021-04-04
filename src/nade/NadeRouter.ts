@@ -80,7 +80,7 @@ export class NadeRouter {
 
     // Moderator routes
     this.router.get(
-      "/admin/flaggedNades",
+      "/admin/uncompleteNades",
       adminOrModHandler,
       this.getFlaggedNades
     );
