@@ -6,6 +6,7 @@ import { nadeValidMaps } from "../nadeSubTypes/CsgoMap";
 import { nadeValidMovements } from "../nadeSubTypes/Movements";
 import { nadeValidStatus } from "../nadeSubTypes/NadeStatus";
 import { nadeValidTypes } from "../nadeSubTypes/NadeType";
+import { nadeValidTeamSide } from "../nadeSubTypes/TeamSide";
 import { nadeValidTechniques } from "../nadeSubTypes/Technique";
 import { nadeValidTickrate } from "../nadeSubTypes/Tickrate";
 
@@ -62,6 +63,9 @@ export const validateNadeCreateBody = (req: Request): NadeCreateDto => {
       .required(),
     // oneWay?: boolean;
     oneWay: Joi.boolean().optional(),
+    teamSide: Joi.string()
+      .valid(...nadeValidTeamSide())
+      .optional(),
   }).unknown(false);
 
   const value = Joi.attempt(body, schema) as NadeCreateDto;
@@ -127,6 +131,9 @@ export const validateNadeEditBody = (req: Request): NadeUpdateDto => {
     slug: Joi.string().optional(),
     oneWay: Joi.boolean().optional(),
     isPro: Joi.boolean().optional(),
+    teamSide: Joi.string()
+      .valid(...nadeValidTeamSide())
+      .optional(),
   }).unknown(false);
 
   const value = Joi.attempt(body, schema) as NadeUpdateDto;

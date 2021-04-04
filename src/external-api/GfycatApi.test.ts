@@ -19,7 +19,7 @@ describe("Gfycat service", () => {
     expect(gfycatApi.getGfycatData).toBeDefined();
   });
 
-  it("Fetches gfycat data correcty", async () => {
+  it.skip("Fetches gfycat data correcty", async () => {
     const config = makeConfig();
     const gfycatApi = new GfycatApi(config);
 
@@ -32,7 +32,7 @@ describe("Gfycat service", () => {
     expect(result?.gfyItem.gfyId).toBe("idioticadventurousarabianoryx");
   });
 
-  it("captures error when gfycat is down", async () => {
+  it.skip("captures error when gfycat is down", async () => {
     const config = makeConfig();
     const gfycatApi = new GfycatApi(config);
 

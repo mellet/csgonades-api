@@ -35,7 +35,6 @@ export class ErrorFactory {
 }
 
 export const errorCatchConverter = (error: any): ApiError => {
-  console.warn(error);
   return {
     code: error.code || 500,
     message: error.message || "Unknown error",

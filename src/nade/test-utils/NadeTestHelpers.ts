@@ -34,4 +34,5 @@ export const createMockedNade = (
     collection: "collection",
     url: "url",
   },
+  teamSide: "terrorist",
 });

@@ -45,7 +45,6 @@ export const AppServer = (config: CSGNConfig) => {
         }
 
         const message = `The CORS policy for this origin doesn't allow access from the particular origin. Origin: ${origin}`;
-        console.warn("Request from unknown origin", origin);
         return callback(new Error(message), false);
       },
       credentials: true,

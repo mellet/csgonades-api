@@ -3,6 +3,7 @@ import { UserLightModel } from "../../user/UserModel";
 import { CsgoMap } from "../nadeSubTypes/CsgoMap";
 import { Movement } from "../nadeSubTypes/Movements";
 import { NadeType } from "../nadeSubTypes/NadeType";
+import { TeamSide } from "../nadeSubTypes/TeamSide";
 import { Technique } from "../nadeSubTypes/Technique";
 import { Tickrate } from "../nadeSubTypes/Tickrate";
 import { GfycatData } from "./GfycatData";
@@ -28,4 +29,5 @@ export type NadeCreateModel = {
   type: NadeType;
   user: UserLightModel;
   viewCount: number;
+  teamSide?: TeamSide;
 };

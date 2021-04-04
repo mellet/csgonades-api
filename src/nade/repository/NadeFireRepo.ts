@@ -143,7 +143,9 @@ export class NadeFireRepo implements NadeRepo {
       status: "pending",
     };
 
-    const nade = await add(this.collection, nadeModel);
+    const cleanNadeModel = removeUndefines(nadeModel);
+
+    const nade = await add(this.collection, cleanNadeModel);
 
     return this.toNadeDTO(nade);
   };

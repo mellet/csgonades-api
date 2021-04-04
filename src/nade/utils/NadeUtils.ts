@@ -70,6 +70,7 @@ export function convertToNadeMiniDto(nadeDto: NadeDto): NadeMiniDto {
     upVoteCount: nadeDto.upVoteCount,
     user: nadeDto.user,
     viewCount: nadeDto.viewCount,
+    teamSide: nadeDto.teamSide,
   };
 }
 

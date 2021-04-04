@@ -4,6 +4,7 @@ import { CsgoMap } from "../nadeSubTypes/CsgoMap";
 import { Movement } from "../nadeSubTypes/Movements";
 import { NadeStatus } from "../nadeSubTypes/NadeStatus";
 import { NadeType } from "../nadeSubTypes/NadeType";
+import { TeamSide } from "../nadeSubTypes/TeamSide";
 import { Technique } from "../nadeSubTypes/Technique";
 import { Tickrate } from "../nadeSubTypes/Tickrate";
 import { GfycatData } from "./GfycatData";
@@ -37,6 +38,7 @@ export interface NadeFireModel {
   steamId: string;
   technique?: Technique;
   tickrate?: Tickrate;
+  teamSide?: TeamSide;
   title?: string;
   type?: NadeType;
   updatedAt: Date;

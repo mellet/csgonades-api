@@ -234,6 +234,7 @@ export class NadeService {
       technique: body.technique,
       tickrate: body.tickrate,
       type: body.type,
+      teamSide: body.teamSide,
       ...(hasLineUpImage && { imageLineupThumb: lineupThumb }),
     };
 
@@ -284,6 +285,7 @@ export class NadeService {
       slug: nadeUpdateDto.slug,
       oneWay: nadeUpdateDto.oneWay,
       isPro: nadeUpdateDto.isPro,
+      teamSide: nadeUpdateDto.teamSide,
     };
 
     const mainImage = await this.replaceMainImageIfPresent(

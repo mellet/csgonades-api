@@ -2,6 +2,7 @@ import { UserLightModel } from "../../user/UserModel";
 import { Movement } from "../nadeSubTypes/Movements";
 import { NadeStatus } from "../nadeSubTypes/NadeStatus";
 import { NadeType } from "../nadeSubTypes/NadeType";
+import { TeamSide } from "../nadeSubTypes/TeamSide";
 import { Technique } from "../nadeSubTypes/Technique";
 import { Tickrate } from "../nadeSubTypes/Tickrate";
 import { GfycatData } from "./GfycatData";
@@ -34,4 +35,5 @@ export type NadeMiniDto = {
   upVoteCount?: number;
   user: UserLightModel;
   viewCount: number;
+  teamSide?: TeamSide;
 };
