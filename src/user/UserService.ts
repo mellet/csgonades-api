@@ -109,6 +109,8 @@ export class UserService {
       steamId: steamId,
     });
 
+    await this.commentRepo.updateUserDetailsForComments(updatedUser);
+
     return updatedUser;
   };
 

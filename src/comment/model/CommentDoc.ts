@@ -1,3 +1,5 @@
+import { Role } from "../../user/UserModel";
+
 export type CommentModel = {
   nadeId: string;
   steamId: string;
@@ -6,4 +8,5 @@ export type CommentModel = {
   message: string;
   createdAt: Date;
   updatedAt: Date;
+  role?: Role;
 };

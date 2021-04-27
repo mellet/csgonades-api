@@ -59,6 +59,7 @@ export class CommentFireRepo implements CommentRepo {
       steamId: user.steamId,
       avatar: user.avatar,
       nickname: user.nickname,
+      role: user.role,
       createdAt: value("serverDate"),
       updatedAt: value("serverDate"),
     };
@@ -108,6 +109,7 @@ export class CommentFireRepo implements CommentRepo {
       update(this.collection, comment.ref.id, {
         nickname: user.nickname,
         avatar: user.avatar,
+        role: user.role,
       });
     });
 

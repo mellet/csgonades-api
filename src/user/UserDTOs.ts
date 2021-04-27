@@ -23,6 +23,7 @@ export type UserMiniDto = {
   nickname: string;
   steamId: string;
   avatar?: string;
+  role?: Role;
 };
 
 export type UserCreateDto = {
