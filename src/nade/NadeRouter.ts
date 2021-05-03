@@ -22,6 +22,7 @@ import { NadeDto } from "./dto/NadeDto";
 import { NadeGfycatValidateDto } from "./dto/NadeGfycatValidateDto";
 import { NadeService } from "./NadeService";
 import { CsgoMap } from "./nadeSubTypes/CsgoMap";
+import { NadeType } from "./nadeSubTypes/NadeType";
 import {
   validateNadeCreateBody,
   validateNadeEditBody,
@@ -233,10 +234,11 @@ export class NadeRouter {
     }
   };
 
-  private getByMap = async (req, res) => {
+  private getByMap: RequestHandler = async (req, res) => {
     try {
+      const type = sanitizeIt(req.query.type) as NadeType | undefined;
       const mapName = sanitizeIt(req.params.mapname) as CsgoMap;
-      const nades = await this.nadeService.getByMap(mapName);
+      const nades = await this.nadeService.getByMap(mapName, type);
 
       return res.status(200).send(nades);
     } catch (error) {

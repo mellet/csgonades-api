@@ -19,6 +19,7 @@ import { NadeMiniDto } from "./dto/NadeMiniDto";
 import { NadeUpdateDto } from "./dto/NadeUpdateDto";
 import { CsgoMap } from "./nadeSubTypes/CsgoMap";
 import { NadeStatus } from "./nadeSubTypes/NadeStatus";
+import { NadeType } from "./nadeSubTypes/NadeType";
 import { NadeRepo } from "./repository/NadeRepo";
 import {
   convertNadesToLightDto,
@@ -165,8 +166,11 @@ export class NadeService {
     return nade;
   };
 
-  getByMap = async (map: CsgoMap): Promise<NadeMiniDto[]> => {
-    const nades = await this.nadeRepo.getByMap(map);
+  getByMap = async (
+    map: CsgoMap,
+    nadeType?: NadeType
+  ): Promise<NadeMiniDto[]> => {
+    const nades = await this.nadeRepo.getByMap(map, nadeType);
 
     return convertNadesToLightDto(nades);
   };

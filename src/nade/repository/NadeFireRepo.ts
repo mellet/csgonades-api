@@ -23,6 +23,7 @@ import { NadeCreateModel } from "../dto/NadeCreateModel";
 import { NadeDto } from "../dto/NadeDto";
 import { NadeFireModel } from "../dto/NadeFireModel";
 import { CsgoMap } from "../nadeSubTypes/CsgoMap";
+import { NadeType } from "../nadeSubTypes/NadeType";
 import { NadeRepo } from "./NadeRepo";
 
 export class NadeFireRepo implements NadeRepo {
@@ -109,12 +110,20 @@ export class NadeFireRepo implements NadeRepo {
     };
   };
 
-  getByMap = async (csgoMap: CsgoMap): Promise<NadeDto[]> => {
+  getByMap = async (
+    csgoMap: CsgoMap,
+    nadeType?: NadeType
+  ): Promise<NadeDto[]> => {
     const queryBuilder: Query<NadeFireModel, keyof NadeFireModel>[] = [
       where("status", "==", "accepted"),
       where("map", "==", csgoMap),
-      order("createdAt", "desc"),
     ];
+
+    if (nadeType) {
+      queryBuilder.push(where("type", "==", nadeType));
+    }
+
+    queryBuilder.push(order("createdAt", "desc"));
 
     const nadeDocs = await query(this.collection, queryBuilder);
 

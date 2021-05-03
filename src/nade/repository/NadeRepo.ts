@@ -3,6 +3,7 @@ import { NadeCreateModel } from "../dto/NadeCreateModel";
 import { NadeDto } from "../dto/NadeDto";
 import { NadeFireModel } from "../dto/NadeFireModel";
 import { CsgoMap } from "../nadeSubTypes/CsgoMap";
+import { NadeType } from "../nadeSubTypes/NadeType";
 
 export interface NadeRepo {
   isSlugAvailable(slug: string): Promise<boolean>;
@@ -11,7 +12,7 @@ export interface NadeRepo {
   getDeclined(): Promise<NadeDto[]>;
   getById(nadeId: string): Promise<NadeDto>;
   getBySlug(slug: string): Promise<NadeDto>;
-  getByMap(csgoMap: CsgoMap): Promise<NadeDto[]>;
+  getByMap(csgoMap: CsgoMap, nadeType?: NadeType): Promise<NadeDto[]>;
   getByUser(steamId: string): Promise<NadeDto[]>;
   save(nadeCreate: NadeCreateModel): Promise<NadeDto>;
   update(
