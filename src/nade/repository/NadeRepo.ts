@@ -13,7 +13,7 @@ export interface NadeRepo {
   getById(nadeId: string): Promise<NadeDto>;
   getBySlug(slug: string): Promise<NadeDto>;
   getByMap(csgoMap: CsgoMap, nadeType?: NadeType): Promise<NadeDto[]>;
-  getByUser(steamId: string): Promise<NadeDto[]>;
+  getByUser(steamId: string, csgoMap?: CsgoMap): Promise<NadeDto[]>;
   save(nadeCreate: NadeCreateModel): Promise<NadeDto>;
   update(
     nadeId: string,

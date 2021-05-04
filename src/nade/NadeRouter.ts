@@ -160,7 +160,7 @@ export class NadeRouter {
     }
   };
 
-  private getNades = async (req, res) => {
+  private getNades: RequestHandler = async (req, res) => {
     try {
       const limitParam = req?.query?.limit;
       let limit: number | undefined = undefined;
@@ -207,7 +207,7 @@ export class NadeRouter {
     }
   };
 
-  private getById = async (req, res) => {
+  private getById: RequestHandler = async (req, res) => {
     try {
       const id = sanitizeIt(req.params.id);
 
@@ -248,10 +248,11 @@ export class NadeRouter {
     }
   };
 
-  private getByUser = async (req, res) => {
+  private getByUser: RequestHandler = async (req, res) => {
     try {
+      const csgoMap = sanitizeIt(req.query.map) as CsgoMap | undefined;
       const steamId = sanitizeIt(req.params.steamId);
-      const nades = await this.nadeService.getByUser(steamId);
+      const nades = await this.nadeService.getByUser(steamId, csgoMap);
 
       return res.status(200).send(nades);
     } catch (error) {
@@ -261,7 +262,7 @@ export class NadeRouter {
     }
   };
 
-  private addNade = async (req, res) => {
+  private addNade: RequestHandler = async (req, res) => {
     try {
       const user = userFromRequest(req);
       const nadeBody = validateNadeCreateBody(req);
@@ -277,7 +278,7 @@ export class NadeRouter {
     }
   };
 
-  private updateNade = async (req, res) => {
+  private updateNade: RequestHandler = async (req, res) => {
     try {
       const id = sanitizeIt(req.params.id);
       const context = createAppContext(req);
@@ -310,7 +311,7 @@ export class NadeRouter {
     }
   };
 
-  private incrementViewCount = async (req, res) => {
+  private incrementViewCount: RequestHandler = async (req, res) => {
     try {
       const identifier = getSessionId(req);
 
@@ -325,7 +326,7 @@ export class NadeRouter {
     }
   };
 
-  private validateGfy = async (req, res) => {
+  private validateGfy: RequestHandler = async (req, res) => {
     try {
       const validateGfycat = req.body as NadeGfycatValidateDto;
 
@@ -356,7 +357,7 @@ export class NadeRouter {
     }
   };
 
-  private deleteNade = async (req, res) => {
+  private deleteNade: RequestHandler = async (req, res) => {
     try {
       const id = sanitizeIt(req.params.id);
 

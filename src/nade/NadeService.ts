@@ -175,8 +175,11 @@ export class NadeService {
     return convertNadesToLightDto(nades);
   };
 
-  getByUser = async (steamId: string): Promise<NadeMiniDto[]> => {
-    const nadesByUser = await this.nadeRepo.getByUser(steamId);
+  getByUser = async (
+    steamId: string,
+    map?: CsgoMap
+  ): Promise<NadeMiniDto[]> => {
+    const nadesByUser = await this.nadeRepo.getByUser(steamId, map);
 
     return convertNadesToLightDto(nadesByUser);
   };

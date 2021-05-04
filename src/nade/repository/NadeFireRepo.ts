@@ -132,11 +132,21 @@ export class NadeFireRepo implements NadeRepo {
     return nades;
   };
 
-  getByUser = async (steamId: string): Promise<NadeDto[]> => {
-    const nadeDocs = await query(this.collection, [
+  getByUser = async (
+    steamId: string,
+    csgoMap?: CsgoMap
+  ): Promise<NadeDto[]> => {
+    const queryBuilder: Query<NadeFireModel, keyof NadeFireModel>[] = [
       where("steamId", "==", steamId),
-      order("createdAt", "desc"),
-    ]);
+    ];
+
+    if (csgoMap) {
+      queryBuilder.push(where("map", "==", csgoMap));
+    }
+
+    queryBuilder.push(order("createdAt", "desc"));
+
+    const nadeDocs = await query(this.collection, queryBuilder);
 
     const allNades = nadeDocs.map(this.toNadeDTO);
     const nades = allNades.filter((n) => n.status !== "deleted");
