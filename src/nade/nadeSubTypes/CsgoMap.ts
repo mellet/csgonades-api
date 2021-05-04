@@ -1,14 +1,15 @@
 const CsGoMaps = {
+  ancient: "Ancient",
+  anubis: "Anubis",
+  cache: "Cache",
+  cobblestone: "Cobblestone",
   dust2: "Dust2",
+  inferno: "Inferno",
   mirage: "Mirage",
   nuke: "Nuke",
-  inferno: "Inferno",
-  cache: "Cache",
   overpass: "Overpass",
-  vertigo: "Vertigo",
   train: "Train",
-  cobblestone: "Cobblestone",
-  anubis: "Anubis",
+  vertigo: "Vertigo",
 };
 
 export function nadeValidMaps() {
