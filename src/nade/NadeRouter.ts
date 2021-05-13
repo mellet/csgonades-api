@@ -432,6 +432,12 @@ export class NadeRouter {
     if (preUpdateNade.startPosition !== updatedNade.startPosition) {
       updatedField.push("startPosition");
     }
+    if (preUpdateNade.setPos !== updatedNade.setPos) {
+      updatedField.push("setPos");
+    }
+    if (preUpdateNade.teamSide !== updatedNade.teamSide) {
+      updatedField.push("teamSide");
+    }
 
     if (updatedField.length === 0) {
       console.log("Update withouth change");
