@@ -71,6 +71,7 @@ export function convertToNadeMiniDto(nadeDto: NadeDto): NadeMiniDto {
     user: nadeDto.user,
     viewCount: nadeDto.viewCount,
     teamSide: nadeDto.teamSide,
+    setPos: nadeDto.setPos,
   };
 }
 

@@ -45,4 +45,5 @@ export interface NadeFireModel {
   upVoteCount?: number;
   user: UserLightModel;
   viewCount: number;
+  setPos?: string;
 }

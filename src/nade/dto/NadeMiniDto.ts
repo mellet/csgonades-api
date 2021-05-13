@@ -24,9 +24,11 @@ export type NadeMiniDto = {
   movement?: Movement;
   oneWay?: boolean;
   score: number;
+  setPos?: string;
   slug?: string;
   startPosition?: string;
   status: NadeStatus;
+  teamSide?: TeamSide;
   technique?: Technique;
   tickrate?: Tickrate;
   title?: string;
@@ -35,5 +37,4 @@ export type NadeMiniDto = {
   upVoteCount?: number;
   user: UserLightModel;
   viewCount: number;
-  teamSide?: TeamSide;
 };

@@ -22,4 +22,5 @@ export type NadeCreateDto = {
   tickrate?: Tickrate;
   type: NadeType;
   teamSide?: TeamSide;
+  setPos?: string;
 };

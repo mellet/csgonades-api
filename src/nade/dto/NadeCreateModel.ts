@@ -30,4 +30,5 @@ export type NadeCreateModel = {
   user: UserLightModel;
   viewCount: number;
   teamSide?: TeamSide;
+  setPos?: string;
 };

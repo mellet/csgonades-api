@@ -19,6 +19,7 @@ export type NadeUpdateDto = {
   mapEndCoord?: MapCoordinates;
   movement?: Movement;
   oneWay?: boolean;
+  setPos?: string;
   slug?: string;
   startPosition?: string;
   status?: NadeStatus;
