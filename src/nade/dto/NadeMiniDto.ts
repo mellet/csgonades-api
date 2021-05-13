@@ -1,3 +1,4 @@
+import { ImageData } from "../../imageGallery/ImageStorageRepo";
 import { UserLightModel } from "../../user/UserModel";
 import { Movement } from "../nadeSubTypes/Movements";
 import { NadeStatus } from "../nadeSubTypes/NadeStatus";
@@ -10,14 +11,17 @@ import { MapCoordinates } from "./MapCoordinates";
 import { NadeImages } from "./NadeImages";
 
 export type NadeMiniDto = {
-  id: string;
   commentCount: number;
   createdAt: Date;
   downVoteCount?: number;
   endPosition?: string;
   favoriteCount: number;
   gfycat: GfycatData;
+  id: string;
+  imageLineup?: ImageData;
+  imageLineupThumb?: ImageData;
   imageLineupThumbUrl?: string;
+  imageMain?: ImageData;
   images: NadeImages;
   isPro?: boolean;
   mapEndCoord?: MapCoordinates;
