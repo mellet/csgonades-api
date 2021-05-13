@@ -2,7 +2,6 @@ import { CommentRepo } from "../comment/repository/CommentRepo";
 import { GfycatApi } from "../external-api/GfycatApi";
 import { FavoriteRepo } from "../favorite/repository/FavoriteRepo";
 import { ImageRepo } from "../imageGallery/ImageGalleryService";
-import { ImageData } from "../imageGallery/ImageStorageRepo";
 import { NotificationRepo } from "../notifications/repository/NotificationRepo";
 import { StatsRepo } from "../stats/repository/StatsRepo";
 import { UserRepo } from "../user/repository/UserRepo";
@@ -221,43 +220,39 @@ export class NadeService {
     imageBuilder.thumbnailId = `${resultImage.collection}/${resultImage.id}`;
     imageBuilder.thumbnailUrl = resultImage.url;
 
-    let lineupThumb: ImageData | undefined;
+    const lineupImage = await this.imageRepo.createLarge(
+      body.lineUpImageBase64,
+      "lineup"
+    );
+    const imageLineupThumb = await this.imageRepo.createThumbnail(
+      body.lineUpImageBase64,
+      "lineup"
+    );
 
-    if (body.lineUpImageBase64) {
-      const lineupImage = await this.imageRepo.createLarge(
-        body.lineUpImageBase64,
-        "lineup"
-      );
-      lineupThumb = await this.imageRepo.createThumbnail(
-        body.lineUpImageBase64,
-        "lineup"
-      );
-      imageBuilder.lineupId = `${lineupImage.collection}/${lineupImage.id}`;
-      imageBuilder.lineupUrl = lineupImage.url;
-    }
-
-    const hasLineUpImage = !!lineupThumb;
+    imageBuilder.lineupId = `${lineupImage.collection}/${lineupImage.id}`;
+    imageBuilder.lineupUrl = lineupImage.url;
 
     const nadeModel: NadeCreateModel = {
       commentCount: 0,
-      favoriteCount: 0,
-      gfycat: body.gfycat,
-      images: removeUndefines(imageBuilder),
-      steamId: userLight.steamId,
-      user: userLight,
-      viewCount: gfycatData.gfyItem.views,
       description: body.description,
       endPosition: body.endPosition,
-      startPosition: body.startPosition,
+      favoriteCount: 0,
+      gfycat: body.gfycat,
+      imageLineupThumb: imageLineupThumb,
+      imageMain: resultImage,
+      images: removeUndefines(imageBuilder),
       map: body.map,
       mapEndCoord: body.mapEndCoord,
       movement: body.movement,
+      setPos: body.setPos,
+      startPosition: body.startPosition,
+      steamId: userLight.steamId,
+      teamSide: body.teamSide,
       technique: body.technique,
       tickrate: body.tickrate,
       type: body.type,
-      teamSide: body.teamSide,
-      setPos: body.setPos,
-      ...(hasLineUpImage && { imageLineupThumb: lineupThumb }),
+      user: userLight,
+      viewCount: gfycatData.gfyItem.views,
     };
 
     const nade = await this.nadeRepo.save(nadeModel);

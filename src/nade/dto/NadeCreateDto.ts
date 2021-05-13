@@ -12,7 +12,7 @@ export type NadeCreateDto = {
   endPosition: string;
   gfycat: GfycatData;
   imageBase64: string;
-  lineUpImageBase64?: string;
+  lineUpImageBase64: string;
   map: CsgoMap;
   mapEndCoord: MapCoordinates;
   movement: Movement;

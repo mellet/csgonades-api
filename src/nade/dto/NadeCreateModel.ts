@@ -17,6 +17,7 @@ export type NadeCreateModel = {
   favoriteCount: number;
   gfycat: GfycatData;
   imageLineupThumb?: ImageData;
+  imageMain?: ImageData;
   images: NadeImages;
   map: CsgoMap;
   mapEndCoord: MapCoordinates;

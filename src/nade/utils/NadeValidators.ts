@@ -13,7 +13,6 @@ import { nadeValidTickrate } from "../nadeSubTypes/Tickrate";
 export const validateNadeCreateBody = (req: Request): NadeCreateDto => {
   const body = req.body as NadeCreateDto;
   const schema = Joi.object<NadeCreateDto>({
-    // gfycat: GfycatData;
     gfycat: Joi.object()
       .keys({
         gfyId: Joi.string(),
@@ -24,44 +23,32 @@ export const validateNadeCreateBody = (req: Request): NadeCreateDto => {
         duration: Joi.string().optional(),
       })
       .required(),
-    // imageBase64: string;
     imageBase64: Joi.string().required(),
-    // lineUpImageBase64?: string;
-    lineUpImageBase64: Joi.string().optional(),
-    // startPosition: string;
+    lineUpImageBase64: Joi.string().required(),
     startPosition: Joi.string().required(),
-    // endPosition: string;
     endPosition: Joi.string().required(),
-    // description: string;
     description: Joi.string().required(),
-    // map: CsgoMap;
     map: Joi.string()
       .valid(...nadeValidMaps())
       .required(),
-    // movement: Movement;
     movement: Joi.string()
       .valid(...nadeValidMovements())
       .required(),
-    // technique: Technique;
     technique: Joi.string()
       .valid(...nadeValidTechniques())
       .required(),
-    // tickrate?: Tickrate;
     tickrate: Joi.string()
       .valid(...nadeValidTickrate())
       .optional(),
-    // type: NadeType;
     type: Joi.string()
       .valid(...nadeValidTypes())
       .required(),
-    // mapEndCoord: MapCoordinates;
     mapEndCoord: Joi.object()
       .keys({
         x: Joi.number(),
         y: Joi.number(),
       })
       .required(),
-    // oneWay?: boolean;
     oneWay: Joi.boolean().optional(),
     teamSide: Joi.string()
       .valid(...nadeValidTeamSide())
