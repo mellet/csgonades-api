@@ -256,6 +256,7 @@ export class NadeService {
       tickrate: body.tickrate,
       type: body.type,
       teamSide: body.teamSide,
+      setPos: body.setPos,
       ...(hasLineUpImage && { imageLineupThumb: lineupThumb }),
     };
 
@@ -307,6 +308,7 @@ export class NadeService {
       oneWay: nadeUpdateDto.oneWay,
       isPro: nadeUpdateDto.isPro,
       teamSide: nadeUpdateDto.teamSide,
+      setPos: nadeUpdateDto.setPos,
     };
 
     const mainImage = await this.replaceMainImageIfPresent(
