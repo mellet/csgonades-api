@@ -5,6 +5,7 @@ import {
   Collection,
   Doc,
   get,
+  limit,
   order,
   query,
   remove,
@@ -48,6 +49,7 @@ export class CommentFireRepo implements CommentRepo {
   getRecent = async (): Promise<CommentDto[]> => {
     const nadeCommentDocs = await query(this.collection, [
       order("createdAt", "desc"),
+      limit(20),
     ]);
 
     return nadeCommentDocs.map(this.toDto);
