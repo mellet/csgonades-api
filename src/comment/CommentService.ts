@@ -29,9 +29,10 @@ export class CommentService {
     this.nadeRepo = deps.nadeRepo;
   }
 
-  getForNade = async (nadeId: string): Promise<CommentDto[]> => {
-    return this.commentRepo.getForNade(nadeId);
-  };
+  getForNade = async (nadeId: string): Promise<CommentDto[]> =>
+    this.commentRepo.getForNade(nadeId);
+
+  getRecent = async (): Promise<CommentDto[]> => this.commentRepo.getRecent();
 
   save = async (
     context: AppContext,

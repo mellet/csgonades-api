@@ -6,6 +6,7 @@ import { CommentUpddateDto } from "../dto/CommentUpddateDto";
 export interface CommentRepo {
   getForNade(nadeId: string): Promise<CommentDto[]>;
   getById(commentId: string): Promise<CommentDto | null>;
+  getRecent(): Promise<CommentDto[]>;
   save(user: UserMiniDto, articleModel: CommentCreateDto): Promise<CommentDto>;
   update(updateModel: CommentUpddateDto): Promise<CommentDto>;
   delete(commentId: string): Promise<void>;

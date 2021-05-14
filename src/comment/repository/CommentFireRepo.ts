@@ -3,7 +3,9 @@ import {
   batch,
   collection,
   Collection,
+  Doc,
   get,
+  order,
   query,
   remove,
   update,
@@ -30,11 +32,7 @@ export class CommentFireRepo implements CommentRepo {
       where("nadeId", "==", nadeId),
     ]);
 
-    const nadeComments: CommentDto[] = nadeCommentDocs.map((doc) => ({
-      id: doc.ref.id,
-      ...doc.data,
-    }));
-    return nadeComments;
+    return nadeCommentDocs.map(this.toDto);
   };
 
   getById = async (commentId: string): Promise<CommentDto> => {
@@ -44,10 +42,15 @@ export class CommentFireRepo implements CommentRepo {
       throw ErrorFactory.NotFound("Comment not found");
     }
 
-    return {
-      ...commentDoc.data,
-      id: commentDoc.ref.id,
-    };
+    return this.toDto(commentDoc);
+  };
+
+  getRecent = async (): Promise<CommentDto[]> => {
+    const nadeCommentDocs = await query(this.collection, [
+      order("createdAt", "desc"),
+    ]);
+
+    return nadeCommentDocs.map(this.toDto);
   };
 
   save = async (
@@ -66,10 +69,7 @@ export class CommentFireRepo implements CommentRepo {
 
     const res = await add(this.collection, newComment);
 
-    return {
-      ...res.data,
-      id: res.ref.id,
-    };
+    return this.toDto(res);
   };
 
   update = async (updateModel: CommentUpddateDto): Promise<CommentDto> => {
@@ -114,5 +114,12 @@ export class CommentFireRepo implements CommentRepo {
     });
 
     await commit();
+  };
+
+  private toDto = (doc: Doc<CommentModel>): CommentDto => {
+    return {
+      id: doc.ref.id,
+      ...doc.data,
+    };
   };
 }

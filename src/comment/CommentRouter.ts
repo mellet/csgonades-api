@@ -41,6 +41,7 @@ export class CommentRouter {
 
   private setUpRoutes = () => {
     this.router.get("/nades/:nadeId/comments", this.getCommentsForNade);
+    this.router.get("/comments/recent", this.getRecentcomments);
     this.router.post(
       "/nades/:nadeId/comments",
       authOnlyHandler,
@@ -63,6 +64,18 @@ export class CommentRouter {
       const nadeId = sanitizeIt(req.params.nadeId);
       const nadeComments = await this.commentService.getForNade(nadeId);
 
+      return res.status(200).send(nadeComments);
+    } catch (error) {
+      Logger.error(error);
+      Sentry.captureException(error);
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
+    }
+  };
+
+  private getRecentcomments: RequestHandler = async (req, res) => {
+    try {
+      const nadeComments = await this.commentService.getRecent();
       return res.status(200).send(nadeComments);
     } catch (error) {
       Logger.error(error);
