@@ -344,8 +344,10 @@ export class NadeFireRepo implements NadeRepo {
   private cleanupImages = async (nadeId: string) => {
     const nade = await this.getById(nadeId);
 
+    const nadeLogId = nade.slug || nade.id;
+
     if (!nade.images) {
-      console.log(`${nadeId} > Image allready processed"`);
+      console.log(`${nadeLogId} > Image allready processed"`);
       return;
     } else {
       const mainImage = this.extractMainImage(nade);
@@ -354,27 +356,27 @@ export class NadeFireRepo implements NadeRepo {
 
       // Sync mainImage
       if (!mainImage) {
-        console.log(`${nadeId} > !!! Could not find main image"`, nade);
+        console.log(`${nadeLogId} > !!! Could not find main image"`, nade);
         return;
       } else if (mainImage && !nade.imageMain) {
-        console.log(`${nadeId} > Updating imageMain"`);
+        console.log(`${nadeLogId} > Updating imageMain"`);
         await update(this.collection, nadeId, { imageMain: mainImage });
       }
 
       // Synce lineupImage
       if (lineUpImage && !nade.imageLineup) {
-        console.log(`${nadeId} > Updating lineup image"`);
+        console.log(`${nadeLogId} > Updating lineup image"`);
         await update(this.collection, nadeId, { imageLineup: lineUpImage });
       }
 
       if (lineUpImageThumb && !nade.imageLineupThumb) {
-        console.log(`${nadeId} > Updating lineup thumb image"`);
+        console.log(`${nadeLogId} > Updating lineup thumb image"`);
 
         await update(this.collection, nadeId, {
           imageLineupThumb: lineUpImageThumb,
         });
       }
-      console.log(`${nadeId} > Delete legacy images"`);
+      console.log(`${nadeLogId} > Delete legacy images"`);
 
       await update(this.collection, nadeId, { images: value("remove") });
     }
