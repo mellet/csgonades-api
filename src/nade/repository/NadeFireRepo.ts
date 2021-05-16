@@ -378,7 +378,10 @@ export class NadeFireRepo implements NadeRepo {
       }
 
       await update(this.collection, nadeId, { images: value("remove") });
-      console.log(`${nadeLogId} > Updated`, touchedElements.join(","));
+      console.log(
+        `${nade.map} | ${nadeLogId} > Updated`,
+        touchedElements.join(", ")
+      );
     }
   };
 
