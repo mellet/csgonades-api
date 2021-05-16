@@ -357,24 +357,24 @@ export class NadeFireRepo implements NadeRepo {
         console.log(`${nadeId} > !!! Could not find main image"`, nade);
         return;
       } else if (mainImage && !nade.imageMain) {
-        console.log(`${nadeId} > Updating imageMain"`, nade);
+        console.log(`${nadeId} > Updating imageMain"`);
         await update(this.collection, nadeId, { imageMain: mainImage });
       }
 
       // Synce lineupImage
       if (lineUpImage && !nade.imageLineup) {
-        console.log(`${nadeId} > Updating lineup image"`, nade);
+        console.log(`${nadeId} > Updating lineup image"`);
         await update(this.collection, nadeId, { imageLineup: lineUpImage });
       }
 
       if (lineUpImageThumb && !nade.imageLineupThumb) {
-        console.log(`${nadeId} > Updating lineup thumb image"`, nade);
+        console.log(`${nadeId} > Updating lineup thumb image"`);
 
         await update(this.collection, nadeId, {
           imageLineupThumb: lineUpImageThumb,
         });
       }
-      console.log(`${nadeId} > Delete legacty images"`, nade);
+      console.log(`${nadeId} > Delete legacy images"`);
 
       await update(this.collection, nadeId, { images: value("remove") });
     }
