@@ -120,6 +120,7 @@ describe("Nade Utils", () => {
       downVoteCount: mockNade.downVoteCount,
       endPosition: mockNade.endPosition,
       imageLineupThumbUrl: mockNade.imageLineupThumb?.url,
+      imageMain: mockNade.imageMain,
       isPro: mockNade.isPro,
       mapEndCoord: mockNade.mapEndCoord,
       movement: mockNade.movement,

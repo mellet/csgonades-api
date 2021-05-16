@@ -35,4 +35,9 @@ export const createMockedNade = (
     url: "url",
   },
   teamSide: "terrorist",
+  imageMain: {
+    collection: "nades",
+    id: "nadeid",
+    url: "nadeUrl",
+  },
 });
