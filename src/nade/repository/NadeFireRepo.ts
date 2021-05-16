@@ -87,7 +87,7 @@ export class NadeFireRepo implements NadeRepo {
     const nadeDoc = await get(this.collection, nadeId);
 
     if (!nadeDoc) {
-      throw ErrorFactory.NotFound("Nade not found");
+      throw ErrorFactory.NotFound(`Nade not found, ${nadeId}`);
     }
 
     return {
@@ -101,7 +101,7 @@ export class NadeFireRepo implements NadeRepo {
     const nadeDocs = await query(this.collection, [where("slug", "==", slug)]);
 
     if (!nadeDocs.length) {
-      throw ErrorFactory.NotFound("Nade not found");
+      throw ErrorFactory.NotFound(`Nade not found, ${slug}`);
     }
 
     const nade = nadeDocs[0];

@@ -222,7 +222,7 @@ export class NadeRouter {
       if (!nade) {
         return res.status(404).send({
           status: 404,
-          message: "Nade not found.",
+          message: `Nade not found. ${id}`,
         });
       }
 

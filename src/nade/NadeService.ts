@@ -115,7 +115,7 @@ export class NadeService {
     const nade = await this.getById(nadeId);
 
     if (!nade) {
-      throw ErrorFactory.NotFound("Nade not found");
+      throw ErrorFactory.NotFound(`Nade not found, ${nadeId}`);
     }
 
     const isOwnNade = nade.steamId === steamId;
