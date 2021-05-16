@@ -345,7 +345,7 @@ export class NadeFireRepo implements NadeRepo {
     const nade = await this.getById(nadeId);
 
     if (!nade.images) {
-      console.log("# Image allready processed");
+      console.log(`${nadeId} > Image allready processed"`);
       return;
     } else {
       const mainImage = this.extractMainImage(nade);
@@ -354,27 +354,28 @@ export class NadeFireRepo implements NadeRepo {
 
       // Sync mainImage
       if (!mainImage) {
-        console.log("! Could not find main image", nade);
+        console.log(`${nadeId} > !!! Could not find main image"`, nade);
         return;
       } else if (mainImage && !nade.imageMain) {
-        console.log("> Updating imageMain");
+        console.log(`${nadeId} > Updating imageMain"`, nade);
         await update(this.collection, nadeId, { imageMain: mainImage });
       }
 
       // Synce lineupImage
       if (lineUpImage && !nade.imageLineup) {
-        console.log("> Updating lineup image");
+        console.log(`${nadeId} > Updating lineup image"`, nade);
         await update(this.collection, nadeId, { imageLineup: lineUpImage });
       }
 
       if (lineUpImageThumb && !nade.imageLineupThumb) {
-        console.log("> Updating lineup thumb image");
+        console.log(`${nadeId} > Updating lineup thumb image"`, nade);
 
         await update(this.collection, nadeId, {
           imageLineupThumb: lineUpImageThumb,
         });
       }
-      console.log("> Delete legacty images");
+      console.log(`${nadeId} > Delete legacty images"`, nade);
+
       await update(this.collection, nadeId, { images: value("remove") });
     }
   };
