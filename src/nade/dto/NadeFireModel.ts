@@ -20,10 +20,10 @@ export interface NadeFireModel {
   endPosition?: string;
   favoriteCount: number;
   gfycat: GfycatData;
-  images: NadeImages;
+  images?: NadeImages;
   imageLineup?: ImageData;
   imageLineupThumb?: ImageData;
-  imageMain?: ImageData;
+  imageMain: ImageData;
   isPro?: boolean;
   lastGfycatUpdate: Date;
   map?: CsgoMap;

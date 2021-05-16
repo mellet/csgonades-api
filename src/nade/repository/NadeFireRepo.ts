@@ -16,6 +16,7 @@ import {
   where,
 } from "typesaurus";
 import { ModelUpdate } from "typesaurus/update";
+import { ImageData } from "../../imageGallery/ImageStorageRepo";
 import { UserLightModel } from "../../user/UserModel";
 import { removeUndefines } from "../../utils/Common";
 import { ErrorFactory } from "../../utils/ErrorUtil";
@@ -81,6 +82,8 @@ export class NadeFireRepo implements NadeRepo {
   };
 
   getById = async (nadeId: string): Promise<NadeDto> => {
+    // await this.cleanupImages(nadeId);
+
     const nadeDoc = await get(this.collection, nadeId);
 
     if (!nadeDoc) {
@@ -103,11 +106,11 @@ export class NadeFireRepo implements NadeRepo {
 
     const nade = nadeDocs[0];
 
-    return {
-      ...nade.data,
-      id: nade.ref.id,
-      score: this.calcScore(nade.data),
-    };
+    await this.cleanupImages(nade.ref.id);
+
+    const freshNade = await this.getById(nade.ref.id);
+
+    return freshNade;
   };
 
   getByMap = async (
@@ -335,5 +338,90 @@ export class NadeFireRepo implements NadeRepo {
     const interactionScore = Math.log(commentScore + favScore || 1);
 
     return interactionScore;
+  };
+
+  // Remove once all images are fixed
+  private cleanupImages = async (nadeId: string) => {
+    const nade = await this.getById(nadeId);
+
+    if (!nade.images) {
+      console.log("# Image allready processed");
+      return;
+    } else {
+      const mainImage = this.extractMainImage(nade);
+      const lineUpImage = this.extractLineupImage(nade);
+      const lineUpImageThumb = this.extractLineupThumbImage(nade);
+
+      // Sync mainImage
+      if (!mainImage) {
+        console.log("! Could not find main image", nade);
+        return;
+      } else if (mainImage && !nade.imageMain) {
+        console.log("> Updating imageMain");
+        await update(this.collection, nadeId, { imageMain: mainImage });
+      }
+
+      // Synce lineupImage
+      if (lineUpImage && !nade.imageLineup) {
+        console.log("> Updating lineup image");
+        await update(this.collection, nadeId, { imageLineup: lineUpImage });
+      }
+
+      if (lineUpImageThumb && !nade.imageLineupThumb) {
+        console.log("> Updating lineup thumb image");
+
+        await update(this.collection, nadeId, {
+          imageLineupThumb: lineUpImageThumb,
+        });
+      }
+      console.log("> Delete legacty images");
+      await update(this.collection, nadeId, { images: value("remove") });
+    }
+  };
+
+  private extractMainImage = (nade: NadeDto): ImageData | undefined => {
+    if (nade.imageMain) {
+      return this.getImageDataFromUrl(nade.imageMain.url, "nades");
+    } else {
+      if (!nade.images?.thumbnailUrl) {
+        console.log("Unexpected missing main image", nade);
+        return;
+      }
+
+      return this.getImageDataFromUrl(nade.images.thumbnailUrl, "nades");
+    }
+  };
+
+  private extractLineupImage = (nade: NadeDto): ImageData | undefined => {
+    if (nade.imageLineup) {
+      return this.getImageDataFromUrl(nade.imageLineup.url, "lineup");
+    } else if (!nade.images?.lineupUrl) {
+      return undefined;
+    } else {
+      return this.getImageDataFromUrl(nade.images.lineupUrl, "lineup");
+    }
+  };
+
+  private extractLineupThumbImage = (nade: NadeDto): ImageData | undefined => {
+    if (!nade.imageLineupThumb) {
+      return;
+    } else {
+      return this.getImageDataFromUrl(nade.imageLineupThumb.url, "lineup");
+    }
+  };
+
+  private getImageDataFromUrl = (
+    url: string,
+    collection: string
+  ): ImageData => {
+    const fixedUrl = url.replace("%2F", "/");
+    const parts = fixedUrl.split("/");
+    const id = parts.pop() as string;
+
+    return {
+      id,
+      collection,
+      url: fixedUrl,
+    };
   };
 }

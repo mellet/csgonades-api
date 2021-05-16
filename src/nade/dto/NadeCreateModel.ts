@@ -8,7 +8,6 @@ import { Technique } from "../nadeSubTypes/Technique";
 import { Tickrate } from "../nadeSubTypes/Tickrate";
 import { GfycatData } from "./GfycatData";
 import { MapCoordinates } from "./MapCoordinates";
-import { NadeImages } from "./NadeImages";
 
 export type NadeCreateModel = {
   commentCount: number;
@@ -16,9 +15,9 @@ export type NadeCreateModel = {
   endPosition: string;
   favoriteCount: number;
   gfycat: GfycatData;
-  imageLineupThumb?: ImageData;
-  imageMain?: ImageData;
-  images: NadeImages;
+  imageLineupThumb: ImageData;
+  imageLineup: ImageData;
+  imageMain: ImageData;
   map: CsgoMap;
   mapEndCoord: MapCoordinates;
   movement: Movement;

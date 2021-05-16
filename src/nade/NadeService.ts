@@ -7,13 +7,11 @@ import { StatsRepo } from "../stats/repository/StatsRepo";
 import { UserRepo } from "../user/repository/UserRepo";
 import { UserLightModel } from "../user/UserModel";
 import { RequestUser } from "../utils/AuthUtils";
-import { removeUndefines } from "../utils/Common";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import { NadeCreateDto } from "./dto/NadeCreateDto";
 import { NadeCreateModel } from "./dto/NadeCreateModel";
 import { NadeDto } from "./dto/NadeDto";
 import { NadeFireModel } from "./dto/NadeFireModel";
-import { NadeImages } from "./dto/NadeImages";
 import { NadeMiniDto } from "./dto/NadeMiniDto";
 import { NadeUpdateDto } from "./dto/NadeUpdateDto";
 import { CsgoMap } from "./nadeSubTypes/CsgoMap";
@@ -187,11 +185,6 @@ export class NadeService {
     body: NadeCreateDto,
     steamID: string
   ): Promise<NadeDto | null> => {
-    const imageBuilder: NadeImages = {
-      thumbnailId: "",
-      thumbnailUrl: "",
-    };
-
     const user = await this.userRepo.byId(steamID);
 
     if (!user) {
@@ -212,25 +205,8 @@ export class NadeService {
       );
     }
 
-    const resultImage = await this.imageRepo.createThumbnail(
-      body.imageBase64,
-      "nades"
-    );
-
-    imageBuilder.thumbnailId = `${resultImage.collection}/${resultImage.id}`;
-    imageBuilder.thumbnailUrl = resultImage.url;
-
-    const lineupImage = await this.imageRepo.createLarge(
-      body.lineUpImageBase64,
-      "lineup"
-    );
-    const imageLineupThumb = await this.imageRepo.createThumbnail(
-      body.lineUpImageBase64,
-      "lineup"
-    );
-
-    imageBuilder.lineupId = `${lineupImage.collection}/${lineupImage.id}`;
-    imageBuilder.lineupUrl = lineupImage.url;
+    const { imageLineupThumb, lineupImage, resultImage } =
+      await this.saveImages(body.imageBase64, body.lineUpImageBase64);
 
     const nadeModel: NadeCreateModel = {
       commentCount: 0,
@@ -239,8 +215,8 @@ export class NadeService {
       favoriteCount: 0,
       gfycat: body.gfycat,
       imageLineupThumb: imageLineupThumb,
+      imageLineup: lineupImage,
       imageMain: resultImage,
-      images: removeUndefines(imageBuilder),
       map: body.map,
       mapEndCoord: body.mapEndCoord,
       movement: body.movement,
@@ -265,9 +241,11 @@ export class NadeService {
   delete = async (nadeId: string) => {
     const nade = await this.nadeRepo.getById(nadeId);
 
-    await this.imageRepo.deleteImage(nade.images.thumbnailId);
+    if (nade.images?.thumbnailId) {
+      await this.imageRepo.deleteImage(nade.images.thumbnailId);
+    }
 
-    if (nade.images.lineupId) {
+    if (nade.images?.lineupId) {
       await this.imageRepo.deleteImage(nade.images.lineupId);
     }
 
@@ -333,8 +311,6 @@ export class NadeService {
       updatedNade.status
     );
 
-    // #TODO Create Audit record
-
     return updatedNade;
   };
 
@@ -362,11 +338,14 @@ export class NadeService {
     }
 
     // Delete old
-    if (originalNade.images.lineupId) {
+    if (originalNade.images?.lineupId) {
       await this.imageRepo.deleteImage(originalNade.images.lineupId);
     }
     if (originalNade.imageLineupThumb) {
       await this.imageRepo.deleteImageResult(originalNade.imageLineupThumb);
+    }
+    if (originalNade.imageLineup) {
+      await this.imageRepo.deleteImageResult(originalNade.imageLineup);
     }
 
     const lineupImage = await this.imageRepo.createLarge(
@@ -392,7 +371,7 @@ export class NadeService {
       return;
     }
 
-    if (originalNade.images.thumbnailId) {
+    if (originalNade.images?.thumbnailId) {
       await this.imageRepo.deleteImage(originalNade.images.thumbnailId);
     }
 
@@ -421,5 +400,37 @@ export class NadeService {
     const updatedNade = await this.nadeRepo.update(nade.id, newNadeStats);
 
     return updatedNade;
+  };
+
+  private saveImages = async (
+    mainImageBase64: string,
+    lineUpImageBase64: string
+  ) => {
+    const resultImagePromise = this.imageRepo.createThumbnail(
+      mainImageBase64,
+      "nades"
+    );
+
+    const lineupImagePromise = this.imageRepo.createLarge(
+      lineUpImageBase64,
+      "lineup"
+    );
+
+    const imageLineupThumbPromise = this.imageRepo.createThumbnail(
+      lineUpImageBase64,
+      "lineup"
+    );
+
+    const [resultImage, lineupImage, imageLineupThumb] = await Promise.all([
+      resultImagePromise,
+      lineupImagePromise,
+      imageLineupThumbPromise,
+    ]);
+
+    return {
+      resultImage,
+      lineupImage,
+      imageLineupThumb,
+    };
   };
 }

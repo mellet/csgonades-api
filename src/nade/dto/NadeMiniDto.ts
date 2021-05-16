@@ -21,8 +21,8 @@ export type NadeMiniDto = {
   imageLineup?: ImageData;
   imageLineupThumb?: ImageData;
   imageLineupThumbUrl?: string;
-  imageMain?: ImageData;
-  images: NadeImages;
+  imageMain: ImageData;
+  images?: NadeImages;
   isPro?: boolean;
   mapEndCoord?: MapCoordinates;
   movement?: Movement;

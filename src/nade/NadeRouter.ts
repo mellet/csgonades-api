@@ -388,11 +388,11 @@ export class NadeRouter {
     if (preUpdateNade.gfycat.gfyId !== updatedNade.gfycat.gfyId) {
       updatedField.push("gfycat");
     }
-    if (preUpdateNade.images.lineupUrl !== updatedNade.images.lineupUrl) {
-      updatedField.push("lineupImg");
-    }
-    if (preUpdateNade.images.thumbnailUrl !== updatedNade.images.thumbnailUrl) {
+    if (preUpdateNade.imageMain?.url !== updatedNade.imageMain?.url) {
       updatedField.push("resultImg");
+    }
+    if (preUpdateNade.imageLineup?.url !== updatedNade.imageLineup?.url) {
+      updatedField.push("lineupImg");
     }
     if (preUpdateNade.isPro !== updatedNade.isPro) {
       updatedField.push("isPro");

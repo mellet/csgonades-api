@@ -96,7 +96,7 @@ export class NotificationFireRepo implements NotificationRepo {
       bySteamId: user.steamId,
       byNickname: user.nickname,
       nadeSlug: nade.slug,
-      thumnailUrl: nade.images.thumbnailUrl,
+      thumnailUrl: nade.imageMain?.url,
     });
   };
 
@@ -115,7 +115,7 @@ export class NotificationFireRepo implements NotificationRepo {
       bySteamId: comment.steamId,
       subjectSteamId: nade.steamId,
       nadeSlug: nade.slug,
-      thumnailUrl: nade.images.thumbnailUrl,
+      thumnailUrl: nade.imageMain?.url,
     });
   };
 
