@@ -349,7 +349,6 @@ export class NadeFireRepo implements NadeRepo {
     const touchedElements: string[] = [];
 
     if (!nade.images) {
-      console.log(`${nadeLogId} > Image allready processed"`);
       return;
     } else {
       const mainImage = this.extractMainImage(nade);
