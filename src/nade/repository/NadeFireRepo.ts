@@ -82,8 +82,6 @@ export class NadeFireRepo implements NadeRepo {
   };
 
   getById = async (nadeId: string): Promise<NadeDto> => {
-    // await this.cleanupImages(nadeId);
-
     const nadeDoc = await get(this.collection, nadeId);
 
     if (!nadeDoc) {
@@ -105,8 +103,6 @@ export class NadeFireRepo implements NadeRepo {
     }
 
     const nade = nadeDocs[0];
-
-    await this.cleanupImages(nade.ref.id);
 
     const freshNade = await this.getById(nade.ref.id);
 
@@ -131,6 +127,13 @@ export class NadeFireRepo implements NadeRepo {
     const nadeDocs = await query(this.collection, queryBuilder);
 
     const nades = nadeDocs.map(this.toNadeDTO);
+
+    // @ts-ignore
+    const nadesWithLegacyNades = nades.filter((n) => n.images);
+
+    const promises = nadesWithLegacyNades.map((n) => this.cleanupImages(n.id));
+
+    await Promise.all(promises);
 
     return nades;
   };

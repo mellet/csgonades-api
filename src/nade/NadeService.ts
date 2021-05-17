@@ -241,12 +241,13 @@ export class NadeService {
   delete = async (nadeId: string) => {
     const nade = await this.nadeRepo.getById(nadeId);
 
-    if (nade.images?.thumbnailId) {
-      await this.imageRepo.deleteImage(nade.images.thumbnailId);
-    }
+    await this.imageRepo.deleteImageResult(nade.imageMain);
 
-    if (nade.images?.lineupId) {
-      await this.imageRepo.deleteImage(nade.images.lineupId);
+    if (nade.imageLineup) {
+      await this.imageRepo.deleteImageResult(nade.imageLineup);
+    }
+    if (nade.imageLineupThumb) {
+      await this.imageRepo.deleteImageResult(nade.imageLineupThumb);
     }
 
     await this.commentRepo.deleteForNadeId(nadeId);
@@ -336,11 +337,6 @@ export class NadeService {
     if (!lineupImageBase64) {
       return;
     }
-
-    // Delete old
-    if (originalNade.images?.lineupId) {
-      await this.imageRepo.deleteImage(originalNade.images.lineupId);
-    }
     if (originalNade.imageLineupThumb) {
       await this.imageRepo.deleteImageResult(originalNade.imageLineupThumb);
     }
@@ -371,9 +367,7 @@ export class NadeService {
       return;
     }
 
-    if (originalNade.images?.thumbnailId) {
-      await this.imageRepo.deleteImage(originalNade.images.thumbnailId);
-    }
+    await this.imageRepo.deleteImageResult(originalNade.imageMain);
 
     const mainImage = await this.imageRepo.createThumbnail(
       mainImageBase64,
