@@ -88,6 +88,8 @@ export class NadeFireRepo implements NadeRepo {
       throw ErrorFactory.NotFound(`Nade not found, ${nadeId}`);
     }
 
+    await this.cleanupImages(nadeId);
+
     return {
       ...nadeDoc.data,
       id: nadeDoc.ref.id,
@@ -103,6 +105,8 @@ export class NadeFireRepo implements NadeRepo {
     }
 
     const nade = nadeDocs[0];
+
+    await this.cleanupImages(nade.ref.id);
 
     const freshNade = await this.getById(nade.ref.id);
 
