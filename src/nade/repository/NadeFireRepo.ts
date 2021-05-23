@@ -84,7 +84,7 @@ export class NadeFireRepo implements NadeRepo {
   getDeleted = async (): Promise<NadeDto[]> => {
     const declinedDocs = await query(this.collection, [
       where("status", "==", "deleted"),
-      order("createdAt", "asc"),
+      order("createdAt", "desc"),
       limit(10),
     ]);
 
