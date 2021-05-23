@@ -221,7 +221,6 @@ export class NadeFireRepo implements NadeRepo {
   };
 
   delete = async (nadeId: string) => {
-    console.log("> Deleting nade", nadeId);
     await remove(this.collection, nadeId);
   };
 
