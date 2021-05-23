@@ -304,9 +304,13 @@ export class NadeFireRepo implements NadeRepo {
     );
     const ageScore = Math.log(50000 - addedHoursAgo) * 0.3;
 
+    const pop = nade.favoriteCount + nade.commentCount || 1;
+
+    const intScore = (pop / (nade.viewCount || 1)) * 1000;
+
     // Inflate new nades to allow them to get views
     const freshScore = this.freshScore(addedHoursAgo);
-    const hotScore = freshScore + ageScore + interactionScore;
+    const hotScore = freshScore + ageScore + interactionScore + intScore;
 
     return hotScore * proBonus;
   };
