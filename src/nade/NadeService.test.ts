@@ -119,11 +119,13 @@ describe("Nade service", () => {
     const askedMap = "dust2";
     const fakeResult = [];
 
-    when(mockedDeps.nadeRepo.getByMap(askedMap)).thenResolve(fakeResult);
+    when(mockedDeps.nadeRepo.getByMap(askedMap, anything())).thenResolve(
+      fakeResult
+    );
 
     const nades = await nadeService.getByMap(askedMap);
 
-    verify(mockedDeps.nadeRepo.getByMap(askedMap)).once();
+    verify(mockedDeps.nadeRepo.getByMap(askedMap, anything())).once();
     expect(nades).toEqual([]);
   });
 
@@ -131,11 +133,13 @@ describe("Nade service", () => {
     const steamId = "123";
     const fakeResult = [];
 
-    when(mockedDeps.nadeRepo.getByUser(steamId)).thenResolve(fakeResult);
+    when(mockedDeps.nadeRepo.getByUser(steamId, anything())).thenResolve(
+      fakeResult
+    );
 
     const nades = await nadeService.getByUser(steamId);
 
-    verify(mockedDeps.nadeRepo.getByUser(steamId)).once();
+    verify(mockedDeps.nadeRepo.getByUser(steamId, anything())).once();
     expect(nades).toEqual(fakeResult);
   });
 
@@ -147,11 +151,10 @@ describe("Nade service", () => {
 
     await nadeService.delete(nadeId);
 
-    verify(mockedDeps.imageRepo.deleteImage(anything())).once();
+    verify(mockedDeps.imageRepo.deleteImageResult(anything())).times(2);
     verify(mockedDeps.commentRepo.deleteForNadeId(nadeId)).once();
     verify(mockedDeps.favoriteRepo.deleteWhereNadeId(nadeId)).once();
     verify(mockedDeps.nadeRepo.delete(nadeId)).once();
-    verify(mockedDeps.statsRepo.decrementNadeCounter()).once();
   });
 
   /*

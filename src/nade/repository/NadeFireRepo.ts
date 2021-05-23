@@ -81,6 +81,25 @@ export class NadeFireRepo implements NadeRepo {
     return declinedNades;
   };
 
+  getDeleted = async (): Promise<NadeDto[]> => {
+    const declinedDocs = await query(this.collection, [
+      where("status", "==", "deleted"),
+      order("createdAt", "desc"),
+      limit(20),
+    ]);
+
+    const declinedNades = declinedDocs.map(this.toNadeDTO);
+
+    // @ts-ignore
+    const nadesWithLegacyNades = declinedNades.filter((n) => n.images);
+
+    const promises = nadesWithLegacyNades.map((n) => this.cleanupImages(n.id));
+
+    await Promise.all(promises);
+
+    return declinedNades;
+  };
+
   getById = async (nadeId: string): Promise<NadeDto> => {
     const nadeDoc = await get(this.collection, nadeId);
 
@@ -202,6 +221,7 @@ export class NadeFireRepo implements NadeRepo {
   };
 
   delete = async (nadeId: string) => {
+    console.log("> Deleting nade", nadeId);
     await remove(this.collection, nadeId);
   };
 

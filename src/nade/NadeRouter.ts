@@ -64,8 +64,9 @@ export class NadeRouter {
       adminOrModHandler,
       this.getDeclinedNades
     );
-    this.router.get("/nades/:id", this.getById);
+    this.router.get("/nades/deleted", adminOrModHandler, this.getDeletedNades);
 
+    this.router.get("/nades/:id", this.getById);
     this.router.get("/nades/map/:mapname", this.getByMap);
     this.router.get("/nades/user/:steamId", this.getByUser);
     this.router.post("/nades", authOnlyHandler, this.addNade);
@@ -198,6 +199,18 @@ export class NadeRouter {
   private getDeclinedNades: RequestHandler = async (_, res) => {
     try {
       const declinedNades = await this.nadeService.getDeclined();
+
+      return res.status(200).send(declinedNades);
+    } catch (error) {
+      Logger.error(error);
+      const err = errorCatchConverter(error);
+      return res.status(err.code).send(err);
+    }
+  };
+
+  private getDeletedNades: RequestHandler = async (_, res) => {
+    try {
+      const declinedNades = await this.nadeService.getDeleted();
 
       return res.status(200).send(declinedNades);
     } catch (error) {
@@ -365,6 +378,7 @@ export class NadeRouter {
 
       return res.status(204).send();
     } catch (error) {
+      console.log("Failed to delete", error);
       Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);

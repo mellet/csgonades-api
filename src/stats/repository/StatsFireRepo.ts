@@ -49,4 +49,10 @@ export class StatsFireRepo implements StatsRepo {
       numNades: value("increment", -1),
     });
   };
+
+  setNadeCount = (nadeCount: number) => {
+    return update(this.collection, this.siteDocId, {
+      numNades: nadeCount,
+    });
+  };
 }

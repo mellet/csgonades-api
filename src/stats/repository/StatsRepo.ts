@@ -6,4 +6,5 @@ export interface StatsRepo {
   incrementUserCounter: () => Promise<void>;
   incrementNadeCounter: () => Promise<void>;
   decrementNadeCounter: () => Promise<void>;
+  setNadeCount: (nadeCount: number) => Promise<void>;
 }

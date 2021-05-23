@@ -10,6 +10,7 @@ export interface NadeRepo {
   getAll(nadeLimit?: number): Promise<NadeDto[]>;
   getPending(): Promise<NadeDto[]>;
   getDeclined(): Promise<NadeDto[]>;
+  getDeleted(): Promise<NadeDto[]>;
   getById(nadeId: string): Promise<NadeDto>;
   getBySlug(slug: string): Promise<NadeDto>;
   getByMap(csgoMap: CsgoMap, nadeType?: NadeType): Promise<NadeDto[]>;

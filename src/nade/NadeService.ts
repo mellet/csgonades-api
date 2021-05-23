@@ -67,7 +67,29 @@ export class NadeService {
     this.notificationRepo = notificationRepo;
     this.favoriteRepo = favoriteRepo;
     this.userRepo = userRepo;
+
+    //this.recountNades();
   }
+
+  recountNades = async () => {
+    const allNades = await Promise.all([
+      this.getByMap("ancient"),
+      this.getByMap("cache"),
+      this.getByMap("dust2"),
+      this.getByMap("inferno"),
+      this.getByMap("mirage"),
+      this.getByMap("nuke"),
+      this.getByMap("overpass"),
+      this.getByMap("train"),
+      this.getByMap("vertigo"),
+    ]);
+
+    const nadeCount = allNades
+      .map((mapNades) => mapNades.length)
+      .reduce((acc, curr) => acc + curr, 0);
+
+    this.statsRepo.setNadeCount(nadeCount);
+  };
 
   getFlagged = async () => {
     const nades = await this.nadeRepo.getAll();
@@ -145,6 +167,12 @@ export class NadeService {
 
   getDeclined = async (): Promise<NadeMiniDto[]> => {
     const declinedNades = await this.nadeRepo.getDeclined();
+
+    return convertNadesToLightDto(declinedNades);
+  };
+
+  getDeleted = async () => {
+    const declinedNades = await this.nadeRepo.getDeleted();
 
     return convertNadesToLightDto(declinedNades);
   };
@@ -241,19 +269,14 @@ export class NadeService {
   delete = async (nadeId: string) => {
     const nade = await this.nadeRepo.getById(nadeId);
 
-    await this.imageRepo.deleteImageResult(nade.imageMain);
+    const deleteParts = [
+      ...this.getDeleteImagePromises(nade),
+      this.commentRepo.deleteForNadeId(nadeId),
+      this.favoriteRepo.deleteWhereNadeId(nadeId),
+      this.nadeRepo.delete(nade.id),
+    ];
 
-    if (nade.imageLineup) {
-      await this.imageRepo.deleteImageResult(nade.imageLineup);
-    }
-    if (nade.imageLineupThumb) {
-      await this.imageRepo.deleteImageResult(nade.imageLineupThumb);
-    }
-
-    await this.commentRepo.deleteForNadeId(nadeId);
-    await this.favoriteRepo.deleteWhereNadeId(nadeId);
-    await this.nadeRepo.delete(nade.id);
-    await this.statsRepo.decrementNadeCounter();
+    await Promise.all(deleteParts);
   };
 
   update = async (
@@ -449,5 +472,22 @@ export class NadeService {
       lineupImage,
       imageLineupThumb,
     };
+  };
+
+  private getDeleteImagePromises = (nade: NadeDto) => {
+    const deleteImagePromises: Promise<void>[] = [];
+    deleteImagePromises.push(this.imageRepo.deleteImageResult(nade.imageMain));
+    if (nade.imageLineup) {
+      deleteImagePromises.push(
+        this.imageRepo.deleteImageResult(nade.imageLineup)
+      );
+    }
+    if (nade.imageLineupThumb) {
+      deleteImagePromises.push(
+        this.imageRepo.deleteImageResult(nade.imageLineupThumb)
+      );
+    }
+
+    return deleteImagePromises;
   };
 }
