@@ -85,7 +85,7 @@ export class NadeFireRepo implements NadeRepo {
     const declinedDocs = await query(this.collection, [
       where("status", "==", "deleted"),
       order("createdAt", "desc"),
-      limit(20),
+      limit(10),
     ]);
 
     const declinedNades = declinedDocs.map(this.toNadeDTO);
