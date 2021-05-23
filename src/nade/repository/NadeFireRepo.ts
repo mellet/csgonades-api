@@ -182,7 +182,8 @@ export class NadeFireRepo implements NadeRepo {
   update = async (
     nadeId: string,
     updates: Partial<NadeFireModel>,
-    setNewUpdateNade?: boolean
+    setNewUpdateNade?: boolean,
+    setNewCreatedAt?: boolean
   ): Promise<NadeDto> => {
     let modelUpdates: ModelUpdate<NadeFireModel> = {
       ...updates,
@@ -190,6 +191,7 @@ export class NadeFireRepo implements NadeRepo {
         ? value("serverDate")
         : undefined,
       updatedAt: setNewUpdateNade ? value("serverDate") : undefined,
+      createdAt: setNewCreatedAt ? value("serverDate") : undefined,
     };
 
     await update(this.collection, nadeId, removeUndefines(modelUpdates));

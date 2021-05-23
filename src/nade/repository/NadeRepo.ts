@@ -18,7 +18,8 @@ export interface NadeRepo {
   update(
     nadeId: string,
     updates: Partial<NadeFireModel>,
-    setNewUpdateNade?: boolean
+    setNewUpdateNade?: boolean,
+    setNewCreatedAt?: boolean
   ): Promise<NadeDto>;
 
   delete(nadeId: string): Promise<void>;

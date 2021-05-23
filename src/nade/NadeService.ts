@@ -282,6 +282,9 @@ export class NadeService {
       updates.status
     );
 
+    const didJustGetAccepted =
+      newStatus === "accepted" && originalNade.status !== "accepted";
+
     let newNadeData: Partial<NadeFireModel> = {
       gfycat: updates.gfycat,
       startPosition: updates.startPosition,
@@ -304,7 +307,12 @@ export class NadeService {
       imageLineupThumb: lineupImages?.lineupImageThumb,
     };
 
-    const updatedNade = await this.nadeRepo.update(nadeId, newNadeData, true);
+    const updatedNade = await this.nadeRepo.update(
+      nadeId,
+      newNadeData,
+      true,
+      didJustGetAccepted
+    );
 
     await this.handleNadeUpdateNotification(
       originalNade,
