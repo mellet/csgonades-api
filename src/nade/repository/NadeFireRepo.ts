@@ -192,9 +192,7 @@ export class NadeFireRepo implements NadeRepo {
       updatedAt: setNewUpdateNade ? value("serverDate") : undefined,
     };
 
-    modelUpdates = removeUndefines(modelUpdates);
-
-    await update(this.collection, nadeId, modelUpdates);
+    await update(this.collection, nadeId, removeUndefines(modelUpdates));
 
     const nade = await this.getById(nadeId);
 

@@ -258,51 +258,51 @@ export class NadeService {
 
   update = async (
     nadeId: string,
-    nadeUpdateDto: NadeUpdateDto,
+    updates: NadeUpdateDto,
     user: RequestUser
   ): Promise<NadeDto | null> => {
     const originalNade = await this.getById(nadeId);
 
     verifyAllowEdit(originalNade, user);
-    verifyAdminFields(user, nadeUpdateDto);
-
-    let newNadeData: Partial<NadeFireModel> = {
-      gfycat: nadeUpdateDto.gfycat,
-      startPosition: nadeUpdateDto.startPosition,
-      endPosition: nadeUpdateDto.endPosition,
-      description: nadeUpdateDto.description,
-      map: nadeUpdateDto.map,
-      movement: nadeUpdateDto.movement,
-      technique: nadeUpdateDto.technique,
-      tickrate: nadeUpdateDto.tickrate,
-      type: nadeUpdateDto.type,
-      mapEndCoord: nadeUpdateDto.mapEndCoord,
-      status: nadeUpdateDto.status,
-      slug: nadeUpdateDto.slug,
-      oneWay: nadeUpdateDto.oneWay,
-      isPro: nadeUpdateDto.isPro,
-      teamSide: nadeUpdateDto.teamSide,
-      setPos: nadeUpdateDto.setPos,
-    };
+    verifyAdminFields(user, updates);
 
     const mainImage = await this.replaceMainImageIfPresent(
       originalNade,
-      nadeUpdateDto.imageBase64
+      updates.imageBase64
     );
-
-    if (mainImage) {
-      newNadeData["imageMain"] = mainImage;
-    }
 
     const lineupImages = await this.replaceLineUpImageIfPresent(
       originalNade,
-      nadeUpdateDto.lineUpImageBase64
+      updates.lineUpImageBase64
     );
 
-    if (lineupImages) {
-      newNadeData["imageLineupThumb"] = lineupImages.lineupImageThumb;
-      newNadeData["imageLineup"] = lineupImages.lineupImage;
-    }
+    const newStatus = this.statusAfterNadeUpdate(
+      user,
+      originalNade,
+      updates.status
+    );
+
+    let newNadeData: Partial<NadeFireModel> = {
+      gfycat: updates.gfycat,
+      startPosition: updates.startPosition,
+      endPosition: updates.endPosition,
+      description: updates.description,
+      map: updates.map,
+      movement: updates.movement,
+      technique: updates.technique,
+      tickrate: updates.tickrate,
+      type: updates.type,
+      mapEndCoord: updates.mapEndCoord,
+      status: newStatus,
+      slug: updates.slug,
+      oneWay: updates.oneWay,
+      isPro: updates.isPro,
+      teamSide: updates.teamSide,
+      setPos: updates.setPos,
+      imageMain: mainImage,
+      imageLineup: lineupImages?.lineupImage,
+      imageLineupThumb: lineupImages?.lineupImageThumb,
+    };
 
     const updatedNade = await this.nadeRepo.update(nadeId, newNadeData, true);
 
@@ -313,6 +313,21 @@ export class NadeService {
     );
 
     return updatedNade;
+  };
+
+  private statusAfterNadeUpdate = (
+    user: RequestUser,
+    originalNade: NadeDto,
+    newStatus?: NadeStatus
+  ): NadeStatus | undefined => {
+    const isSelf = user.steamId === originalNade.steamId;
+    const wasPreviouslyDeclined = originalNade.status === "declined";
+
+    if (isSelf && wasPreviouslyDeclined) {
+      return "pending";
+    } else {
+      return newStatus;
+    }
   };
 
   private handleNadeUpdateNotification = async (
