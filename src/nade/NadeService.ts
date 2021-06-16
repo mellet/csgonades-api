@@ -320,7 +320,6 @@ export class NadeService {
       type: updates.type,
       mapEndCoord: updates.mapEndCoord,
       status: newStatus,
-      slug: updates.slug,
       oneWay: updates.oneWay,
       isPro: updates.isPro,
       teamSide: updates.teamSide,
@@ -343,6 +342,10 @@ export class NadeService {
       updatedNade.status
     );
 
+    if (didJustGetAccepted) {
+      await this.setNadeSlug(updatedNade);
+    }
+
     return updatedNade;
   };
 
@@ -360,6 +363,51 @@ export class NadeService {
       return newStatus;
     }
   };
+
+  private setNadeSlug = async (nade: NadeDto) => {
+    if (nade.slug || !nade.map || !nade.endPosition || !nade.type) {
+      return;
+    }
+
+    const cleanEndPosition = nade.endPosition
+      .toLowerCase()
+      .split(" ")
+      .join("-");
+
+    const baseSlug = `${nade.map}-${cleanEndPosition}-${this.typeSlug(
+      nade.type
+    )}`;
+
+    // Check base slug
+    const baseSlugWorks = await this.isSlugAvailable(baseSlug);
+    if (baseSlugWorks) {
+      console.log("Slug", baseSlug);
+
+      return this.nadeRepo.update(nade.id, { slug: baseSlug });
+    }
+
+    // Find next iteration of slug
+    let foundSlug: string | undefined = undefined;
+
+    for (let i = 2; i < 100; i++) {
+      const testSlug = baseSlug + "-" + i;
+      const slugAvailable = await this.isSlugAvailable(testSlug);
+      if (slugAvailable) {
+        foundSlug = testSlug;
+        break;
+      }
+    }
+
+    return this.nadeRepo.update(nade.id, { slug: foundSlug });
+  };
+
+  private typeSlug(type: NadeType) {
+    if (type === "hegrenade") {
+      return "grenade";
+    } else {
+      return type;
+    }
+  }
 
   private handleNadeUpdateNotification = async (
     nade: NadeDto,
