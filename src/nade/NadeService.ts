@@ -68,7 +68,7 @@ export class NadeService {
     this.favoriteRepo = favoriteRepo;
     this.userRepo = userRepo;
 
-    //this.recountNades();
+    // this.recountNades();
   }
 
   recountNades = async () => {
@@ -84,11 +84,19 @@ export class NadeService {
       this.getByMap("vertigo"),
     ]);
 
-    const nadeCount = allNades
-      .map((mapNades) => mapNades.length)
-      .reduce((acc, curr) => acc + curr, 0);
+    const flatNades: NadeMiniDto[] = [].concat.apply([], allNades);
 
-    this.statsRepo.setNadeCount(nadeCount);
+    const numSmokes = flatNades.filter((n) => n.type === "smoke").length;
+    const numFlashes = flatNades.filter((n) => n.type === "flash").length;
+    const numMolotovs = flatNades.filter((n) => n.type === "molotov").length;
+    const numGrenades = flatNades.filter((n) => n.type === "hegrenade").length;
+
+    this.statsRepo.setNadeCount(
+      numSmokes,
+      numFlashes,
+      numMolotovs,
+      numGrenades
+    );
   };
 
   getFlagged = async () => {
@@ -260,7 +268,9 @@ export class NadeService {
     };
 
     const nade = await this.nadeRepo.save(nadeModel);
-    await this.statsRepo.incrementNadeCounter();
+    if (nade.type) {
+      await this.statsRepo.incrementNadeCounter(nade.type);
+    }
     await this.notificationRepo.newNade(nade.id);
 
     return nade;
@@ -277,6 +287,10 @@ export class NadeService {
     ];
 
     await Promise.all(deleteParts);
+
+    if (nade.type) {
+      await this.statsRepo.decrementNadeCounter(nade.type);
+    }
   };
 
   update = async (
