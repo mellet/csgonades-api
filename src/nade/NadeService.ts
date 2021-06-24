@@ -23,7 +23,7 @@ import {
   newStatsFromGfycat,
   shouldUpdateNadeStats,
   verifyAdminFields,
-  verifyAllowEdit,
+  verifyAllowEdit
 } from "./utils/NadeUtils";
 
 export type NadeServiceDeps = {
@@ -387,7 +387,8 @@ export class NadeService {
       .toLowerCase()
       .trim()
       .split(" ")
-      .join("-");
+      .join("-")
+      .replace(/[^0-9a-z\-]/gi, "");
 
     const baseSlug = `${nade.map}-${cleanEndPosition}-${this.typeSlug(
       nade.type
