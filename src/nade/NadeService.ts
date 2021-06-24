@@ -385,7 +385,6 @@ export class NadeService {
 
     const cleanEndPosition = nade.endPosition
       .toLowerCase()
-      .replace(/[^0-9a-z]/gi, "")
       .trim()
       .split(" ")
       .join("-");
