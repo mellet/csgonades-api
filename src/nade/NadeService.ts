@@ -397,8 +397,6 @@ export class NadeService {
     // Check base slug
     const baseSlugWorks = await this.isSlugAvailable(baseSlug);
     if (baseSlugWorks) {
-      console.log("Slug", baseSlug);
-
       return this.nadeRepo.update(nade.id, { slug: baseSlug });
     }
 
