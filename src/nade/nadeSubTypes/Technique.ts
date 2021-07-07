@@ -3,6 +3,8 @@ const TechniqueValues = {
   right: "Mouse right",
   both: "Mouse both",
   jumpthrow: "Jumpthrow bind",
+  jumpthrowW: "Jumpthrow + W",
+  jumpthrowBoth: "Jumpthrow Mouse Both",
 };
 
 export type Technique = keyof typeof TechniqueValues;
