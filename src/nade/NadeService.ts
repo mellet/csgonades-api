@@ -23,7 +23,7 @@ import {
   newStatsFromGfycat,
   shouldUpdateNadeStats,
   verifyAdminFields,
-  verifyAllowEdit
+  verifyAllowEdit,
 } from "./utils/NadeUtils";
 
 export type NadeServiceDeps = {

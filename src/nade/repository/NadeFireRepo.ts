@@ -112,7 +112,7 @@ export class NadeFireRepo implements NadeRepo {
     return {
       ...nadeDoc.data,
       id: nadeDoc.ref.id,
-      score: this.calcScore(nadeDoc.data),
+      score: this.newCalcScore(nadeDoc.data),
     };
   };
 
@@ -310,64 +310,19 @@ export class NadeFireRepo implements NadeRepo {
     return {
       ...doc.data,
       id: doc.ref.id,
-      score: this.calcScore(doc.data),
+      score: this.newCalcScore(doc.data),
     };
   };
 
-  private calcScore = (nade: NadeFireModel): number => {
-    const addedHoursAgo = moment().diff(moment(nade.createdAt), "hours", false);
-    const proBonus = nade.isPro ? 1.02 : 1.0;
+  private newCalcScore = (nade: NadeFireModel): number => {
+    const gravity = 1.3;
+    const votes = nade.commentCount + nade.favoriteCount || 1;
+    const addedHoursAgo =
+      moment().diff(moment(nade.createdAt), "hours", false) + 2;
 
-    const interactionScore = this.interactionScore(
-      addedHoursAgo,
-      nade.commentCount,
-      nade.favoriteCount
-    );
-    const ageScore = Math.log(50000 - addedHoursAgo) * 0.3;
+    const score = (votes / Math.pow(addedHoursAgo, gravity)) * 1000;
 
-    const pop = nade.favoriteCount + nade.commentCount || 1;
-
-    const intScore = (pop / (nade.viewCount || 1)) * 1000;
-
-    // Inflate new nades to allow them to get views
-    const freshScore = this.freshScore(addedHoursAgo);
-    const hotScore = freshScore + ageScore + interactionScore + intScore;
-
-    return hotScore * proBonus;
-  };
-
-  private freshScore(addedHoursAgo: number) {
-    const bonusFreshScore = Math.log(50000 - addedHoursAgo || 1);
-
-    if (addedHoursAgo < 48) {
-      return bonusFreshScore + 10;
-    } else if (addedHoursAgo < 24 * 7) {
-      return bonusFreshScore * 0.65;
-    } else if (addedHoursAgo < 24 * 14) {
-      return bonusFreshScore * 0.45;
-    } else {
-      return 0;
-    }
-  }
-
-  private interactionScore = (
-    addedHoursAgo: number,
-    commentCount?: number,
-    favCount?: number
-  ) => {
-    const addedWeeksAgo = addedHoursAgo / 24 / 7;
-    const commentScore = commentCount || 0;
-    let favScore = (favCount || 0) <= 2 ? 0 : favCount || 0;
-
-    const multiplier = 20 / addedWeeksAgo;
-
-    if (addedWeeksAgo < 10) {
-      favScore = favScore * multiplier;
-    }
-
-    const interactionScore = Math.log(commentScore + favScore || 1);
-
-    return interactionScore;
+    return score;
   };
 
   // Remove once all images are fixed
