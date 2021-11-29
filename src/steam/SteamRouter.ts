@@ -24,7 +24,7 @@ export const makeSteamRouter = (
     max: 2,
     onLimitReached: (req) => {
       console.log(
-        "> /auth/signout",
+        "> /auth limit reached",
         req.ip,
         req.rateLimit.resetTime,
         req.rateLimit.current
@@ -90,7 +90,7 @@ export const makeSteamRouter = (
     }
   );
 
-  router.get("/auth/refresh", async (req, res) => {
+  router.get("/auth/refresh", limiter, async (req, res) => {
     try {
       const csgonadestoken = req.signedCookies.csgonadestoken as string;
 
