@@ -20,11 +20,11 @@ export const makeSteamRouter = (
   config: CSGNConfig
 ): Router => {
   const limiter = rateLimit({
-    windowMs: 1 * 60 * 1000, // 15 minutes
-    max: 3,
+    windowMs: 1 * 60 * 1000, // 1 minutes
+    max: 2,
     onLimitReached: (req) => {
       console.log(
-        "> Sign out request limit reached",
+        "> /auth/signout",
         req.ip,
         req.rateLimit.resetTime,
         req.rateLimit.current

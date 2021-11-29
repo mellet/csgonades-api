@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/node";
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import { Logger } from "../logger/Logger";
 import { createAppContext } from "../utils/AppContext";
 import { adminOrModHandler, authOnlyHandler } from "../utils/AuthHandlers";
@@ -11,7 +12,15 @@ import { validateSteamId, validateUserUpdateDTO } from "./UserValidators";
 export const makeUserRouter = (userService: UserService): Router => {
   const UserRouter = Router();
 
-  UserRouter.get("/users/self", authOnlyHandler, async (req, res) => {
+  const limiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 2,
+    onLimitReached: (req) => {
+      console.log("> /users/self request limit reached", req.rateLimit.current);
+    },
+  });
+
+  UserRouter.get("/users/self", authOnlyHandler, limiter, async (req, res) => {
     try {
       const context = createAppContext(req);
 

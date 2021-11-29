@@ -136,11 +136,11 @@ export const AppServer = (config: CSGNConfig) => {
   });
 
   const sessionLimiter = rateLimit({
-    windowMs: 1 * 60 * 1000, // 15 minutes
-    max: 3,
+    windowMs: 1 * 60 * 1000, // 1 minutes
+    max: 2,
     onLimitReached: (req) => {
       console.log(
-        "> Session request limit reached",
+        "> /initSession request limit reached",
         req.ip,
         req.rateLimit.resetTime,
         req.rateLimit.current
