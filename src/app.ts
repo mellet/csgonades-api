@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/node";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
+import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import passport from "passport";
 import { AuditRouter } from "./audit/AuditRouter";
@@ -26,6 +27,19 @@ import { sessionRoute } from "./utils/SessionRoute";
 
 export const AppServer = (config: CSGNConfig) => {
   const app = express();
+
+  app.set("trust proxy", 1);
+
+  const limiter = rateLimit({
+    windowMs: 10 * 60 * 1000, // 15 minutes
+    max: 100,
+    skipFailedRequests: true,
+    onLimitReached: (req) => {
+      console.log("> Request limit reached", req.ip);
+    },
+  });
+
+  app.use(limiter);
 
   // Express dependencies.
   app.use(
