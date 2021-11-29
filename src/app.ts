@@ -30,12 +30,12 @@ export const AppServer = (config: CSGNConfig) => {
 
   app.set("trust proxy", 1);
 
-  const limiter = rateLimit({
-    windowMs: 10 * 60 * 1000, // 15 minutes
-    max: 100,
+  const sessionLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1minute
+    max: 2,
     onLimitReached: (req) => {
       console.log(
-        "> Request limit reached",
+        "> Request limit reached for /initSession or /users/self",
         req.ip,
         req.rateLimit.resetTime,
         req.rateLimit.current
@@ -43,7 +43,8 @@ export const AppServer = (config: CSGNConfig) => {
     },
   });
 
-  app.use(limiter);
+  app.use("/initSession", sessionLimiter);
+  app.use("/users/self", sessionLimiter);
 
   // Express dependencies.
   app.use(
