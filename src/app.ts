@@ -33,7 +33,6 @@ export const AppServer = (config: CSGNConfig) => {
   const limiter = rateLimit({
     windowMs: 10 * 60 * 1000, // 15 minutes
     max: 100,
-    skipFailedRequests: true,
     onLimitReached: (req) => {
       console.log(
         "> Request limit reached",
