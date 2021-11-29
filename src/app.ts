@@ -30,21 +30,19 @@ export const AppServer = (config: CSGNConfig) => {
 
   app.set("trust proxy", 1);
 
-  const sessionLimiter = rateLimit({
-    windowMs: 1 * 60 * 1000, // 1minute
-    max: 2,
+  const limiter = rateLimit({
+    windowMs: 10 * 60 * 1000, // 15 minutes
+    max: 100,
     onLimitReached: (req) => {
       console.log(
-        "> Request limit reached for /initSession or /users/self",
+        "> Global request limit reached",
         req.ip,
         req.rateLimit.resetTime,
         req.rateLimit.current
       );
     },
   });
-
-  app.use("/initSession", sessionLimiter);
-  app.use("/users/self", sessionLimiter);
+  app.use(limiter);
 
   // Express dependencies.
   app.use(
@@ -137,8 +135,21 @@ export const AppServer = (config: CSGNConfig) => {
     res.send("User-agent: *\nDisallow: /");
   });
 
+  const sessionLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 15 minutes
+    max: 3,
+    onLimitReached: (req) => {
+      console.log(
+        "> Session request limit reached",
+        req.ip,
+        req.rateLimit.resetTime,
+        req.rateLimit.current
+      );
+    },
+  });
+
   // Called by client to set up session
-  app.post("/initSession", sessionRoute);
+  app.post("/initSession", sessionLimiter, sessionRoute);
 
   app.use(function customErrorHandler(err, req, res, next) {
     Sentry.captureException(err);

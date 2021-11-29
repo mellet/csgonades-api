@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/node";
 import { CookieOptions, Router } from "express";
+import rateLimit from "express-rate-limit";
 import { PassportStatic } from "passport";
 import SteamStrategy from "passport-steam";
 import { CSGNConfig } from "../config/enironment";
@@ -18,6 +19,19 @@ export const makeSteamRouter = (
   passport: PassportStatic,
   config: CSGNConfig
 ): Router => {
+  const limiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 15 minutes
+    max: 3,
+    onLimitReached: (req) => {
+      console.log(
+        "> Sign out request limit reached",
+        req.ip,
+        req.rateLimit.resetTime,
+        req.rateLimit.current
+      );
+    },
+  });
+
   const router = Router({ mergeParams: true });
 
   passport.serializeUser(function (steamId: string, done) {
@@ -103,7 +117,7 @@ export const makeSteamRouter = (
     }
   });
 
-  router.post("/auth/signout", (_, res) => {
+  router.post("/auth/signout", limiter, (_, res) => {
     res.clearCookie("csgonadestoken", makeCookieOptions(config));
     return res.status(202).send();
   });
