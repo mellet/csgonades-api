@@ -35,7 +35,12 @@ export const AppServer = (config: CSGNConfig) => {
     max: 100,
     skipFailedRequests: true,
     onLimitReached: (req) => {
-      console.log("> Request limit reached", req.ip);
+      console.log(
+        "> Request limit reached",
+        req.ip,
+        req.rateLimit.resetTime,
+        req.rateLimit.current
+      );
     },
   });
 
