@@ -21,7 +21,7 @@ export const makeSteamRouter = (
 ): Router => {
   const limiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minutes
-    max: 2,
+    max: 5,
     onLimitReached: (req) => {
       console.log(
         "> /auth limit reached",
