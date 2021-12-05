@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { CSGNConfig } from "../config/enironment";
+import { Logger } from "../logger/Logger";
 import { payloadFromToken, RequestUser } from "./AuthUtils";
 import { userFromRequest } from "./RouterUtils";
 
@@ -16,9 +17,8 @@ export const extractTokenMiddleware = (config: CSGNConfig) => {
         };
         req.user = requestUser;
       } catch (error) {
-        console.warn(
-          "Expired or invalid access token in request",
-          error.message
+        Logger.verbose(
+          "AuthHandler.extractTokenMiddleware expired header authToken"
         );
       }
     }
@@ -39,9 +39,8 @@ export const extractTokenMiddleware = (config: CSGNConfig) => {
         };
         req.user = requestUser;
       } catch (error) {
-        console.warn(
-          "Expired or invalid refresh token in request",
-          error.message
+        Logger.verbose(
+          "AuthHandler.extractTokenMiddleware expired cookie authToken"
         );
       }
     }
