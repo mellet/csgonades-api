@@ -1,10 +1,13 @@
 import { CookieOptions, Request, Response } from "express-serve-static-core";
 import uniqid from "uniqid";
+import { Logger } from "../logger/Logger";
 
 export function sessionRoute(req: Request, res: Response) {
   setSessionCookieIfNotPresent(req, res);
 
   const authenticated = isAuthenticated(req);
+
+  Logger.verbose("SessionRouter.initSession", req.ip);
 
   return res.status(200).send({
     authenticated,

@@ -12,6 +12,7 @@ import { ContactRouter } from "./contact/ContactRouter";
 import { GfycatApi } from "./external-api/GfycatApi";
 import { SteamApi } from "./external-api/SteamApi";
 import { FavoriteRouter } from "./favorite/FavoriteRouter";
+import { Logger } from "./logger/Logger";
 import { NadeRouter } from "./nade/NadeRouter";
 import { NotificationRouter } from "./notifications/NotificationRouter";
 import { persistInit } from "./persistInit";
@@ -139,12 +140,7 @@ export const AppServer = (config: CSGNConfig) => {
     windowMs: 1 * 60 * 1000, // 1 minutes
     max: 5,
     onLimitReached: (req) => {
-      console.log(
-        "> /initSession request limit reached",
-        req.ip,
-        req.rateLimit.resetTime,
-        req.rateLimit.current
-      );
+      Logger.warning("SessionHandler.initSession | limit reached");
     },
   });
 
