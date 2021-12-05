@@ -35,6 +35,10 @@ export class ContactRouter {
     try {
       const contactMessages = await this.contactService.getMessages();
 
+      Logger.verbose(
+        "ContactRouter.getContactMessages",
+        contactMessages.length
+      );
       return res.status(200).send(contactMessages);
     } catch (error) {
       Logger.error(error);
@@ -49,6 +53,8 @@ export class ContactRouter {
 
       await this.contactService.saveMessage(contactData);
 
+      Logger.verbose("ContactRouter.addContactMessage");
+
       return res.status(201).send();
     } catch (error) {
       Logger.error(error);
@@ -62,6 +68,8 @@ export class ContactRouter {
     try {
       const id = req.params.id;
       await this.contactService.deleteMessage(id);
+
+      Logger.verbose("ContactRouter.removeContactMessage");
 
       return res.status(204).send();
     } catch (error) {

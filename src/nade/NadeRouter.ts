@@ -91,6 +91,7 @@ export class NadeRouter {
   private getFlaggedNades: RequestHandler = async (_, res) => {
     try {
       const nades = await this.nadeService.getFlagged();
+      Logger.verbose("NadeRouter.getFlaggedNades", nades.length);
 
       return res.status(200).send(nades);
     } catch (error) {
@@ -106,10 +107,13 @@ export class NadeRouter {
       const nadeId = sanitizeIt(req.params.id);
 
       if (!user || !user.steamId) {
+        Logger.error("NadeRouter.favorite Not signed in");
+
         throw ErrorFactory.Forbidden("Not signed in");
       }
 
       if (!nadeId) {
+        Logger.error("NadeRouter.favorite No nade selected");
         throw ErrorFactory.BadRequest("Not signed in or no nade selected");
       }
 
@@ -117,6 +121,8 @@ export class NadeRouter {
         nadeId,
         user.steamId
       );
+
+      Logger.verbose("NadeRouter.favorite", nadeId);
 
       return res.status(201).send(favorite);
     } catch (error) {
@@ -132,14 +138,19 @@ export class NadeRouter {
       const nadeId = sanitizeIt(req.params.id);
 
       if (!user || !user.steamId) {
+        Logger.error("NadeRouter.unFavorite Not signed in");
         throw ErrorFactory.Forbidden("Not signed in");
       }
 
       if (!nadeId) {
+        Logger.error("NadeRouter.unFavorite No nade selected");
         throw ErrorFactory.BadRequest("Not signed in or no nade selected");
       }
 
       await this.nadeService.unFavoriteNade(nadeId, user.steamId);
+
+      Logger.verbose("NadeRouter.unFavorite", nadeId);
+
       return res.status(204).send();
     } catch (error) {
       Logger.error(error);
@@ -153,6 +164,7 @@ export class NadeRouter {
       const slug = req.params.id;
       const slugIsFree = await this.nadeService.isSlugAvailable(slug);
 
+      Logger.verbose("NadeRouter.checkSlug", slug);
       return res.status(200).send(slugIsFree);
     } catch (error) {
       Logger.error(error);
@@ -176,6 +188,8 @@ export class NadeRouter {
 
       const nades = await this.nadeService.getRecent(limit);
 
+      Logger.verbose("NadeRouter.getNades", nades.length);
+
       return res.status(200).send(nades);
     } catch (error) {
       Logger.error(error);
@@ -188,6 +202,7 @@ export class NadeRouter {
     try {
       const pendingNades = await this.nadeService.getPending();
 
+      Logger.verbose("NadeRouter.getPendingNades", pendingNades.length);
       return res.status(200).send(pendingNades);
     } catch (error) {
       Logger.error(error);
@@ -199,6 +214,7 @@ export class NadeRouter {
   private getDeclinedNades: RequestHandler = async (_, res) => {
     try {
       const declinedNades = await this.nadeService.getDeclined();
+      Logger.verbose("NadeRouter.getDeclinedNades", declinedNades.length);
 
       return res.status(200).send(declinedNades);
     } catch (error) {
@@ -211,6 +227,7 @@ export class NadeRouter {
   private getDeletedNades: RequestHandler = async (_, res) => {
     try {
       const declinedNades = await this.nadeService.getDeleted();
+      Logger.verbose("NadeRouter.getDeletedNades", declinedNades.length);
 
       return res.status(200).send(declinedNades);
     } catch (error) {
@@ -239,6 +256,8 @@ export class NadeRouter {
         });
       }
 
+      Logger.verbose("NadeRouter.getById", nade.slug);
+
       return res.status(200).send(nade);
     } catch (error) {
       Logger.error(error);
@@ -252,6 +271,8 @@ export class NadeRouter {
       const type = sanitizeIt(req.query.type) as NadeType | undefined;
       const mapName = sanitizeIt(req.params.mapname) as CsgoMap;
       const nades = await this.nadeService.getByMap(mapName, type);
+
+      Logger.verbose("NadeRouter.getByMap", mapName, nades.length);
 
       return res.status(200).send(nades);
     } catch (error) {
@@ -267,6 +288,8 @@ export class NadeRouter {
       const steamId = sanitizeIt(req.params.steamId);
       const nades = await this.nadeService.getByUser(steamId, csgoMap);
 
+      Logger.verbose("NadeRouter.getByUser", csgoMap, steamId, nades.length);
+
       return res.status(200).send(nades);
     } catch (error) {
       Logger.error(error);
@@ -281,6 +304,12 @@ export class NadeRouter {
       const nadeBody = validateNadeCreateBody(req);
 
       const nade = await this.nadeService.save(nadeBody, user.steamId);
+
+      if (!nade) {
+        Logger.error("NadeRouter.addNade, failed to add nade", nadeBody);
+      } else {
+        Logger.verbose("NadeRouter.addNade", nade.id);
+      }
 
       return res.status(201).send(nade);
     } catch (error) {
@@ -315,6 +344,8 @@ export class NadeRouter {
         );
       }
 
+      Logger.verbose("NadeRouter.updateNade", id);
+
       return res.status(202).send(updatedNade);
     } catch (error) {
       Logger.error(error);
@@ -348,6 +379,7 @@ export class NadeRouter {
       );
 
       if (!gfyDataResponse) {
+        Logger.error("NadeRouter.validateGfy | Gfycat seems to be down");
         return res.status(500).send({
           message: "Gfycat seems to be down.",
         });
@@ -363,6 +395,8 @@ export class NadeRouter {
         avgColor: gfyItem.avgColor,
       };
 
+      Logger.verbose("NadeRouter.validateGfy");
+
       return res.status(200).send(gfyData);
     } catch (error) {
       const err = errorCatchConverter(error);
@@ -375,6 +409,8 @@ export class NadeRouter {
       const id = sanitizeIt(req.params.id);
 
       await this.nadeService.delete(id);
+
+      Logger.verbose("NadeRouter.deleteNade", id);
 
       return res.status(204).send();
     } catch (error) {

@@ -11,8 +11,12 @@ export const makeStatsRouter = (statsRepo: StatsRepo): Router => {
       const result = await statsRepo.getStats();
 
       if (!result) {
+        Logger.error("StatsRouter.stats");
+
         return res.status(404).send();
       }
+
+      Logger.verbose("StatsRouter.stats");
 
       return res.status(200).send(result);
     } catch (error) {
@@ -29,6 +33,8 @@ export const makeStatsRouter = (statsRepo: StatsRepo): Router => {
       if (!clientConfig) {
         return res.status(404).send();
       }
+
+      Logger.verbose("StatsRouter.clientConfig");
 
       return res.status(200).send(clientConfig);
     } catch (error) {

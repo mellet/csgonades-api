@@ -41,6 +41,7 @@ export class FavoriteRouter {
       const favorites = await this.favoriteService.getFavoritesForUser(
         user.steamId
       );
+      Logger.verbose("FavoriteRouter.getFavorites", favorites.length);
 
       return res.status(200).send(favorites);
     } catch (error) {
@@ -60,6 +61,8 @@ export class FavoriteRouter {
         nadeId
       );
 
+      Logger.verbose("FavoriteRouter.addFavorite", nadeId);
+
       return res.status(201).send(favorite);
     } catch (error) {
       Logger.error(error);
@@ -75,6 +78,8 @@ export class FavoriteRouter {
       const user = userFromRequest(req);
 
       await this.favoriteService.removeFavorite(user.steamId, favoriteId);
+
+      Logger.verbose("FavoriteRouter.removeFavorite", favoriteId);
 
       return res.status(202).send();
     } catch (error) {

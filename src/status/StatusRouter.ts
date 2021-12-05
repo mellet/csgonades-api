@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { Logger } from "../logger/Logger";
 
 export class StatusRouter {
   private router: Router;
@@ -17,6 +18,8 @@ export class StatusRouter {
   };
 
   private statusHandler = async (_, res) => {
+    Logger.verbose("StatusRouter.statusHandler");
+
     return res.send({
       status: "OK",
       serverClock: new Date(),

@@ -15,8 +15,8 @@ export const makeUserRouter = (userService: UserService): Router => {
   const limiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute
     max: 5,
-    onLimitReached: (req) => {
-      console.log("> /users/self request limit reached", req.rateLimit.current);
+    onLimitReached: (_req) => {
+      Logger.warning("UserRouter.self rate limit reached");
     },
   });
 
@@ -25,6 +25,7 @@ export const makeUserRouter = (userService: UserService): Router => {
       const context = createAppContext(req);
 
       const user = await userService.byId(context, context.authUser!.steamId);
+      Logger.verbose("UserRouter.self", user.nickname);
 
       return res.status(200).send(user);
     } catch (error) {
@@ -41,6 +42,8 @@ export const makeUserRouter = (userService: UserService): Router => {
       const context = createAppContext(req);
 
       const user = await userService.byId(context, steamId);
+
+      Logger.verbose("UserRouter.getUser", user.nickname);
 
       return res.status(200).send(user);
     } catch (error) {
@@ -62,6 +65,8 @@ export const makeUserRouter = (userService: UserService): Router => {
 
       const users = await userService.all(userFilter);
 
+      Logger.verbose("UserRouter.getUsers", users.length);
+
       return res.status(200).send(users);
     } catch (error) {
       Logger.error(error);
@@ -77,6 +82,8 @@ export const makeUserRouter = (userService: UserService): Router => {
       const context = createAppContext(req);
 
       const user = await userService.update(context, steamId, userUpdateFields);
+
+      Logger.verbose("UserRouter.updateUser", user.steamId);
 
       return res.status(202).send(user);
     } catch (error) {

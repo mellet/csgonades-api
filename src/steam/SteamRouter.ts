@@ -22,13 +22,8 @@ export const makeSteamRouter = (
   const limiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minutes
     max: 5,
-    onLimitReached: (req) => {
-      console.log(
-        "> /auth limit reached",
-        req.ip,
-        req.rateLimit.resetTime,
-        req.rateLimit.current
-      );
+    onLimitReached: (_req) => {
+      Logger.warning("SteamRouter.signout rate limited");
     },
   });
 
@@ -56,7 +51,7 @@ export const makeSteamRouter = (
   );
 
   router.get("/auth/steam", passport.authenticate("steam"), (req, res) => {
-    // no-op
+    Logger.verbose("SteamRouter.auth");
   });
 
   router.get(
@@ -80,6 +75,7 @@ export const makeSteamRouter = (
         );
 
         res.cookie("csgonadestoken", refreshToken, makeCookieOptions(config));
+        Logger.verbose("SteamRouter.login", user.nickname);
 
         res.redirect(`${config.client.baseUrl}/auth`);
       } catch (error) {
@@ -110,6 +106,8 @@ export const makeSteamRouter = (
 
       await userService.updateActivity(user.steamId);
 
+      Logger.verbose("SteamRouter.refreshToken", user.nickname);
+
       return res.status(200).send({ accessToken });
     } catch (error) {
       res.clearCookie("csgonadestoken");
@@ -118,6 +116,7 @@ export const makeSteamRouter = (
   });
 
   router.post("/auth/signout", limiter, (_, res) => {
+    Logger.verbose("SteamRouter.signOut");
     res.clearCookie("csgonadestoken", makeCookieOptions(config));
     return res.status(202).send();
   });

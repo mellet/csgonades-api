@@ -63,6 +63,7 @@ export class CommentRouter {
     try {
       const nadeId = sanitizeIt(req.params.nadeId);
       const nadeComments = await this.commentService.getForNade(nadeId);
+      Logger.verbose("CommentRouter.getCommentsForNade", nadeComments.length);
 
       return res.status(200).send(nadeComments);
     } catch (error) {
@@ -76,6 +77,8 @@ export class CommentRouter {
   private getRecentcomments: RequestHandler = async (req, res) => {
     try {
       const nadeComments = await this.commentService.getRecent();
+      Logger.verbose("CommentRouter.getRecentcomments", nadeComments.length);
+
       return res.status(200).send(nadeComments);
     } catch (error) {
       Logger.error(error);
@@ -103,6 +106,8 @@ export class CommentRouter {
         nadeCommentCreateDto
       );
 
+      Logger.verbose("CommentRouter.createComment");
+
       return res.status(201).send(comment);
     } catch (error) {
       Logger.error(error);
@@ -129,6 +134,9 @@ export class CommentRouter {
         context,
         nadeCommentUpdateDto
       );
+
+      Logger.verbose("CommentRouter.updateComment");
+
       return res.status(201).send(updatedComment);
     } catch (error) {
       Logger.error(error);
