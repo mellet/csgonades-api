@@ -1,9 +1,9 @@
 import { CommentRepo } from "../comment/repository/CommentRepo";
 import { SteamApi } from "../external-api/SteamApi";
+import { Logger } from "../logger/Logger";
 import { NadeRepo } from "../nade/repository/NadeRepo";
 import { StatsRepo } from "../stats/repository/StatsRepo";
 import { AppContext } from "../utils/AppContext";
-import { ErrorFactory } from "../utils/ErrorUtil";
 import { UserFilter } from "./repository/UserFireRepo";
 import { UserRepo } from "./repository/UserRepo";
 import { UserCreateDto, UserUpdateDto } from "./UserDTOs";
@@ -33,18 +33,19 @@ export class UserService {
   }
 
   all = (filter: UserFilter) => {
+    Logger.verbose("UserService.all");
     return this.userRepo.all(filter);
   };
 
   byId = async (
     context: AppContext,
     steamId: string
-  ): Promise<UserModel | UserModelAnon> => {
+  ): Promise<UserModel | UserModelAnon | null> => {
     const { authUser } = context;
     const user = await this.userRepo.byId(steamId);
 
     if (!user) {
-      throw ErrorFactory.NotFound("User not found");
+      return null;
     }
 
     const isUser = authUser?.role === "user";
@@ -57,14 +58,18 @@ export class UserService {
 
     this.tryAvatarRefresh(user);
 
+    Logger.verbose("UserService.byId", steamId);
+
     return user;
   };
 
-  getOrCreate = async (steamId: string): Promise<UserModel> => {
+  getOrCreate = async (steamId: string): Promise<UserModel | null> => {
     const user = await this.userRepo.byId(steamId);
 
     if (user) {
       this.tryAvatarRefresh(user);
+      Logger.verbose("UserService.getOrCreate - get", user.nickname);
+
       return user;
     }
 
@@ -80,28 +85,16 @@ export class UserService {
     const newUser = await this.userRepo.create(createUserDto);
     await this.statsRepo.incrementUserCounter();
 
+    Logger.verbose("UserService.getOrCreate - created", newUser.nickname);
+
     return newUser;
   };
 
   update = async (
-    context: AppContext,
     steamId: string,
     userUpdateDto: UserUpdateDto
-  ) => {
-    const { authUser } = context;
-
-    const isUpdatingSelf = authUser?.steamId === steamId;
-    const isPrivilegedUser = authUser?.role === "administrator";
-
-    if (!isUpdatingSelf && !isPrivilegedUser) {
-      throw ErrorFactory.Forbidden("You are not allowed to edit this user");
-    }
-
+  ): Promise<UserModel> => {
     const updatedUser = await this.userRepo.update(steamId, userUpdateDto);
-
-    if (!updatedUser) {
-      throw ErrorFactory.InternalServerError("Failed to update user");
-    }
 
     await this.nadeRepo.updateUserOnNades(steamId, {
       nickname: updatedUser.nickname,
@@ -111,10 +104,14 @@ export class UserService {
 
     await this.commentRepo.updateUserDetailsForComments(updatedUser);
 
+    Logger.verbose("UserService.update - Success", updatedUser.nickname);
+
     return updatedUser;
   };
 
   updateActivity = (steamId: string) => {
+    Logger.verbose("UserService.updateActivity", steamId);
+
     return this.userRepo.updateActivity(steamId);
   };
 
@@ -131,10 +128,6 @@ export class UserService {
     const updatedUser = await this.userRepo.update(steamId, {
       avatar: player.avatar.medium,
     });
-
-    if (!updatedUser) {
-      return;
-    }
 
     await this.nadeRepo.updateUserOnNades(steamId, updatedUser);
     await this.commentRepo.updateUserDetailsForComments(updatedUser);

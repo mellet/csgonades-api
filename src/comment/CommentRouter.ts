@@ -1,9 +1,8 @@
-import * as Sentry from "@sentry/node";
 import { RequestHandler, Router } from "express";
 import { Logger } from "../logger/Logger";
 import { createAppContext } from "../utils/AppContext";
 import { authOnlyHandler } from "../utils/AuthHandlers";
-import { errorCatchConverter } from "../utils/ErrorUtil";
+import { ErrorFactory } from "../utils/ErrorUtil";
 import { sanitizeIt } from "../utils/Sanitize";
 import { CommentService } from "./CommentService";
 import { CommentCreateDto } from "./dto/CommentCreateDto";
@@ -60,104 +59,85 @@ export class CommentRouter {
   };
 
   private getCommentsForNade: ReqHandlerWithNadeId = async (req, res) => {
-    try {
-      const nadeId = sanitizeIt(req.params.nadeId);
-      const nadeComments = await this.commentService.getForNade(nadeId);
-      Logger.verbose("CommentRouter.getCommentsForNade", nadeComments.length);
+    const nadeId = sanitizeIt(req.params.nadeId);
+    const nadeComments = await this.commentService.getForNade(nadeId);
+    Logger.verbose("CommentRouter.getCommentsForNade", nadeComments.length);
 
-      return res.status(200).send(nadeComments);
-    } catch (error) {
-      Logger.error(error);
-      Sentry.captureException(error);
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
-    }
+    return res.status(200).send(nadeComments);
   };
 
   private getRecentcomments: RequestHandler = async (req, res) => {
-    try {
-      const nadeComments = await this.commentService.getRecent();
-      Logger.verbose("CommentRouter.getRecentcomments", nadeComments.length);
+    const nadeComments = await this.commentService.getRecent();
+    Logger.verbose("CommentRouter.getRecentcomments", nadeComments.length);
 
-      return res.status(200).send(nadeComments);
-    } catch (error) {
-      Logger.error(error);
-      Sentry.captureException(error);
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
-    }
+    return res.status(200).send(nadeComments);
   };
 
   private createComment: ReqHandlerCreate = async (req, res) => {
-    try {
-      const context = createAppContext(req);
+    const context = createAppContext(req);
 
-      const nadeCommentCreateDto: CommentCreateDto = {
-        nadeId: sanitizeIt(req.body.nadeId),
-        message: sanitizeIt(req.body.message),
-      };
+    const commentCreateDto = validateCreateComment(
+      req.body.nadeId,
+      req.body.message
+    );
 
-      if (!nadeCommentCreateDto.message || !nadeCommentCreateDto.nadeId) {
-        throw new Error("Invalid input");
-      }
+    const comment = await this.commentService.save(context, commentCreateDto);
 
-      const comment = await this.commentService.save(
-        context,
-        nadeCommentCreateDto
-      );
+    Logger.verbose("CommentRouter.createComment");
 
-      Logger.verbose("CommentRouter.createComment");
-
-      return res.status(201).send(comment);
-    } catch (error) {
-      Logger.error(error);
-      Sentry.captureException(error);
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
-    }
+    return res.status(201).send(comment);
   };
 
   private updateComment: ReqHandlerUpdate = async (req, res) => {
-    try {
-      const context = createAppContext(req);
+    const context = createAppContext(req);
 
-      const nadeCommentUpdateDto: CommentUpddateDto = {
-        id: sanitizeIt(req.params.commentId),
-        message: sanitizeIt(req.body.message),
-      };
+    const commentUpdateDto = validateUpdateComment(
+      req.params.commentId,
+      req.body.message
+    );
 
-      if (!nadeCommentUpdateDto.message || !nadeCommentUpdateDto.id) {
-        throw new Error("Invalid input");
-      }
+    const updatedComment = await this.commentService.update(
+      context,
+      commentUpdateDto
+    );
 
-      const updatedComment = await this.commentService.update(
-        context,
-        nadeCommentUpdateDto
-      );
-
-      Logger.verbose("CommentRouter.updateComment");
-
-      return res.status(201).send(updatedComment);
-    } catch (error) {
-      Logger.error(error);
-      Sentry.captureException(error);
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
-    }
+    return res.status(201).send(updatedComment);
   };
 
   private deleteComment: ReqHandlerWithCommentId = async (req, res) => {
-    try {
-      const context = createAppContext(req);
-      const commentId = sanitizeIt(req.params.commentId);
-      await this.commentService.delete(context, commentId);
+    const context = createAppContext(req);
+    const commentId = sanitizeIt(req.params.commentId);
+    await this.commentService.delete(context, commentId);
 
-      return res.status(204).send();
-    } catch (error) {
-      Logger.error(error);
-      Sentry.captureException(error);
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
-    }
+    return res.status(204).send();
   };
+}
+
+function validateUpdateComment(commentId: string, message: string) {
+  const nadeCommentUpdateDto: CommentUpddateDto = {
+    id: sanitizeIt(commentId),
+    message: sanitizeIt(message),
+  };
+
+  if (!nadeCommentUpdateDto.message || !nadeCommentUpdateDto.id) {
+    throw ErrorFactory.BadRequest("Invalid input");
+  }
+
+  return nadeCommentUpdateDto;
+}
+
+function validateCreateComment(
+  nadeId?: string,
+  message?: string
+): CommentCreateDto {
+  if (!message || !nadeId) {
+    throw ErrorFactory.BadRequest("Invalid input");
+  }
+
+  const nadeCommentCreateDto: CommentCreateDto = {
+    nadeId: sanitizeIt(nadeId),
+    message: sanitizeIt(message),
+  };
+
+  return nadeCommentCreateDto;
 }

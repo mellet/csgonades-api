@@ -1,7 +1,5 @@
 import { RequestHandler, Router } from "express";
-import { Logger } from "../logger/Logger";
 import { adminOrModHandler } from "../utils/AuthHandlers";
-import { errorCatchConverter } from "../utils/ErrorUtil";
 import { AuditService } from "./AuditService";
 
 export class AuditRouter {
@@ -23,15 +21,7 @@ export class AuditRouter {
   };
 
   private getContactMessages: RequestHandler = async (_, res) => {
-    try {
-      const auditEvents = await this.auditService.getAuditEvents();
-
-      Logger.verbose("AuditRouter.getContactMessages", auditEvents.length);
-
-      return res.status(200).send(auditEvents);
-    } catch (error) {
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
-    }
+    const auditEvents = await this.auditService.getAuditEvents();
+    return res.status(200).send(auditEvents);
   };
 }

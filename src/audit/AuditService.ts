@@ -1,3 +1,4 @@
+import { Logger } from "../logger/Logger";
 import { AuditDto } from "./dto/AuditDto";
 import { CreateAuditDto } from "./dto/CreateAuditDto";
 import { AuditRepo } from "./repository/AuditRepo";
@@ -13,11 +14,14 @@ export class AuditService {
     this.auditRepo = deps.auditRepo;
   }
 
-  getAuditEvents = (): Promise<AuditDto[]> => {
-    return this.auditRepo.getAuditEvents();
+  getAuditEvents = async (): Promise<AuditDto[]> => {
+    const audits = await this.auditRepo.getAuditEvents();
+    Logger.verbose("AuditService.getAuditEvents", audits.length);
+    return audits;
   };
 
-  createAuditEvent = async (data: CreateAuditDto): Promise<AuditDto> => {
-    return this.auditRepo.createAuditEvent(data);
+  createAuditEvent = async (data: CreateAuditDto): Promise<void> => {
+    await this.auditRepo.createAuditEvent(data);
+    Logger.verbose("AuditService.createAuditEvent");
   };
 }

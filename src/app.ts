@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/node";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import passport from "passport";
@@ -21,9 +21,10 @@ import { ReportRouter } from "./reports/ReportRouter";
 import { serviceInit } from "./serviceInit";
 import { makeStatsRouter } from "./stats/StatsRouter";
 import { StatusRouter } from "./status/StatusRouter";
-import { makeSteamRouter } from "./steam/SteamRouter";
+import { SteamRouter } from "./steam/SteamRouter";
 import { makeUserRouter } from "./user/UserRouter";
 import { extractTokenMiddleware } from "./utils/AuthHandlers";
+import { errorCatchConverter } from "./utils/ErrorUtil";
 import { sessionRoute } from "./utils/SessionRoute";
 
 export const AppServer = (config: CSGNConfig) => {
@@ -68,6 +69,7 @@ export const AppServer = (config: CSGNConfig) => {
       credentials: true,
     })
   );
+
   app.use(Sentry.Handlers.requestHandler());
   app.use(express.json({ limit: "15mb" }));
   app.use(express.urlencoded({ extended: true }));
@@ -103,7 +105,7 @@ export const AppServer = (config: CSGNConfig) => {
     commentService,
   });
 
-  const steamRouter = makeSteamRouter(userService, passport, config);
+  const steamRouter = new SteamRouter(passport, config, userService).router;
   const userRouter = makeUserRouter(userService);
   const favoriteRouter = new FavoriteRouter({ favoriteService });
   const statsRouter = makeStatsRouter(repositories.statsRepo);
@@ -127,11 +129,11 @@ export const AppServer = (config: CSGNConfig) => {
   app.use(nadeCommentRouter.getRouter());
   app.use(auditRouter.getRouter());
 
-  app.get("/", (_, res) => {
+  app.get("/", (_req, res) => {
     res.send("");
   });
 
-  app.use("/robots.txt", function (req, res, next) {
+  app.use("/robots.txt", function (_req, res, _next) {
     res.type("text/plain");
     res.send("User-agent: *\nDisallow: /");
   });
@@ -139,7 +141,7 @@ export const AppServer = (config: CSGNConfig) => {
   const sessionLimiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minutes
     max: 5,
-    onLimitReached: (req) => {
+    onLimitReached: () => {
       Logger.warning("SessionHandler.initSession | limit reached");
     },
   });
@@ -147,10 +149,18 @@ export const AppServer = (config: CSGNConfig) => {
   // Called by client to set up session
   app.post("/initSession", sessionLimiter, sessionRoute);
 
-  app.use(function customErrorHandler(err, req, res, next) {
+  const customErrorHandler = (
+    err: Error,
+    _req: Request,
+    res: Response,
+    _next: NextFunction
+  ) => {
     Sentry.captureException(err);
-    res.status(500).send("Unknown error");
-  });
+    const error = errorCatchConverter(err);
+    return res.status(error.code).send(error.message);
+  };
+
+  app.use(customErrorHandler);
 
   app.use(Sentry.Handlers.errorHandler());
 

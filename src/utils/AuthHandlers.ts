@@ -17,9 +17,7 @@ export const extractTokenMiddleware = (config: CSGNConfig) => {
         };
         req.user = requestUser;
       } catch (error) {
-        Logger.verbose(
-          "AuthHandler.extractTokenMiddleware expired header authToken"
-        );
+        Logger.verbose("ExtractTokenMiddleware - expired header authToken");
       }
     }
 

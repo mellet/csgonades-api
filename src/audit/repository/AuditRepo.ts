@@ -3,5 +3,5 @@ import { CreateAuditDto } from "../dto/CreateAuditDto";
 
 export interface AuditRepo {
   getAuditEvents: () => Promise<AuditDto[]>;
-  createAuditEvent: (data: CreateAuditDto) => Promise<AuditDto>;
+  createAuditEvent: (data: CreateAuditDto) => Promise<void>;
 }

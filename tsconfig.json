@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
     "module": "commonjs",
+    "target": "es6",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
-    "target": "es6",
     "noImplicitAny": false,
     "strictNullChecks": true,
     "moduleResolution": "node",

@@ -1,3 +1,4 @@
+import { Logger } from "../logger/Logger";
 import { NadeRepo } from "../nade/repository/NadeRepo";
 import { NotificationRepo } from "../notifications/repository/NotificationRepo";
 import { UserRepo } from "../user/repository/UserRepo";
@@ -29,10 +30,17 @@ export class CommentService {
     this.nadeRepo = deps.nadeRepo;
   }
 
-  getForNade = async (nadeId: string): Promise<CommentDto[]> =>
-    this.commentRepo.getForNade(nadeId);
+  getForNade = async (nadeId: string): Promise<CommentDto[]> => {
+    const comments = await this.commentRepo.getForNade(nadeId);
+    Logger.verbose("CommentService.getForNade", comments.length);
+    return comments;
+  };
 
-  getRecent = async (): Promise<CommentDto[]> => this.commentRepo.getRecent();
+  getRecent = async (): Promise<CommentDto[]> => {
+    const comments = await this.commentRepo.getRecent();
+    Logger.verbose("CommentService.getRecent - Success");
+    return comments;
+  };
 
   save = async (
     context: AppContext,
@@ -47,10 +55,16 @@ export class CommentService {
     const user = await this.userRepo.byId(authUser.steamId);
 
     if (!user) {
+      Logger.error("CommentService.save - No user found to create comment");
       throw ErrorFactory.BadRequest("No user found to create comment");
     }
 
     const nade = await this.nadeRepo.getById(commentBody.nadeId);
+
+    if (!nade) {
+      Logger.error("CommentService.save - No nade found to create comment");
+      throw ErrorFactory.BadRequest("No nade found to create comment");
+    }
 
     const comment = await this.commentRepo.save(user, commentBody);
 
@@ -61,6 +75,8 @@ export class CommentService {
 
     this.nadeRepo.incrementCommentCount(nade.id);
 
+    Logger.verbose("CommentService.save - Success");
+
     return comment;
   };
 
@@ -68,16 +84,21 @@ export class CommentService {
     const originalComment = await this.commentRepo.getById(updateModel.id);
 
     if (!originalComment) {
+      Logger.warning("CommentService.update - NotFound");
       throw ErrorFactory.NotFound("Comment not found");
     }
 
     if (
       !isEntityOwnerOrPrivilegedUser(originalComment.steamId, context.authUser)
     ) {
+      Logger.warning("CommentService.update - Forbidden");
       throw ErrorFactory.Forbidden("You can only edit your own comments");
     }
 
-    return this.commentRepo.update(updateModel);
+    const updatedComment = await this.commentRepo.update(updateModel);
+    Logger.verbose("CommentService.update - Success");
+
+    return updatedComment;
   };
 
   delete = async (context: AppContext, commentId: string) => {
@@ -86,18 +107,23 @@ export class CommentService {
     const originalComment = await this.commentRepo.getById(commentId);
 
     if (!originalComment) {
+      Logger.warning("CommentService.delete - NotFound");
       throw ErrorFactory.NotFound("Comment not found");
     }
 
     if (!isEntityOwnerOrPrivilegedUser(originalComment.steamId, authUser)) {
+      Logger.warning("CommentService.delete - Forbidden");
       throw ErrorFactory.Forbidden("You can only delete your own comments");
     }
 
     await this.commentRepo.delete(commentId);
     await this.nadeRepo.decrementCommentCount(originalComment.nadeId);
+
+    Logger.verbose("CommentService.delete - Success");
   };
 
   deleteForNadeId = async (nadeId: string) => {
     await this.commentRepo.deleteForNadeId(nadeId);
+    Logger.verbose("CommentService.deleteForNadeId - Success");
   };
 }

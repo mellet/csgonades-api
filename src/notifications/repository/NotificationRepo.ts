@@ -18,7 +18,7 @@ export interface NotificationRepo {
   newFavorite: (nade: NadeDto, user: UserDto) => Promise<void>;
   newContactMessage: () => Promise<void>;
   newCommentNotification: (comment: CommentDto, nade: NadeDto) => Promise<void>;
-  add: (noti: NotificationCreateDto) => Promise<NotificationDTO>;
+  add: (noti: NotificationCreateDto) => Promise<NotificationDTO | null>;
   removeFavoriteNotification: (opts: RemoveFavNotiOpts) => Promise<void>;
   markAsViewed: (id: string) => Promise<void>;
   markAllAsViewed: (steamId: string) => Promise<void>;

@@ -60,9 +60,7 @@ describe("AuditService", () => {
       onNadeId: newAuditEvent.onNadeId,
     };
 
-    when(deps.auditRepo.createAuditEvent(newAuditEvent)).thenResolve(
-      mockedResponse
-    );
+    when(deps.auditRepo.createAuditEvent(newAuditEvent)).thenResolve();
 
     const result = await service.createAuditEvent(newAuditEvent);
 

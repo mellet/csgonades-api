@@ -8,11 +8,13 @@ import {
   get,
   limit,
   query,
+  Ref,
   remove,
   update,
   value,
   where,
 } from "typesaurus";
+import { AddModel } from "typesaurus/add";
 import { CommentDto } from "../../comment/dto/CommentDto";
 import { NadeDto } from "../../nade/dto/NadeDto";
 import { UserDto } from "../../user/UserDTOs";
@@ -119,10 +121,12 @@ export class NotificationFireRepo implements NotificationRepo {
     });
   };
 
-  add = async (noti: NotificationCreateDto): Promise<NotificationDTO> => {
-    const res = await this.addOfType(noti);
+  add = async (
+    noti: NotificationCreateDto
+  ): Promise<NotificationDTO | null> => {
+    const ref = await this.addOfType(noti);
 
-    return this.toDto(res);
+    return this.byId(ref.id);
   };
 
   removeFavoriteNotification = async (opts: RemoveFavNotiOpts) => {
@@ -151,7 +155,7 @@ export class NotificationFireRepo implements NotificationRepo {
 
   private addOfType = (
     noti: NotificationCreateDto
-  ): Promise<Doc<NotificationModel>> => {
+  ): Promise<Ref<NotificationModel>> => {
     const commonValues = {
       viewed: false,
       createdAt: value("serverDate"),
@@ -159,7 +163,7 @@ export class NotificationFireRepo implements NotificationRepo {
     };
     switch (noti.type) {
       case "accepted-nade":
-        const acceptedModel: NotificationModel = {
+        const acceptedModel: AddModel<NotificationModel> = {
           ...commonValues,
           type: noti.type,
           nadeId: noti.nadeId,
@@ -169,7 +173,7 @@ export class NotificationFireRepo implements NotificationRepo {
       case "contact-msg":
         return add(this.collection, { ...commonValues, type: "contact-msg" });
       case "declined-nade":
-        const declinedModel: NotificationModel = {
+        const declinedModel: AddModel<NotificationModel> = {
           ...commonValues,
           type: "declined-nade",
           nadeId: noti.nadeId,
@@ -206,14 +210,14 @@ export class NotificationFireRepo implements NotificationRepo {
 
   private addFavoriteNotification = async (
     noti: NotificationCreateDto
-  ): Promise<Doc<NotificationModel>> => {
+  ): Promise<Ref<NotificationModel>> => {
     if (noti.type !== "favorite") {
       throw ErrorFactory.InternalServerError(
         "Got wront notification type when trying to add favorite notification."
       );
     }
 
-    const model: NotificationModel = {
+    const model: AddModel<NotificationModel> = {
       type: "favorite",
       createdAt: value("serverDate"),
       nadeId: noti.nadeId,

@@ -15,8 +15,9 @@ import {
   value,
   where,
 } from "typesaurus";
-import { ModelUpdate } from "typesaurus/update";
-import { ImageData } from "../../imageGallery/ImageStorageRepo";
+import { AddModel } from "typesaurus/add";
+import { UpdateModel } from "typesaurus/update";
+import { Logger } from "../../logger/Logger";
 import { UserLightModel } from "../../user/UserModel";
 import { removeUndefines } from "../../utils/Common";
 import { ErrorFactory } from "../../utils/ErrorUtil";
@@ -35,101 +36,115 @@ export class NadeFireRepo implements NadeRepo {
   }
 
   isSlugAvailable = async (slug: string): Promise<boolean> => {
-    const nadeDocs = await query(this.collection, [where("slug", "==", slug)]);
+    try {
+      const nadeDocs = await query(this.collection, [
+        where("slug", "==", slug),
+      ]);
 
-    if (nadeDocs.length === 0) {
-      return true;
+      return nadeDocs.length === 0;
+    } catch (error) {
+      Logger.error("NadeRepo.isSlugAvailable", error);
+      throw ErrorFactory.InternalServerError("Failed to check nade slug");
     }
-
-    return false;
   };
 
   getAll = async (nadeLimit?: number): Promise<NadeDto[]> => {
-    const queryBuilder: Query<NadeFireModel, keyof NadeFireModel>[] = [
-      where("status", "==", "accepted"),
-      order("createdAt", "desc"),
-    ];
+    try {
+      const queryBuilder: Query<NadeFireModel, keyof NadeFireModel>[] = [
+        where("status", "==", "accepted"),
+        order("createdAt", "desc"),
+      ];
 
-    if (nadeLimit) {
-      queryBuilder.push(limit(nadeLimit));
+      if (nadeLimit) {
+        queryBuilder.push(limit(nadeLimit));
+      }
+
+      const nadesDocs = await query(this.collection, queryBuilder);
+
+      const nades = nadesDocs.map(this.toNadeDTO);
+
+      return nades;
+    } catch (error) {
+      Logger.error("NadeFireRepo.isSlugAvailable", error);
+      throw ErrorFactory.InternalServerError("Failed get all nades");
     }
-
-    const nadesDocs = await query(this.collection, queryBuilder);
-
-    const nades = nadesDocs.map(this.toNadeDTO);
-
-    return nades;
   };
 
   getPending = async (): Promise<NadeDto[]> => {
-    const pendingDocs = await query(this.collection, [
-      where("status", "==", "pending"),
-      order("createdAt", "desc"),
-    ]);
+    try {
+      const pendingDocs = await query(this.collection, [
+        where("status", "==", "pending"),
+        order("createdAt", "desc"),
+      ]);
 
-    const pendingNades = pendingDocs.map(this.toNadeDTO);
-    return pendingNades;
+      const pendingNades = pendingDocs.map(this.toNadeDTO);
+      return pendingNades;
+    } catch (error) {
+      Logger.error("NadeFireRepo.getPending", error);
+      throw ErrorFactory.InternalServerError("Failed get pending andes");
+    }
   };
 
   getDeclined = async (): Promise<NadeDto[]> => {
-    const declinedDocs = await query(this.collection, [
-      where("status", "==", "declined"),
-      order("createdAt", "desc"),
-    ]);
+    try {
+      const declinedDocs = await query(this.collection, [
+        where("status", "==", "declined"),
+        order("createdAt", "desc"),
+      ]);
 
-    const declinedNades = declinedDocs.map(this.toNadeDTO);
-    return declinedNades;
+      const declinedNades = declinedDocs.map(this.toNadeDTO);
+      return declinedNades;
+    } catch (error) {
+      Logger.error("NadeFireRepo.getDeclined", error);
+      throw ErrorFactory.InternalServerError("Failed get declined nades");
+    }
   };
 
   getDeleted = async (): Promise<NadeDto[]> => {
-    const declinedDocs = await query(this.collection, [
-      where("status", "==", "deleted"),
-      order("createdAt", "desc"),
-      limit(10),
-    ]);
+    try {
+      const declinedDocs = await query(this.collection, [
+        where("status", "==", "deleted"),
+        order("createdAt", "desc"),
+        limit(10),
+      ]);
 
-    const declinedNades = declinedDocs.map(this.toNadeDTO);
-
-    // @ts-ignore
-    const nadesWithLegacyNades = declinedNades.filter((n) => n.images);
-
-    const promises = nadesWithLegacyNades.map((n) => this.cleanupImages(n.id));
-
-    await Promise.all(promises);
-
-    return declinedNades;
+      return declinedDocs.map(this.toNadeDTO);
+    } catch (error) {
+      Logger.error("NadeFireRepo.getDeleted", error);
+      throw ErrorFactory.InternalServerError("Failed get deleted nades");
+    }
   };
 
-  getById = async (nadeId: string): Promise<NadeDto> => {
-    const nadeDoc = await get(this.collection, nadeId);
+  getById = async (nadeId: string): Promise<NadeDto | null> => {
+    try {
+      const nadeDoc = await get(this.collection, nadeId);
 
-    if (!nadeDoc) {
-      throw ErrorFactory.NotFound(`Nade not found, ${nadeId}`);
+      return nadeDoc ? this.toNadeDTO(nadeDoc) : null;
+    } catch (error) {
+      Logger.error("NadeFireRepo.getById", error);
+      throw ErrorFactory.InternalServerError("Failed get nade with id");
     }
-
-    // await this.cleanupImages(nadeId);
-
-    return {
-      ...nadeDoc.data,
-      id: nadeDoc.ref.id,
-      score: this.newCalcScore(nadeDoc.data),
-    };
   };
 
-  getBySlug = async (slug: string): Promise<NadeDto> => {
-    const nadeDocs = await query(this.collection, [where("slug", "==", slug)]);
+  getBySlug = async (slug: string): Promise<NadeDto | null> => {
+    try {
+      const nadeDocs = await query(this.collection, [
+        where("slug", "==", slug),
+      ]);
 
-    if (!nadeDocs.length) {
-      throw ErrorFactory.NotFound(`Nade not found, ${slug}`);
+      if (!nadeDocs.length) {
+        return null;
+      }
+
+      const nade = nadeDocs[0];
+
+      const freshNade = await this.getById(nade.ref.id);
+
+      return freshNade;
+    } catch (error) {
+      Logger.error("NadeFireRepo.getBySlug", error);
+      throw ErrorFactory.InternalServerError("Failed get nade with slug");
     }
-
-    const nade = nadeDocs[0];
-
-    // await this.cleanupImages(nade.ref.id);
-
-    const freshNade = await this.getById(nade.ref.id);
-
-    return freshNade;
   };
 
   getByMap = async (
@@ -150,13 +165,6 @@ export class NadeFireRepo implements NadeRepo {
     const nadeDocs = await query(this.collection, queryBuilder);
 
     const nades = nadeDocs.map(this.toNadeDTO);
-
-    // @ts-ignore
-    const nadesWithLegacyNades = nades.filter((n) => n.images);
-
-    const promises = nadesWithLegacyNades.map((n) => this.cleanupImages(n.id));
-
-    await Promise.all(promises);
 
     return nades;
   };
@@ -183,7 +191,7 @@ export class NadeFireRepo implements NadeRepo {
   };
 
   save = async (nadeCreate: NadeCreateModel): Promise<NadeDto> => {
-    const nadeModel: NadeFireModel = {
+    const nadeModel: AddModel<NadeFireModel> = {
       ...nadeCreate,
       createdAt: value("serverDate"),
       updatedAt: value("serverDate"),
@@ -195,7 +203,9 @@ export class NadeFireRepo implements NadeRepo {
 
     const nade = await add(this.collection, cleanNadeModel);
 
-    return this.toNadeDTO(nade);
+    const result = await this.byIdAfterSave(nade.id);
+
+    return result;
   };
 
   update = async (
@@ -204,7 +214,7 @@ export class NadeFireRepo implements NadeRepo {
     setNewUpdateNade?: boolean,
     setNewCreatedAt?: boolean
   ): Promise<NadeDto> => {
-    let modelUpdates: ModelUpdate<NadeFireModel> = {
+    let modelUpdates: UpdateModel<NadeFireModel> = {
       ...updates,
       lastGfycatUpdate: updates.lastGfycatUpdate
         ? value("serverDate")
@@ -215,7 +225,7 @@ export class NadeFireRepo implements NadeRepo {
 
     await update(this.collection, nadeId, removeUndefines(modelUpdates));
 
-    const nade = await this.getById(nadeId);
+    const nade = await this.byIdAfterSave(nadeId);
 
     return nade;
   };
@@ -250,7 +260,7 @@ export class NadeFireRepo implements NadeRepo {
       favoriteCount: value("increment", 1),
     });
 
-    return this.getById(nadeId);
+    return this.byIdAfterSave(nadeId);
   };
 
   decrementFavoriteCount = async (nadeId: string) => {
@@ -258,7 +268,7 @@ export class NadeFireRepo implements NadeRepo {
       favoriteCount: value("increment", -1),
     });
 
-    return this.getById(nadeId);
+    return this.byIdAfterSave(nadeId);
   };
 
   incrementCommentCount = async (nadeId: string) => {
@@ -266,7 +276,7 @@ export class NadeFireRepo implements NadeRepo {
       commentCount: value("increment", 1),
     });
 
-    return this.getById(nadeId);
+    return this.byIdAfterSave(nadeId);
   };
 
   decrementCommentCount = async (nadeId: string) => {
@@ -274,7 +284,7 @@ export class NadeFireRepo implements NadeRepo {
       commentCount: value("increment", -1),
     });
 
-    return this.getById(nadeId);
+    return this.byIdAfterSave(nadeId);
   };
 
   incementUpVoteCount = async (nadeId: string) => {
@@ -282,14 +292,14 @@ export class NadeFireRepo implements NadeRepo {
       upVoteCount: value("increment", 1),
     });
 
-    return this.getById(nadeId);
+    return this.byIdAfterSave(nadeId);
   };
 
   decrementUpVoteCount = async (nadeId: string) => {
     update(this.collection, nadeId, {
       upVoteCount: value("increment", -1),
     });
-    return this.getById(nadeId);
+    return this.byIdAfterSave(nadeId);
   };
 
   incementDownVoteCount = async (nadeId: string) => {
@@ -304,6 +314,15 @@ export class NadeFireRepo implements NadeRepo {
       downVoteCount: value("increment", -1),
     });
     return this.getById(nadeId);
+  };
+
+  private byIdAfterSave = async (nadeId: string) => {
+    const nade = await this.getById(nadeId);
+    if (!nade) {
+      Logger.error("Failed to get nade after save or update");
+      throw ErrorFactory.InternalServerError("Failed to get nade after update");
+    }
+    return nade;
   };
 
   private toNadeDTO = (doc: Doc<NadeFireModel>): NadeDto => {
@@ -323,96 +342,5 @@ export class NadeFireRepo implements NadeRepo {
     const score = (votes / Math.pow(addedHoursAgo, gravity)) * 1000;
 
     return score;
-  };
-
-  // Remove once all images are fixed
-  private cleanupImages = async (nadeId: string) => {
-    const nade = await this.getById(nadeId);
-
-    const nadeLogId = nade.slug || nade.id;
-
-    const touchedElements: string[] = [];
-
-    if (!nade.images) {
-      return;
-    } else {
-      const mainImage = this.extractMainImage(nade);
-      const lineUpImage = this.extractLineupImage(nade);
-      const lineUpImageThumb = this.extractLineupThumbImage(nade);
-
-      // Sync mainImage
-      if (!mainImage) {
-        console.log(`${nadeLogId} > !!! Could not find main image"`, nade);
-        return;
-      } else if (mainImage && !nade.imageMain) {
-        touchedElements.push("imageMain");
-        await update(this.collection, nadeId, { imageMain: mainImage });
-      }
-
-      // Synce lineupImage
-      if (lineUpImage && !nade.imageLineup) {
-        touchedElements.push("imageLineup");
-        await update(this.collection, nadeId, { imageLineup: lineUpImage });
-      }
-
-      if (lineUpImageThumb && !nade.imageLineupThumb) {
-        touchedElements.push("imageLineupThumb");
-        await update(this.collection, nadeId, {
-          imageLineupThumb: lineUpImageThumb,
-        });
-      }
-
-      await update(this.collection, nadeId, { images: value("remove") });
-      console.log(
-        `${nade.map} | ${nadeLogId} > Updated`,
-        touchedElements.join(", ")
-      );
-    }
-  };
-
-  private extractMainImage = (nade: NadeDto): ImageData | undefined => {
-    if (nade.imageMain) {
-      return this.getImageDataFromUrl(nade.imageMain.url, "nades");
-    } else {
-      if (!nade.images?.thumbnailUrl) {
-        console.log("Unexpected missing main image", nade);
-        return;
-      }
-
-      return this.getImageDataFromUrl(nade.images.thumbnailUrl, "nades");
-    }
-  };
-
-  private extractLineupImage = (nade: NadeDto): ImageData | undefined => {
-    if (nade.imageLineup) {
-      return this.getImageDataFromUrl(nade.imageLineup.url, "lineup");
-    } else if (!nade.images?.lineupUrl) {
-      return undefined;
-    } else {
-      return this.getImageDataFromUrl(nade.images.lineupUrl, "lineup");
-    }
-  };
-
-  private extractLineupThumbImage = (nade: NadeDto): ImageData | undefined => {
-    if (!nade.imageLineupThumb) {
-      return;
-    } else {
-      return this.getImageDataFromUrl(nade.imageLineupThumb.url, "lineup");
-    }
-  };
-
-  private getImageDataFromUrl = (
-    url: string,
-    collection: string
-  ): ImageData => {
-    const fixedUrl = url.replace("%2F", "/");
-    const parts = fixedUrl.split("/");
-    const id = parts.pop() as string;
-
-    return {
-      id,
-      collection,
-      url: fixedUrl,
-    };
   };
 }

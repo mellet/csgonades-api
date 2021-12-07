@@ -1,5 +1,5 @@
 import { Bucket } from "@google-cloud/storage";
-import * as Sentry from "@sentry/node";
+import { Logger } from "../logger/Logger";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import { ImageCollection } from "./ImageGalleryService";
 
@@ -73,7 +73,7 @@ export class ImageStorageRepo {
         const image = this.bucket.file(imagePath);
         await image.delete();
       } catch (error) {
-        Sentry.captureException(error);
+        Logger.error(error);
       }
     }
   }
@@ -94,7 +94,7 @@ export class ImageStorageRepo {
         },
       });
     } catch (error) {
-      Sentry.captureException(error);
+      Logger.error(error);
       throw ErrorFactory.ExternalError("Failed to upload image.");
     }
   };

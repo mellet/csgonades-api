@@ -8,6 +8,9 @@ import {
   query,
   value,
 } from "typesaurus";
+import { AddModel } from "typesaurus/add";
+import { Logger } from "../../logger/Logger";
+import { ErrorFactory } from "../../utils/ErrorUtil";
 import { AuditDto } from "../dto/AuditDto";
 import { AuditModel } from "../dto/AuditModel";
 import { CreateAuditDto } from "../dto/CreateAuditDto";
@@ -21,23 +24,32 @@ export class AuditFireRepo implements AuditRepo {
   }
 
   getAuditEvents = async (): Promise<AuditDto[]> => {
-    const docs = await query(this.collection, [
-      order("createdAt", "desc"),
-      limit(20),
-    ]);
-    const auditEvents = docs.map(this.docToDto);
+    try {
+      const docs = await query(this.collection, [
+        order("createdAt", "desc"),
+        limit(20),
+      ]);
+      const auditEvents = docs.map(this.docToDto);
 
-    return auditEvents;
+      return auditEvents;
+    } catch (error) {
+      Logger.error(error);
+      throw ErrorFactory.InternalServerError("Failed to get audit events");
+    }
   };
 
-  createAuditEvent = async (data: CreateAuditDto): Promise<AuditDto> => {
-    const newAuditEvent: AuditModel = {
-      ...data,
-      createdAt: value("serverDate"),
-    };
-    const res = await add(this.collection, newAuditEvent);
+  createAuditEvent = async (data: CreateAuditDto): Promise<void> => {
+    try {
+      const newAuditEvent: AddModel<AuditModel> = {
+        ...data,
+        createdAt: value("serverDate"),
+      };
 
-    return this.docToDto(res);
+      await add(this.collection, newAuditEvent);
+    } catch (error) {
+      Logger.error(error);
+      throw ErrorFactory.InternalServerError("Failed to create audit events");
+    }
   };
 
   private docToDto = (doc: Doc<AuditModel>): AuditDto => {

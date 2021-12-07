@@ -1,10 +1,9 @@
-import * as Sentry from "@sentry/node";
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { Logger } from "../logger/Logger";
-import { createAppContext } from "../utils/AppContext";
+import { AppContext, createAppContext } from "../utils/AppContext";
 import { adminOrModHandler, authOnlyHandler } from "../utils/AuthHandlers";
-import { errorCatchConverter } from "../utils/ErrorUtil";
+import { ErrorFactory } from "../utils/ErrorUtil";
 import { UserFilter } from "./repository/UserFireRepo";
 import { UserService } from "./UserService";
 import { validateSteamId, validateUserUpdateDTO } from "./UserValidators";
@@ -21,79 +20,66 @@ export const makeUserRouter = (userService: UserService): Router => {
   });
 
   UserRouter.get("/users/self", authOnlyHandler, limiter, async (req, res) => {
-    try {
-      const context = createAppContext(req);
+    const context = createAppContext(req);
+    const user = await userService.byId(context, context.authUser!.steamId);
 
-      const user = await userService.byId(context, context.authUser!.steamId);
-      Logger.verbose("UserRouter.self", user.nickname);
-
-      return res.status(200).send(user);
-    } catch (error) {
-      Logger.error(error);
-      Sentry.captureException(error);
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
+    if (!user) {
+      return res.status(404).send();
     }
+
+    return res.status(200).send(user);
   });
 
   UserRouter.get("/users/:steamId", async (req, res) => {
-    try {
-      const { steamId } = validateSteamId(req);
-      const context = createAppContext(req);
+    const { steamId } = validateSteamId(req);
+    const context = createAppContext(req);
 
-      const user = await userService.byId(context, steamId);
+    const user = await userService.byId(context, steamId);
 
-      Logger.verbose("UserRouter.getUser", user.nickname);
-
-      return res.status(200).send(user);
-    } catch (error) {
-      Logger.error(error);
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
+    if (!user) {
+      return res.status(404).send();
     }
+
+    return res.status(200).send(user);
   });
 
   UserRouter.get("/users", adminOrModHandler, async (req, res) => {
-    try {
-      const { limit, page, sortActive } = req.query;
+    const { limit, page, sortActive } = req.query;
 
-      const userFilter: UserFilter = {
-        byActivity: sortActive === "true",
-        limit: limit ? Number(limit) : undefined,
-        page: page ? Number(page) : undefined,
-      };
+    const userFilter: UserFilter = {
+      byActivity: sortActive === "true",
+      limit: limit ? Number(limit) : undefined,
+      page: page ? Number(page) : undefined,
+    };
 
-      const users = await userService.all(userFilter);
+    const users = await userService.all(userFilter);
 
-      Logger.verbose("UserRouter.getUsers", users.length);
+    Logger.verbose("UserRouter.getUsers", users.length);
 
-      return res.status(200).send(users);
-    } catch (error) {
-      Logger.error(error);
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
-    }
+    return res.status(200).send(users);
   });
 
   UserRouter.patch("/users/:steamId", authOnlyHandler, async (req, res) => {
-    try {
-      const { steamId } = validateSteamId(req);
-      const userUpdateFields = validateUserUpdateDTO(req);
-      const context = createAppContext(req);
+    const { steamId } = validateSteamId(req);
+    const userUpdateFields = validateUserUpdateDTO(req);
+    const context = createAppContext(req);
 
-      const user = await userService.update(context, steamId, userUpdateFields);
+    validateAllowEdit(context, steamId);
 
-      Logger.verbose("UserRouter.updateUser", user.steamId);
+    const user = await userService.update(steamId, userUpdateFields);
 
-      return res.status(202).send(user);
-    } catch (error) {
-      Logger.error(error);
-      Sentry.captureException(error);
-
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
-    }
+    return res.status(202).send(user);
   });
 
   return UserRouter;
 };
+
+function validateAllowEdit(context: AppContext, steamIdToBeEdited: string) {
+  const isUpdatingSelf = steamIdToBeEdited === context.authUser?.steamId;
+  const isPrivilegedUser = context.authUser?.role === "administrator";
+
+  if (!isUpdatingSelf && !isPrivilegedUser) {
+    Logger.warning("UserService.update - Forbidden");
+    throw ErrorFactory.Forbidden("You are not allowed to edit this user");
+  }
+}

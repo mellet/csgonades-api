@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/node";
 import { RequestHandler, Router } from "express";
 import { AuditService } from "../audit/AuditService";
 import { CreateAuditDto } from "../audit/dto/CreateAuditDto";
@@ -13,7 +12,7 @@ import {
   adminOrModHandler,
   authOnlyHandler,
 } from "../utils/AuthHandlers";
-import { errorCatchConverter, ErrorFactory } from "../utils/ErrorUtil";
+import { ErrorFactory } from "../utils/ErrorUtil";
 import { userFromRequest } from "../utils/RouterUtils";
 import { sanitizeIt } from "../utils/Sanitize";
 import { getSessionId } from "../utils/SessionRoute";
@@ -40,13 +39,13 @@ export class NadeRouter {
   private router: Router;
   private nadeService: NadeService;
   private gfycatApi: GfycatApi;
-  private auditServer: AuditService;
+  private auditService: AuditService;
   private userService: UserService;
 
   constructor(services: NadeRouterServices) {
     this.nadeService = services.nadeService;
     this.gfycatApi = services.gfycatApi;
-    this.auditServer = services.auditService;
+    this.auditService = services.auditService;
     this.userService = services.userService;
     this.router = Router();
     this.setUpRoutes();
@@ -89,336 +88,199 @@ export class NadeRouter {
   };
 
   private getFlaggedNades: RequestHandler = async (_, res) => {
-    try {
-      const nades = await this.nadeService.getFlagged();
-      Logger.verbose("NadeRouter.getFlaggedNades", nades.length);
+    const nades = await this.nadeService.getFlagged();
 
-      return res.status(200).send(nades);
-    } catch (error) {
-      Logger.error(error);
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
-    }
+    return res.status(200).send(nades);
   };
 
   private favorite: RequestHandler = async (req, res) => {
-    try {
-      const user = userFromRequest(req);
-      const nadeId = sanitizeIt(req.params.id);
+    const user = userFromRequest(req);
+    const nadeId = sanitizeIt(req.params.id);
 
-      if (!user || !user.steamId) {
-        Logger.error("NadeRouter.favorite Not signed in");
-
-        throw ErrorFactory.Forbidden("Not signed in");
-      }
-
-      if (!nadeId) {
-        Logger.error("NadeRouter.favorite No nade selected");
-        throw ErrorFactory.BadRequest("Not signed in or no nade selected");
-      }
-
-      const favorite = await this.nadeService.favoriteNade(
-        nadeId,
-        user.steamId
-      );
-
-      Logger.verbose("NadeRouter.favorite", nadeId);
-
-      return res.status(201).send(favorite);
-    } catch (error) {
-      Logger.error(error);
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
+    if (!user || !user.steamId) {
+      Logger.warning("NadeRouter.favorite Not signed in");
+      throw ErrorFactory.Forbidden("Not signed in");
     }
+
+    if (!nadeId) {
+      Logger.error("NadeRouter.favorite No nade selected");
+      throw ErrorFactory.BadRequest("Not signed in or no nade selected");
+    }
+
+    const favorite = await this.nadeService.favoriteNade(nadeId, user.steamId);
+
+    return res.status(201).send(favorite);
   };
 
   private unFavorite: RequestHandler = async (req, res) => {
-    try {
-      const user = userFromRequest(req);
-      const nadeId = sanitizeIt(req.params.id);
+    const user = userFromRequest(req);
+    const nadeId = sanitizeIt(req.params.id);
 
-      if (!user || !user.steamId) {
-        Logger.error("NadeRouter.unFavorite Not signed in");
-        throw ErrorFactory.Forbidden("Not signed in");
-      }
-
-      if (!nadeId) {
-        Logger.error("NadeRouter.unFavorite No nade selected");
-        throw ErrorFactory.BadRequest("Not signed in or no nade selected");
-      }
-
-      await this.nadeService.unFavoriteNade(nadeId, user.steamId);
-
-      Logger.verbose("NadeRouter.unFavorite", nadeId);
-
-      return res.status(204).send();
-    } catch (error) {
-      Logger.error(error);
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
+    if (!user || !user.steamId) {
+      Logger.error("NadeRouter.unFavorite Not signed in");
+      throw ErrorFactory.Forbidden("Not signed in");
     }
+
+    if (!nadeId) {
+      Logger.error("NadeRouter.unFavorite No nade selected");
+      throw ErrorFactory.BadRequest("Not signed in or no nade selected");
+    }
+
+    await this.nadeService.unFavoriteNade(nadeId, user.steamId);
+
+    return res.status(204).send();
   };
 
   private checkSlug: RequestHandler = async (req, res) => {
-    try {
-      const slug = req.params.id;
-      const slugIsFree = await this.nadeService.isSlugAvailable(slug);
+    const slug = req.params.id;
+    const slugIsFree = await this.nadeService.isSlugAvailable(slug);
 
-      Logger.verbose("NadeRouter.checkSlug", slug);
-      return res.status(200).send(slugIsFree);
-    } catch (error) {
-      Logger.error(error);
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
-    }
+    return res.status(200).send(slugIsFree);
   };
 
   private getNades: RequestHandler = async (req, res) => {
-    try {
-      const limitParam = req?.query?.limit;
-      let limit: number | undefined = undefined;
+    const limitParam = req?.query?.limit;
+    let limit: number | undefined = undefined;
 
-      if (!limitParam) {
-        limit = 8;
-      } else if (limitParam === "all") {
-        limit = undefined;
-      } else {
-        limit = Number(limit);
-      }
-
-      const nades = await this.nadeService.getRecent(limit);
-
-      Logger.verbose("NadeRouter.getNades", nades.length);
-
-      return res.status(200).send(nades);
-    } catch (error) {
-      Logger.error(error);
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
+    if (!limitParam) {
+      limit = 8;
+    } else if (limitParam === "all") {
+      limit = undefined;
+    } else {
+      limit = Number(limit);
     }
+
+    const nades = await this.nadeService.getRecent(limit);
+
+    return res.status(200).send(nades);
   };
 
   private getPendingNades: RequestHandler = async (_, res) => {
-    try {
-      const pendingNades = await this.nadeService.getPending();
+    const pendingNades = await this.nadeService.getPending();
 
-      Logger.verbose("NadeRouter.getPendingNades", pendingNades.length);
-      return res.status(200).send(pendingNades);
-    } catch (error) {
-      Logger.error(error);
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
-    }
+    return res.status(200).send(pendingNades);
   };
 
   private getDeclinedNades: RequestHandler = async (_, res) => {
-    try {
-      const declinedNades = await this.nadeService.getDeclined();
-      Logger.verbose("NadeRouter.getDeclinedNades", declinedNades.length);
+    const declinedNades = await this.nadeService.getDeclined();
 
-      return res.status(200).send(declinedNades);
-    } catch (error) {
-      Logger.error(error);
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
-    }
+    return res.status(200).send(declinedNades);
   };
 
   private getDeletedNades: RequestHandler = async (_, res) => {
-    try {
-      const declinedNades = await this.nadeService.getDeleted();
-      Logger.verbose("NadeRouter.getDeletedNades", declinedNades.length);
+    const declinedNades = await this.nadeService.getDeleted();
 
-      return res.status(200).send(declinedNades);
-    } catch (error) {
-      Logger.error(error);
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
-    }
+    return res.status(200).send(declinedNades);
   };
 
   private getById: RequestHandler = async (req, res) => {
-    try {
-      const id = sanitizeIt(req.params.id);
+    const id = sanitizeIt(req.params.id);
 
-      let nade: NadeDto | null = null;
+    let nade: NadeDto | null = null;
 
-      if (this.isSlug(id)) {
-        nade = await this.nadeService.getBySlug(id);
-      } else {
-        nade = await this.nadeService.getById(id);
-      }
-
-      if (!nade) {
-        return res.status(404).send({
-          status: 404,
-          message: `Nade not found. ${id}`,
-        });
-      }
-
-      Logger.verbose("NadeRouter.getById", nade.slug);
-
-      return res.status(200).send(nade);
-    } catch (error) {
-      Logger.error(error);
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
+    if (this.isSlug(id)) {
+      nade = await this.nadeService.getBySlug(id);
+    } else {
+      nade = await this.nadeService.getById(id);
     }
+
+    if (!nade) {
+      return res.status(404).send();
+    }
+
+    return res.status(200).send(nade);
   };
 
   private getByMap: RequestHandler = async (req, res) => {
-    try {
-      const type = sanitizeIt(req.query.type) as NadeType | undefined;
-      const mapName = sanitizeIt(req.params.mapname) as CsgoMap;
-      const nades = await this.nadeService.getByMap(mapName, type);
+    const type = sanitizeIt(req.query.type) as NadeType | undefined;
+    const mapName = sanitizeIt(req.params.mapname) as CsgoMap;
+    const nades = await this.nadeService.getByMap(mapName, type);
 
-      Logger.verbose("NadeRouter.getByMap", mapName, nades.length);
-
-      return res.status(200).send(nades);
-    } catch (error) {
-      Logger.error(error);
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
-    }
+    return res.status(200).send(nades);
   };
 
   private getByUser: RequestHandler = async (req, res) => {
-    try {
-      const csgoMap = sanitizeIt(req.query.map) as CsgoMap | undefined;
-      const steamId = sanitizeIt(req.params.steamId);
-      const nades = await this.nadeService.getByUser(steamId, csgoMap);
+    const csgoMap = sanitizeIt(req.query.map) as CsgoMap | undefined;
+    const steamId = sanitizeIt(req.params.steamId);
+    const nades = await this.nadeService.getByUser(steamId, csgoMap);
 
-      Logger.verbose("NadeRouter.getByUser", csgoMap, steamId, nades.length);
-
-      return res.status(200).send(nades);
-    } catch (error) {
-      Logger.error(error);
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
-    }
+    return res.status(200).send(nades);
   };
 
   private addNade: RequestHandler = async (req, res) => {
-    try {
-      const user = userFromRequest(req);
-      const nadeBody = validateNadeCreateBody(req);
+    const user = userFromRequest(req);
+    const nadeBody = validateNadeCreateBody(req);
+    const nade = await this.nadeService.save(nadeBody, user.steamId);
 
-      const nade = await this.nadeService.save(nadeBody, user.steamId);
-
-      if (!nade) {
-        Logger.error("NadeRouter.addNade, failed to add nade", nadeBody);
-      } else {
-        Logger.verbose("NadeRouter.addNade", nade.id);
-      }
-
-      return res.status(201).send(nade);
-    } catch (error) {
-      Logger.error(error);
-      Sentry.captureException(error);
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
-    }
+    return res.status(201).send(nade);
   };
 
   private updateNade: RequestHandler = async (req, res) => {
-    try {
-      const id = sanitizeIt(req.params.id);
-      const context = createAppContext(req);
-      const user = userFromRequest(req);
-      const updateDto = validateNadeEditBody(req);
-      const preUpdateNade = await this.nadeService.getById(id);
+    const id = sanitizeIt(req.params.id);
+    const context = createAppContext(req);
+    const user = userFromRequest(req);
+    const updateDto = validateNadeEditBody(req);
+    const preUpdateNade = await this.nadeService.getById(id);
 
-      const updatedNade = await this.nadeService.update(id, updateDto, user);
-
-      if (updatedNade) {
-        const editingUser = await this.userService.byId(context, user.steamId);
-        this.createAuditEntryNadeUpdate(
-          {
-            nickname: editingUser.nickname,
-            avatar: editingUser.avatar,
-            role: editingUser.role,
-            steamId: editingUser.steamId,
-          },
-          preUpdateNade,
-          updatedNade
-        );
-      }
-
-      Logger.verbose("NadeRouter.updateNade", id);
-
-      return res.status(202).send(updatedNade);
-    } catch (error) {
-      Logger.error(error);
-      Sentry.captureException(error);
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
+    if (!preUpdateNade) {
+      return res.status(404).send();
     }
+
+    const editingUser = await this.userService.byId(context, user.steamId);
+
+    if (!editingUser) {
+      throw ErrorFactory.NotFound("No user found to update nade");
+    }
+
+    const updatedNade = await this.nadeService.update(id, updateDto, user);
+
+    this.createAuditEntryNadeUpdate(
+      {
+        nickname: editingUser.nickname,
+        avatar: editingUser.avatar,
+        role: editingUser.role,
+        steamId: editingUser.steamId,
+      },
+      preUpdateNade,
+      updatedNade
+    );
+
+    return res.status(202).send(updatedNade);
   };
 
   private incrementViewCount: RequestHandler = async (req, res) => {
-    try {
-      const identifier = getSessionId(req);
+    const identifier = getSessionId(req);
 
-      if (identifier) {
-        return res.status(202).send();
-      } else {
-        return res.status(406).send();
-      }
-    } catch (error) {
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
+    if (identifier) {
+      return res.status(202).send();
+    } else {
+      return res.status(406).send();
     }
   };
 
   private validateGfy: RequestHandler = async (req, res) => {
-    try {
-      const validateGfycat = req.body as NadeGfycatValidateDto;
+    const validateGfycat = req.body as NadeGfycatValidateDto;
 
-      const gfyDataResponse = await this.gfycatApi.getGfycatData(
-        validateGfycat.gfycatIdOrUrl
-      );
+    const { gfyItem } = await this.gfycatApi.getGfycatData(
+      validateGfycat.gfycatIdOrUrl
+    );
 
-      if (!gfyDataResponse) {
-        Logger.error("NadeRouter.validateGfy | Gfycat seems to be down");
-        return res.status(500).send({
-          message: "Gfycat seems to be down.",
-        });
-      }
+    const gfyData: GfycatData = {
+      gfyId: gfyItem.gfyId,
+      smallVideoUrl: gfyItem.mobileUrl,
+      largeVideoUrl: gfyItem.mp4Url,
+      largeVideoWebm: gfyItem.webmUrl,
+      avgColor: gfyItem.avgColor,
+    };
 
-      const { gfyItem } = gfyDataResponse;
-
-      const gfyData: GfycatData = {
-        gfyId: gfyItem.gfyId,
-        smallVideoUrl: gfyItem.mobileUrl,
-        largeVideoUrl: gfyItem.mp4Url,
-        largeVideoWebm: gfyItem.webmUrl,
-        avgColor: gfyItem.avgColor,
-      };
-
-      Logger.verbose("NadeRouter.validateGfy");
-
-      return res.status(200).send(gfyData);
-    } catch (error) {
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
-    }
+    return res.status(200).send(gfyData);
   };
 
   private deleteNade: RequestHandler = async (req, res) => {
-    try {
-      const id = sanitizeIt(req.params.id);
+    const id = sanitizeIt(req.params.id);
+    await this.nadeService.delete(id);
 
-      await this.nadeService.delete(id);
-
-      Logger.verbose("NadeRouter.deleteNade", id);
-
-      return res.status(204).send();
-    } catch (error) {
-      console.log("Failed to delete", error);
-      Sentry.captureException(error);
-      const err = errorCatchConverter(error);
-      return res.status(err.code).send(err);
-    }
+    return res.status(204).send();
   };
 
   private isSlug = (value: string) => {
@@ -501,6 +363,6 @@ export class NadeRouter {
       onNadeId: updatedNade.id,
     };
 
-    this.auditServer.createAuditEvent(auditEvent);
+    this.auditService.createAuditEvent(auditEvent);
   };
 }

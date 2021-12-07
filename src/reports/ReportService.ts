@@ -20,7 +20,7 @@ export class ReportService {
     return this.reportRepo.getAll();
   };
 
-  save = async (saveDto: ReportSaveDto): Promise<ReportDto> => {
+  save = async (saveDto: ReportSaveDto): Promise<ReportDto | null> => {
     const report = await this.reportRepo.save(saveDto);
     this.notificationRepo.newReport();
     return report;

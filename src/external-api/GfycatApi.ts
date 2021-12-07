@@ -1,8 +1,8 @@
-import * as Sentry from "@sentry/node";
 import Gfycat, { GfycatDetailsResponse } from "gfycat-sdk";
 import { CSGNConfig } from "../config/enironment";
 import { Logger } from "../logger/Logger";
 import { extractGfyIdFromIdOrUrl } from "../utils/Common";
+import { ErrorFactory } from "../utils/ErrorUtil";
 
 export class GfycatApi {
   private gfycatSdk: Gfycat;
@@ -15,15 +15,16 @@ export class GfycatApi {
   }
   getGfycatData = async (
     gfyIdOrUrl: string
-  ): Promise<GfycatDetailsResponse | null> => {
+  ): Promise<GfycatDetailsResponse> => {
     try {
       const gfyId = extractGfyIdFromIdOrUrl(gfyIdOrUrl);
       const gfyResponse = await this.gfycatSdk.getGifDetails({ gfyId });
+
+      Logger.verbose("GfycatApi.getGfycatData", gfyId);
       return gfyResponse;
     } catch (error) {
-      Logger.error(error);
-      Sentry.captureException(error);
-      return null;
+      Logger.error("GfycatApi.getGfycatData - Gfycat offline");
+      throw ErrorFactory.ExternalError("Gfycat offline");
     }
   };
 }

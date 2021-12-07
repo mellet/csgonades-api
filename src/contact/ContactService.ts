@@ -21,7 +21,7 @@ export class ContactService {
     return this.contactRepo.getMessages();
   };
 
-  saveMessage = (data: ContactSaveDto): Promise<ContactDto> => {
+  saveMessage = (data: ContactSaveDto): Promise<void> => {
     this.notificationRepo.newContactMessage();
     return this.contactRepo.saveMessage(data);
   };

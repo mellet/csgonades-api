@@ -9,9 +9,7 @@ export function sessionRoute(req: Request, res: Response) {
 
   Logger.verbose("SessionRouter.initSession", req.ip);
 
-  return res.status(200).send({
-    authenticated,
-  });
+  return res.status(200).send({ authenticated });
 }
 
 export function getSessionId(req: Request): string | null {

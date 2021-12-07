@@ -8,11 +8,11 @@ export class MongoTestDatabase {
     const uri = await mongod.getUri();
 
     await mongoose.connect(uri, {
-      useNewUrlParser: true,
-      useFindAndModify: false,
-      useUnifiedTopology: true,
-      reconnectInterval: 1,
-      autoReconnect: true,
+      // useNewUrlParser: true,
+      // useFindAndModify: false,
+      // useUnifiedTopology: true,
+      // reconnectInterval: 1,
+      // autoReconnect: true,
     });
   };
 

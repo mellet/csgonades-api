@@ -6,9 +6,6 @@ export interface UserRepo {
   all: (filter: UserFilter) => Promise<UserDto[]>;
   byId: (steamId: string) => Promise<UserModel | null>;
   create: (userCreate: UserCreateDto) => Promise<UserModel>;
-  update: (
-    steamId: string,
-    updateFields: UserUpdateDto
-  ) => Promise<UserModel | null>;
+  update: (steamId: string, updateFields: UserUpdateDto) => Promise<UserModel>;
   updateActivity: (steamId: string) => Promise<void>;
 }

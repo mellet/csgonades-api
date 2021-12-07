@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/node";
 import { Router } from "express";
 import { Logger } from "../logger/Logger";
 import { adminOnlyHandler } from "../utils/AuthHandlers";
@@ -58,7 +57,6 @@ export class ContactRouter {
       return res.status(201).send();
     } catch (error) {
       Logger.error(error);
-      Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }

@@ -7,6 +7,7 @@ import {
   remove,
   value,
 } from "typesaurus";
+import { AddModel } from "typesaurus/add";
 import { ContactDto } from "../dto/ContactDto";
 import { ContactModel } from "../dto/ContactModel";
 import { ContactSaveDto } from "../dto/ContactSaveDto";
@@ -25,14 +26,13 @@ export class ContactFireRepo implements ContactRepo {
     return messages;
   };
 
-  saveMessage = async (data: ContactSaveDto): Promise<ContactDto> => {
-    const newMessage: ContactModel = {
+  saveMessage = async (data: ContactSaveDto): Promise<void> => {
+    const newMessage: AddModel<ContactModel> = {
       ...data,
       createdAt: value("serverDate"),
     };
-    const res = await add(this.collection, newMessage);
 
-    return this.docToDto(res);
+    await add(this.collection, newMessage);
   };
 
   deleteMessage = async (id: string): Promise<void> => {

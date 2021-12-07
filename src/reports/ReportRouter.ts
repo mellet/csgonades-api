@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/node";
 import { RequestHandler, Router } from "express";
 import { Logger } from "../logger/Logger";
 import { adminOrModHandler } from "../utils/AuthHandlers";
@@ -50,10 +49,13 @@ export class ReportRouter {
       const result = await this.reportService.save(dto);
       Logger.verbose("ReportRouter.saveReport");
 
+      if (!result) {
+        return res.status(401).send();
+      }
+
       return res.status(202).send(result);
     } catch (error) {
       Logger.error(error);
-      Sentry.captureException(error);
       const err = errorCatchConverter(error);
       return res.status(err.code).send(err);
     }

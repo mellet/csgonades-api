@@ -2,6 +2,7 @@ import { CommentRepo } from "../comment/repository/CommentRepo";
 import { GfycatApi } from "../external-api/GfycatApi";
 import { FavoriteRepo } from "../favorite/repository/FavoriteRepo";
 import { ImageRepo } from "../imageGallery/ImageGalleryService";
+import { Logger } from "../logger/Logger";
 import { NotificationRepo } from "../notifications/repository/NotificationRepo";
 import { StatsRepo } from "../stats/repository/StatsRepo";
 import { UserRepo } from "../user/repository/UserRepo";
@@ -110,11 +111,15 @@ export class NadeService {
 
     const combined = [...missingTeam, ...missingLineup];
 
+    Logger.verbose("NadeService.getFlagged");
+
     return combined.filter((n) => n.map !== "cobblestone");
   };
 
-  isSlugAvailable = async (slug: string) => {
-    return this.nadeRepo.isSlugAvailable(slug);
+  isSlugAvailable = async (slug: string): Promise<boolean> => {
+    const slugAvailable = this.nadeRepo.isSlugAvailable(slug);
+    Logger.verbose("NadeService.isSlugAvailable");
+    return slugAvailable;
   };
 
   favoriteNade = async (nadeId: string, steamId: string) => {
@@ -138,6 +143,8 @@ export class NadeService {
       await this.notificationRepo.newFavorite(nade, userFavoriting);
     }
 
+    Logger.verbose("NadeService.favoriteNade", nadeId);
+
     return favorite;
   };
 
@@ -150,8 +157,10 @@ export class NadeService {
 
     const isOwnNade = nade.steamId === steamId;
 
-    await this.favoriteRepo.reomveFavoriteForNade(nadeId, steamId);
+    await this.favoriteRepo.removeFavoriteForNade(nadeId, steamId);
     await this.nadeRepo.decrementFavoriteCount(nadeId);
+
+    Logger.verbose("NadeService.unFavoriteNade", nadeId);
 
     if (!isOwnNade) {
       await this.notificationRepo.removeFavoriteNotification({
@@ -163,38 +172,50 @@ export class NadeService {
 
   getRecent = async (limit?: number): Promise<NadeMiniDto[]> => {
     const nades = await this.nadeRepo.getAll(limit);
+    Logger.verbose("NadeService.getRecent");
 
     return convertNadesToLightDto(nades);
   };
 
   getPending = async (): Promise<NadeMiniDto[]> => {
     const pendingNades = await this.nadeRepo.getPending();
+    Logger.verbose("NadeService.getPending");
 
     return convertNadesToLightDto(pendingNades);
   };
 
   getDeclined = async (): Promise<NadeMiniDto[]> => {
     const declinedNades = await this.nadeRepo.getDeclined();
+    Logger.verbose("NadeService.getDeclined");
 
     return convertNadesToLightDto(declinedNades);
   };
 
   getDeleted = async () => {
     const declinedNades = await this.nadeRepo.getDeleted();
+    Logger.verbose("NadeService.getDeleted");
 
     return convertNadesToLightDto(declinedNades);
   };
 
-  getById = async (nadeId: string): Promise<NadeDto> => {
+  getById = async (nadeId: string): Promise<NadeDto | null> => {
     const nade = await this.nadeRepo.getById(nadeId);
-    await this.tryUpdateViewCounter(nade);
+    if (nade) {
+      await this.tryUpdateViewCounter(nade);
+    }
+
+    Logger.verbose("NadeService.getById", nadeId);
 
     return nade;
   };
 
-  getBySlug = async (slug: string): Promise<NadeDto> => {
+  getBySlug = async (slug: string): Promise<NadeDto | null> => {
     const nade = await this.nadeRepo.getBySlug(slug);
-    await this.tryUpdateViewCounter(nade);
+    if (nade) {
+      await this.tryUpdateViewCounter(nade);
+    }
+
+    Logger.verbose("NadeService.getBySlug", slug);
 
     return nade;
   };
@@ -204,6 +225,7 @@ export class NadeService {
     nadeType?: NadeType
   ): Promise<NadeMiniDto[]> => {
     const nades = await this.nadeRepo.getByMap(map, nadeType);
+    Logger.verbose("NadeService.getByMap", map);
 
     return convertNadesToLightDto(nades);
   };
@@ -213,14 +235,12 @@ export class NadeService {
     map?: CsgoMap
   ): Promise<NadeMiniDto[]> => {
     const nadesByUser = await this.nadeRepo.getByUser(steamId, map);
+    Logger.verbose("NadeService.getByUser", steamId, map);
 
     return convertNadesToLightDto(nadesByUser);
   };
 
-  save = async (
-    body: NadeCreateDto,
-    steamID: string
-  ): Promise<NadeDto | null> => {
+  save = async (body: NadeCreateDto, steamID: string): Promise<NadeDto> => {
     const user = await this.userRepo.byId(steamID);
 
     if (!user) {
@@ -272,12 +292,17 @@ export class NadeService {
       await this.statsRepo.incrementNadeCounter(nade.type);
     }
     await this.notificationRepo.newNade(nade.id);
+    Logger.verbose("NadeService.save", nade.id);
 
     return nade;
   };
 
   delete = async (nadeId: string) => {
     const nade = await this.nadeRepo.getById(nadeId);
+
+    if (!nade) {
+      throw ErrorFactory.NotFound("Nade to delete not found");
+    }
 
     const deleteParts = [
       ...this.getDeleteImagePromises(nade),
@@ -291,14 +316,21 @@ export class NadeService {
     if (nade.type) {
       await this.statsRepo.decrementNadeCounter(nade.type);
     }
+
+    Logger.verbose("NadeService.delete", nadeId);
   };
 
   update = async (
     nadeId: string,
     updates: NadeUpdateDto,
     user: RequestUser
-  ): Promise<NadeDto | null> => {
+  ): Promise<NadeDto> => {
     const originalNade = await this.getById(nadeId);
+
+    if (!originalNade) {
+      Logger.error("NadeService.update - No nade found");
+      throw ErrorFactory.NotFound("Can't find nade to update");
+    }
 
     verifyAllowEdit(originalNade, user);
     verifyAdminFields(user, updates);
@@ -359,6 +391,8 @@ export class NadeService {
     if (didJustGetAccepted) {
       await this.setNadeSlug(updatedNade);
     }
+
+    Logger.verbose("NadeService.update", nadeId);
 
     return updatedNade;
   };
