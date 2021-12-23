@@ -139,7 +139,7 @@ export class NadeFireRepo implements NadeRepo {
     try {
       const cachedNade = this.cache.get<NadeDto>(cacheKey);
       if (cachedNade) {
-        Logger.verbose(`NadeRepo.getBySlug - ${slug} | cached`);
+        Logger.verbose(`NadeRepo.getBySlug - ${slug} | CACHE`);
         return cachedNade;
       }
 
@@ -159,7 +159,7 @@ export class NadeFireRepo implements NadeRepo {
         this.cache.set(cacheKey, freshNade);
       }
 
-      Logger.verbose(`NadeRepo.getBySlug - ${slug} | db`);
+      Logger.verbose(`NadeRepo.getBySlug - ${slug} | DB`);
 
       return freshNade;
     } catch (error) {
@@ -175,7 +175,7 @@ export class NadeFireRepo implements NadeRepo {
     const cacheKey = ["map", csgoMap, nadeType || ""].join("/");
     const cachedNades = this.mapNadeCache.get<NadeDto[]>(cacheKey);
     if (cachedNades) {
-      Logger.verbose(`NadeRepo.getByMap - ${csgoMap}, ${nadeType} | cached`);
+      Logger.verbose(`NadeRepo.getByMap - ${csgoMap}, ${nadeType} | CACHE`);
       return cachedNades;
     }
 
@@ -196,7 +196,7 @@ export class NadeFireRepo implements NadeRepo {
 
     this.mapNadeCache.set(cacheKey, nades);
 
-    Logger.verbose(`NadeRepo.getByMap - ${csgoMap}, ${nadeType} | uncached`);
+    Logger.verbose(`NadeRepo.getByMap - ${csgoMap}, ${nadeType} | DB`);
 
     return nades;
   };
