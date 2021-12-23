@@ -32,7 +32,7 @@ export function serviceInit(
     userRepo,
   } = repositories;
 
-  const ttl = 60 * 30 * 1; // cache for 30 minutes
+  const ttl = 60 * 60 * 1; // cache for 1 hour
 
   const cache = new AppCache(ttl);
 
