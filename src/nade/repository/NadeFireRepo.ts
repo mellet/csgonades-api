@@ -32,12 +32,15 @@ import { NadeRepo } from "./NadeRepo";
 export class NadeFireRepo implements NadeRepo {
   private collection: Collection<NadeFireModel>;
   private cache: IAppCache;
+  private mapNadeCache: IAppCache;
 
   constructor() {
-    const ttl = 60 * 60 * 12; // cache for 12 Hour
+    const oneHourTtl = 60 * 60 * 1;
+    const twelveHourTttl = 60 * 60 * 12;
 
     this.collection = collection("nades");
-    this.cache = new AppCache(ttl);
+    this.cache = new AppCache(twelveHourTttl);
+    this.mapNadeCache = new AppCache(oneHourTtl);
   }
 
   isSlugAvailable = async (slug: string): Promise<boolean> => {
@@ -136,7 +139,7 @@ export class NadeFireRepo implements NadeRepo {
     try {
       const cachedNade = this.cache.get<NadeDto>(cacheKey);
       if (cachedNade) {
-        Logger.verbose("NadeRepo.getBySlug", slug, "[cached]");
+        Logger.verbose(`NadeRepo.getBySlug - ${slug} | cached`);
         return cachedNade;
       }
 
@@ -156,11 +159,11 @@ export class NadeFireRepo implements NadeRepo {
         this.cache.set(cacheKey, freshNade);
       }
 
-      Logger.verbose("NadeRepo.getBySlug", slug, "[db]");
+      Logger.verbose(`NadeRepo.getBySlug - ${slug} | db`);
 
       return freshNade;
     } catch (error) {
-      Logger.error("NadeFireRepo.getBySlug", error);
+      Logger.error("NadeRepo.getBySlug", error);
       throw ErrorFactory.InternalServerError("Failed get nade with slug");
     }
   };
@@ -169,6 +172,13 @@ export class NadeFireRepo implements NadeRepo {
     csgoMap: CsgoMap,
     nadeType?: NadeType
   ): Promise<NadeDto[]> => {
+    const cacheKey = ["map", csgoMap, nadeType || ""].join("/");
+    const cachedNades = this.mapNadeCache.get<NadeDto[]>(cacheKey);
+    if (cachedNades) {
+      Logger.verbose(`NadeRepo.getByMap - ${csgoMap}, ${nadeType} | cached`);
+      return cachedNades;
+    }
+
     const queryBuilder: Query<NadeFireModel, keyof NadeFireModel>[] = [
       where("status", "==", "accepted"),
       where("map", "==", csgoMap),
@@ -183,6 +193,10 @@ export class NadeFireRepo implements NadeRepo {
     const nadeDocs = await query(this.collection, queryBuilder);
 
     const nades = nadeDocs.map(this.toNadeDTO);
+
+    this.mapNadeCache.set(cacheKey, nades);
+
+    Logger.verbose(`NadeRepo.getByMap - ${csgoMap}, ${nadeType} | uncached`);
 
     return nades;
   };
