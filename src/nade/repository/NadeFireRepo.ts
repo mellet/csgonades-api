@@ -17,6 +17,7 @@ import {
 } from "typesaurus";
 import { AddModel } from "typesaurus/add";
 import { UpdateModel } from "typesaurus/update";
+import { AppCache, IAppCache } from "../../cache/AppCache";
 import { Logger } from "../../logger/Logger";
 import { UserLightModel } from "../../user/UserModel";
 import { removeUndefines } from "../../utils/Common";
@@ -30,9 +31,13 @@ import { NadeRepo } from "./NadeRepo";
 
 export class NadeFireRepo implements NadeRepo {
   private collection: Collection<NadeFireModel>;
+  private cache: IAppCache;
 
   constructor() {
+    const ttl = 60 * 60 * 12; // cache for 12 Hour
+
     this.collection = collection("nades");
+    this.cache = new AppCache(ttl);
   }
 
   isSlugAvailable = async (slug: string): Promise<boolean> => {
@@ -127,7 +132,14 @@ export class NadeFireRepo implements NadeRepo {
   };
 
   getBySlug = async (slug: string): Promise<NadeDto | null> => {
+    const cacheKey = `nade/${slug}`;
     try {
+      const cachedNade = this.cache.get<NadeDto>(cacheKey);
+      if (cachedNade) {
+        Logger.verbose("NadeRepo.getBySlug", slug, "[cached]");
+        return cachedNade;
+      }
+
       const nadeDocs = await query(this.collection, [
         where("slug", "==", slug),
       ]);
@@ -139,6 +151,12 @@ export class NadeFireRepo implements NadeRepo {
       const nade = nadeDocs[0];
 
       const freshNade = await this.getById(nade.ref.id);
+
+      if (freshNade) {
+        this.cache.set(cacheKey, freshNade);
+      }
+
+      Logger.verbose("NadeRepo.getBySlug", slug, "[db]");
 
       return freshNade;
     } catch (error) {
@@ -227,6 +245,10 @@ export class NadeFireRepo implements NadeRepo {
 
     const nade = await this.byIdAfterSave(nadeId);
 
+    if (nade.slug) {
+      this.cache.del(nade.slug);
+    }
+
     return nade;
   };
 
@@ -250,6 +272,9 @@ export class NadeFireRepo implements NadeRepo {
           avatar: user.avatar,
         },
       });
+      if (doc.data.slug) {
+        this.cache.del(doc.data.slug);
+      }
     });
 
     await commit();
@@ -260,7 +285,13 @@ export class NadeFireRepo implements NadeRepo {
       favoriteCount: value("increment", 1),
     });
 
-    return this.byIdAfterSave(nadeId);
+    const nade = await this.byIdAfterSave(nadeId);
+
+    if (nade.slug) {
+      this.cache.del(nade.slug);
+    }
+
+    return nade;
   };
 
   decrementFavoriteCount = async (nadeId: string) => {
@@ -268,7 +299,13 @@ export class NadeFireRepo implements NadeRepo {
       favoriteCount: value("increment", -1),
     });
 
-    return this.byIdAfterSave(nadeId);
+    const nade = await this.byIdAfterSave(nadeId);
+
+    if (nade.slug) {
+      this.cache.del(nade.slug);
+    }
+
+    return nade;
   };
 
   incrementCommentCount = async (nadeId: string) => {
@@ -276,7 +313,13 @@ export class NadeFireRepo implements NadeRepo {
       commentCount: value("increment", 1),
     });
 
-    return this.byIdAfterSave(nadeId);
+    const nade = await this.byIdAfterSave(nadeId);
+
+    if (nade.slug) {
+      this.cache.del(nade.slug);
+    }
+
+    return nade;
   };
 
   decrementCommentCount = async (nadeId: string) => {
@@ -284,36 +327,13 @@ export class NadeFireRepo implements NadeRepo {
       commentCount: value("increment", -1),
     });
 
-    return this.byIdAfterSave(nadeId);
-  };
+    const nade = await this.byIdAfterSave(nadeId);
 
-  incementUpVoteCount = async (nadeId: string) => {
-    update(this.collection, nadeId, {
-      upVoteCount: value("increment", 1),
-    });
+    if (nade.slug) {
+      this.cache.del(nade.slug);
+    }
 
-    return this.byIdAfterSave(nadeId);
-  };
-
-  decrementUpVoteCount = async (nadeId: string) => {
-    update(this.collection, nadeId, {
-      upVoteCount: value("increment", -1),
-    });
-    return this.byIdAfterSave(nadeId);
-  };
-
-  incementDownVoteCount = async (nadeId: string) => {
-    update(this.collection, nadeId, {
-      downVoteCount: value("increment", 1),
-    });
-    return this.getById(nadeId);
-  };
-
-  decrementDownVoteCount = async (nadeId: string) => {
-    update(this.collection, nadeId, {
-      downVoteCount: value("increment", -1),
-    });
-    return this.getById(nadeId);
+    return nade;
   };
 
   private byIdAfterSave = async (nadeId: string) => {

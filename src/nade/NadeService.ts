@@ -220,8 +220,6 @@ export class NadeService {
       await this.tryUpdateViewCounter(nade);
     }
 
-    Logger.verbose("NadeService.getBySlug", slug);
-
     return nade;
   };
 

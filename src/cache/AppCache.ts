@@ -3,6 +3,7 @@ import NodeCache from "node-cache";
 export interface IAppCache {
   get: <T>(key: string) => T | undefined;
   set: <T>(key: string, value: T) => void;
+  del: (key: string) => void;
 }
 
 export class AppCache implements IAppCache {
@@ -22,6 +23,10 @@ export class AppCache implements IAppCache {
 
   set = <T>(key: string, value: T) => {
     this.cache.set(key, value);
+  };
+
+  del = (key: string) => {
+    this.cache.del(key);
   };
 
   flush = () => {
