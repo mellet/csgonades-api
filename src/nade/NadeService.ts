@@ -225,7 +225,7 @@ export class NadeService {
     nadeType?: NadeType
   ): Promise<NadeMiniDto[]> => {
     const nades = await this.nadeRepo.getByMap(map, nadeType);
-    Logger.verbose("NadeService.getByMap", map);
+    Logger.verbose("NadeService.getByMap", map, nadeType);
 
     return convertNadesToLightDto(nades);
   };
