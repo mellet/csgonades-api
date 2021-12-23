@@ -1,4 +1,5 @@
 import { AuditService } from "./audit/AuditService";
+import { AppCache } from "./cache/AppCache";
 import { CommentService } from "./comment/CommentService";
 import { CSGNConfig } from "./config/enironment";
 import { ContactService } from "./contact/ContactService";
@@ -31,6 +32,10 @@ export function serviceInit(
     userRepo,
   } = repositories;
 
+  const ttl = 60 * 30 * 1; // cache for 30 minutes
+
+  const cache = new AppCache(ttl);
+
   const auditService = new AuditService({ auditRepo });
 
   const imageRepo = new ImageRepo({
@@ -57,6 +62,7 @@ export function serviceInit(
     notificationRepo,
     favoriteRepo,
     userRepo,
+    cache,
   });
 
   const favoriteService = new FavoriteService({

@@ -1,3 +1,4 @@
+import { IAppCache } from "../cache/AppCache";
 import { CommentRepo } from "../comment/repository/CommentRepo";
 import { GfycatApi } from "../external-api/GfycatApi";
 import { FavoriteRepo } from "../favorite/repository/FavoriteRepo";
@@ -36,6 +37,7 @@ export type NadeServiceDeps = {
   notificationRepo: NotificationRepo;
   favoriteRepo: FavoriteRepo;
   userRepo: UserRepo;
+  cache: IAppCache;
 };
 
 export class NadeService {
@@ -47,6 +49,7 @@ export class NadeService {
   private commentRepo: CommentRepo;
   private notificationRepo: NotificationRepo;
   private favoriteRepo: FavoriteRepo;
+  private cache: IAppCache;
 
   constructor(deps: NadeServiceDeps) {
     const {
@@ -58,6 +61,7 @@ export class NadeService {
       notificationRepo,
       favoriteRepo,
       userRepo,
+      cache,
     } = deps;
 
     this.nadeRepo = nadeRepo;
@@ -68,6 +72,7 @@ export class NadeService {
     this.notificationRepo = notificationRepo;
     this.favoriteRepo = favoriteRepo;
     this.userRepo = userRepo;
+    this.cache = cache;
 
     // this.recountNades();
   }
@@ -224,8 +229,17 @@ export class NadeService {
     map: CsgoMap,
     nadeType?: NadeType
   ): Promise<NadeMiniDto[]> => {
+    const cacheKey = ["map", map, nadeType || ""].join();
+
+    const cached = this.cache.get<NadeDto[]>(cacheKey);
+    if (cached) {
+      Logger.verbose("[CACHED] NadeService.getByMap", map, nadeType);
+      return convertNadesToLightDto(cached);
+    }
+
     const nades = await this.nadeRepo.getByMap(map, nadeType);
-    Logger.verbose("NadeService.getByMap", map, nadeType);
+    Logger.verbose("[UNCACHED] NadeService.getByMap", map, nadeType);
+    this.cache.set(cacheKey, nades);
 
     return convertNadesToLightDto(nades);
   };
