@@ -49,6 +49,7 @@ export class CommentService {
     const { authUser } = context;
 
     if (!authUser) {
+      Logger.warning("CommentService.save - Not authenticated");
       throw ErrorFactory.Forbidden("Not authenticated");
     }
 

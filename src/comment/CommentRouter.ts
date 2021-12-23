@@ -1,5 +1,4 @@
 import { RequestHandler, Router } from "express";
-import { Logger } from "../logger/Logger";
 import { createAppContext } from "../utils/AppContext";
 import { authOnlyHandler } from "../utils/AuthHandlers";
 import { ErrorFactory } from "../utils/ErrorUtil";
@@ -61,14 +60,12 @@ export class CommentRouter {
   private getCommentsForNade: ReqHandlerWithNadeId = async (req, res) => {
     const nadeId = sanitizeIt(req.params.nadeId);
     const nadeComments = await this.commentService.getForNade(nadeId);
-    Logger.verbose("CommentRouter.getCommentsForNade", nadeComments.length);
 
     return res.status(200).send(nadeComments);
   };
 
   private getRecentcomments: RequestHandler = async (req, res) => {
     const nadeComments = await this.commentService.getRecent();
-    Logger.verbose("CommentRouter.getRecentcomments", nadeComments.length);
 
     return res.status(200).send(nadeComments);
   };
@@ -82,8 +79,6 @@ export class CommentRouter {
     );
 
     const comment = await this.commentService.save(context, commentCreateDto);
-
-    Logger.verbose("CommentRouter.createComment");
 
     return res.status(201).send(comment);
   };
