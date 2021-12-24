@@ -138,11 +138,23 @@ export class NadeFireRepo implements NadeRepo {
   };
 
   getById = async (nadeId: string): Promise<NadeDto | null> => {
+    const cacheKey = `nade/${nadeId}`;
+    const cachedNade = this.cache.get<NadeDto>(cacheKey);
+    if (cachedNade) {
+      Logger.verbose(`NadeRepo.getById(${nadeId}) | CACHE`);
+      return cachedNade;
+    }
+
     try {
       const nadeDoc = await get(this.collection, nadeId);
       Logger.verbose(`NadeRepo.getById(${nadeId}) | DB`);
+      const nade = nadeDoc ? this.toNadeDTO(nadeDoc) : null;
 
-      return nadeDoc ? this.toNadeDTO(nadeDoc) : null;
+      if (nade) {
+        this.cache.set(cacheKey, nade);
+      }
+
+      return nade;
     } catch (error) {
       Logger.error("NadeFireRepo.getById", error);
       throw ErrorFactory.InternalServerError("Failed get nade with id");
@@ -285,9 +297,7 @@ export class NadeFireRepo implements NadeRepo {
 
     const nade = await this.byIdAfterSave(nadeId);
 
-    if (nade.slug) {
-      this.cache.del(nade.slug);
-    }
+    this.removeNadeFromCache(nade);
 
     Logger.verbose(`NadeRepo.update(${nadeId})`);
 
@@ -307,6 +317,7 @@ export class NadeFireRepo implements NadeRepo {
     const { update, commit } = batch();
 
     nadeDocsByUser.forEach((doc) => {
+      this.removeNadeFromCache({ id: doc.ref.id, slug: doc.data.slug });
       update(this.collection, doc.ref.id, {
         steamId: user.steamId,
         user: {
@@ -315,9 +326,6 @@ export class NadeFireRepo implements NadeRepo {
           avatar: user.avatar,
         },
       });
-      if (doc.data.slug) {
-        this.cache.del(doc.data.slug);
-      }
     });
 
     await commit();
@@ -333,10 +341,7 @@ export class NadeFireRepo implements NadeRepo {
     });
 
     const nade = await this.byIdAfterSave(nadeId);
-
-    if (nade.slug) {
-      this.cache.del(nade.slug);
-    }
+    this.removeNadeFromCache(nade);
 
     Logger.verbose(`NadeRepo.incrementFavoriteCount(${nadeId})`);
 
@@ -349,10 +354,7 @@ export class NadeFireRepo implements NadeRepo {
     });
 
     const nade = await this.byIdAfterSave(nadeId);
-
-    if (nade.slug) {
-      this.cache.del(nade.slug);
-    }
+    this.removeNadeFromCache(nade);
 
     Logger.verbose(`NadeRepo.decrementFavoriteCount(${nadeId})`);
 
@@ -366,9 +368,7 @@ export class NadeFireRepo implements NadeRepo {
 
     const nade = await this.byIdAfterSave(nadeId);
 
-    if (nade.slug) {
-      this.cache.del(nade.slug);
-    }
+    this.removeNadeFromCache(nade);
 
     Logger.verbose(`NadeRepo.incrementCommentCount(${nadeId})`);
 
@@ -382,9 +382,7 @@ export class NadeFireRepo implements NadeRepo {
 
     const nade = await this.byIdAfterSave(nadeId);
 
-    if (nade.slug) {
-      this.cache.del(nade.slug);
-    }
+    this.removeNadeFromCache(nade);
 
     Logger.verbose(`NadeRepo.decrementCommentCount(${nadeId})`);
 
@@ -417,5 +415,12 @@ export class NadeFireRepo implements NadeRepo {
     const score = (votes / Math.pow(addedHoursAgo, gravity)) * 1000;
 
     return score;
+  };
+
+  private removeNadeFromCache = (opts: { id: string; slug?: string }) => {
+    this.cache.del(opts.id);
+    if (opts.slug) {
+      this.cache.del(opts.slug);
+    }
   };
 }
