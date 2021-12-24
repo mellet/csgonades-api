@@ -58,8 +58,6 @@ export class UserService {
 
     this.tryAvatarRefresh(user);
 
-    Logger.verbose("UserService.byId", steamId);
-
     return user;
   };
 
@@ -85,8 +83,6 @@ export class UserService {
     const newUser = await this.userRepo.create(createUserDto);
     await this.statsRepo.incrementUserCounter();
 
-    Logger.verbose("UserService.getOrCreate - created", newUser.nickname);
-
     return newUser;
   };
 
@@ -103,8 +99,6 @@ export class UserService {
     });
 
     await this.commentRepo.updateUserDetailsForComments(updatedUser);
-
-    Logger.verbose("UserService.update - Success", updatedUser.nickname);
 
     return updatedUser;
   };

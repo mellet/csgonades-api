@@ -89,6 +89,8 @@ export class UserFireRepo implements UserRepo {
         return null;
       }
 
+      Logger.verbose(`UserRepo.byId(${steamId})`);
+
       return userDoc.data;
     } catch (error) {
       Logger.error(error);
@@ -104,9 +106,11 @@ export class UserFireRepo implements UserRepo {
         throw ErrorFactory.InternalServerError("UserRepo.byIdExpected");
       }
 
+      Logger.verbose(`UserRepo.byIdExpected(${steamId})`);
+
       return userDoc.data;
     } catch (error) {
-      Logger.error(error);
+      Logger.error("UserRepo.byIdExpected, user not found");
       throw ErrorFactory.InternalServerError("UserRepo.byIdExpected");
     }
   };
@@ -121,6 +125,7 @@ export class UserFireRepo implements UserRepo {
       };
 
       await set(this.collection, userCreate.steamId, userModel);
+      Logger.verbose(`UserRepo.create() -> ${userCreate.nickname}`);
 
       return this.byIdExpected(userCreate.steamId);
     } catch (error) {
@@ -148,6 +153,8 @@ export class UserFireRepo implements UserRepo {
 
       await update(this.collection, steamId, updateModel);
 
+      Logger.verbose(`UserRepo.update(${steamId})`);
+
       return this.byIdExpected(steamId);
     } catch (error) {
       Logger.error(error);
@@ -156,6 +163,8 @@ export class UserFireRepo implements UserRepo {
   };
 
   updateActivity = async (steamId: string) => {
+    Logger.verbose(`UserRepo.updateActivity(${steamId})`);
+
     await update(this.collection, steamId, {
       lastActive: value("serverDate"),
     });

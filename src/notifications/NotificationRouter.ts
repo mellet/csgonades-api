@@ -40,11 +40,6 @@ export class NotificationRouter {
 
       await this.notificationService.markAllAsRead(context);
 
-      Logger.verbose(
-        "NotificationRouter.markAllAsViewed",
-        context.authUser?.steamId
-      );
-
       return res.status(202).send();
     } catch (error) {
       Logger.error(error);
@@ -62,11 +57,6 @@ export class NotificationRouter {
         user.steamId
       );
 
-      Logger.verbose(
-        "NotificationRouter.getNotifications",
-        notifications.length
-      );
-
       return res.status(200).send(notifications);
     } catch (error) {
       Logger.error(error);
@@ -82,8 +72,6 @@ export class NotificationRouter {
       const context = createAppContext(req);
 
       await this.notificationService.markAsRead(context, id);
-
-      Logger.verbose("NotificationRouter.viewedNotifcation", id);
 
       return res.status(202).send();
     } catch (error) {

@@ -49,7 +49,11 @@ export class NadeFireRepo implements NadeRepo {
         where("slug", "==", slug),
       ]);
 
-      return nadeDocs.length === 0;
+      const slugAvailable = nadeDocs.length === 0;
+
+      Logger.verbose(`NadeRepo.isSlugAvailable() -> ${slugAvailable} | DB`);
+
+      return slugAvailable;
     } catch (error) {
       Logger.error("NadeRepo.isSlugAvailable", error);
       throw ErrorFactory.InternalServerError("Failed to check nade slug");
@@ -71,6 +75,8 @@ export class NadeFireRepo implements NadeRepo {
 
       const nades = nadesDocs.map(this.toNadeDTO);
 
+      Logger.verbose(`NadeRepo.getAll(${nadeLimit}) -> ${nades.length} | DB`);
+
       return nades;
     } catch (error) {
       Logger.error("NadeFireRepo.isSlugAvailable", error);
@@ -86,6 +92,9 @@ export class NadeFireRepo implements NadeRepo {
       ]);
 
       const pendingNades = pendingDocs.map(this.toNadeDTO);
+
+      Logger.verbose(`NadeRepo.getPending() -> ${pendingNades.length} | DB`);
+
       return pendingNades;
     } catch (error) {
       Logger.error("NadeFireRepo.getPending", error);
@@ -101,6 +110,9 @@ export class NadeFireRepo implements NadeRepo {
       ]);
 
       const declinedNades = declinedDocs.map(this.toNadeDTO);
+
+      Logger.verbose(`NadeRepo.getDeclined() -> ${declinedNades.length} | DB`);
+
       return declinedNades;
     } catch (error) {
       Logger.error("NadeFireRepo.getDeclined", error);
@@ -116,6 +128,8 @@ export class NadeFireRepo implements NadeRepo {
         limit(10),
       ]);
 
+      Logger.verbose(`NadeRepo.getDeleted() -> ${declinedDocs.length} | DB`);
+
       return declinedDocs.map(this.toNadeDTO);
     } catch (error) {
       Logger.error("NadeFireRepo.getDeleted", error);
@@ -126,6 +140,7 @@ export class NadeFireRepo implements NadeRepo {
   getById = async (nadeId: string): Promise<NadeDto | null> => {
     try {
       const nadeDoc = await get(this.collection, nadeId);
+      Logger.verbose(`NadeRepo.getById(${nadeId}) | DB`);
 
       return nadeDoc ? this.toNadeDTO(nadeDoc) : null;
     } catch (error) {
@@ -139,7 +154,7 @@ export class NadeFireRepo implements NadeRepo {
     try {
       const cachedNade = this.cache.get<NadeDto>(cacheKey);
       if (cachedNade) {
-        Logger.verbose(`NadeRepo.getBySlug - ${slug} | CACHE`);
+        Logger.verbose(`NadeRepo.getBySlug(${slug}) | CACHE`);
         return cachedNade;
       }
 
@@ -159,7 +174,7 @@ export class NadeFireRepo implements NadeRepo {
         this.cache.set(cacheKey, freshNade);
       }
 
-      Logger.verbose(`NadeRepo.getBySlug - ${slug} | DB`);
+      Logger.verbose(`NadeRepo.getBySlug(${slug}) | DB`);
 
       return freshNade;
     } catch (error) {
@@ -175,7 +190,9 @@ export class NadeFireRepo implements NadeRepo {
     const cacheKey = ["map", csgoMap, nadeType || ""].join("/");
     const cachedNades = this.mapNadeCache.get<NadeDto[]>(cacheKey);
     if (cachedNades) {
-      Logger.verbose(`NadeRepo.getByMap - ${csgoMap}, ${nadeType} | CACHE`);
+      Logger.verbose(
+        `NadeRepo.getByMap(${csgoMap}, ${nadeType}) -> ${cachedNades.length} | CACHE`
+      );
       return cachedNades;
     }
 
@@ -196,7 +213,9 @@ export class NadeFireRepo implements NadeRepo {
 
     this.mapNadeCache.set(cacheKey, nades);
 
-    Logger.verbose(`NadeRepo.getByMap - ${csgoMap}, ${nadeType} | DB`);
+    Logger.verbose(
+      `NadeRepo.getByMap(${csgoMap}, ${nadeType}) -> ${nades.length}| DB`
+    );
 
     return nades;
   };
@@ -219,6 +238,11 @@ export class NadeFireRepo implements NadeRepo {
 
     const allNades = nadeDocs.map(this.toNadeDTO);
     const nades = allNades.filter((n) => n.status !== "deleted");
+
+    Logger.verbose(
+      `NadeRepo.getByUser(${steamId}, ${csgoMap}) -> ${nades.length} | DB`
+    );
+
     return nades;
   };
 
@@ -236,6 +260,8 @@ export class NadeFireRepo implements NadeRepo {
     const nade = await add(this.collection, cleanNadeModel);
 
     const result = await this.byIdAfterSave(nade.id);
+
+    Logger.verbose(`NadeRepo.save()`);
 
     return result;
   };
@@ -263,11 +289,14 @@ export class NadeFireRepo implements NadeRepo {
       this.cache.del(nade.slug);
     }
 
+    Logger.verbose(`NadeRepo.update(${nadeId})`);
+
     return nade;
   };
 
   delete = async (nadeId: string) => {
     await remove(this.collection, nadeId);
+    Logger.verbose(`NadeRepo.delete(${nadeId})`);
   };
 
   updateUserOnNades = async (steamId: string, user: UserLightModel) => {
@@ -292,6 +321,10 @@ export class NadeFireRepo implements NadeRepo {
     });
 
     await commit();
+
+    Logger.verbose(
+      `NadeRepo.updateUserOnNades(${steamId}) -> ${nadeDocsByUser.length} | DB`
+    );
   };
 
   incrementFavoriteCount = async (nadeId: string) => {
@@ -304,6 +337,8 @@ export class NadeFireRepo implements NadeRepo {
     if (nade.slug) {
       this.cache.del(nade.slug);
     }
+
+    Logger.verbose(`NadeRepo.incrementFavoriteCount(${nadeId})`);
 
     return nade;
   };
@@ -319,6 +354,8 @@ export class NadeFireRepo implements NadeRepo {
       this.cache.del(nade.slug);
     }
 
+    Logger.verbose(`NadeRepo.decrementFavoriteCount(${nadeId})`);
+
     return nade;
   };
 
@@ -333,6 +370,8 @@ export class NadeFireRepo implements NadeRepo {
       this.cache.del(nade.slug);
     }
 
+    Logger.verbose(`NadeRepo.incrementCommentCount(${nadeId})`);
+
     return nade;
   };
 
@@ -346,6 +385,8 @@ export class NadeFireRepo implements NadeRepo {
     if (nade.slug) {
       this.cache.del(nade.slug);
     }
+
+    Logger.verbose(`NadeRepo.decrementCommentCount(${nadeId})`);
 
     return nade;
   };

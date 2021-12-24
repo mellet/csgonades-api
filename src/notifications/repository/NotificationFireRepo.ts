@@ -16,6 +16,7 @@ import {
 } from "typesaurus";
 import { AddModel } from "typesaurus/add";
 import { CommentDto } from "../../comment/dto/CommentDto";
+import { Logger } from "../../logger/Logger";
 import { NadeDto } from "../../nade/dto/NadeDto";
 import { UserDto } from "../../user/UserDTOs";
 import { assertNever, removeUndefines } from "../../utils/Common";
@@ -46,6 +47,10 @@ export class NotificationFireRepo implements NotificationRepo {
 
     await this.removeOldViewedNotification(notisForUser);
 
+    Logger.verbose(
+      `NotificationRepo.forUser(${steamId}) -> ${notisForUserDocs.length} | DB`
+    );
+
     return notisForUser;
   };
 
@@ -55,6 +60,8 @@ export class NotificationFireRepo implements NotificationRepo {
     if (!notification) {
       return null;
     }
+
+    Logger.verbose(`NotificationRepo.byId(${id})`);
 
     return this.toDto(notification);
   };
@@ -126,6 +133,8 @@ export class NotificationFireRepo implements NotificationRepo {
   ): Promise<NotificationDTO | null> => {
     const ref = await this.addOfType(noti);
 
+    Logger.verbose(`NotificationRepo.add()`);
+
     return this.byId(ref.id);
   };
 
@@ -151,6 +160,10 @@ export class NotificationFireRepo implements NotificationRepo {
     const notificationId = notification.ref.id;
 
     await remove(this.collection, notificationId);
+
+    Logger.verbose(
+      `NotificationRepo.removeFavoriteNotification(${bySteamId}) -> ${foundNotification.length} | DB`
+    );
   };
 
   private addOfType = (
@@ -236,7 +249,7 @@ export class NotificationFireRepo implements NotificationRepo {
     update(this.collection, id, { viewed: true });
   };
 
-  cleanStaleNotification = async () => {
+  private cleanStaleNotification = async () => {
     const timeAgo = new Date();
     timeAgo.setMonth(timeAgo.getMonth() - 3);
 
@@ -258,7 +271,7 @@ export class NotificationFireRepo implements NotificationRepo {
     await commit();
   };
 
-  markAllAsViewed = async (steamId: string) => {
+  public markAllAsViewed = async (steamId: string) => {
     const notificationsForUser = await query(this.collection, [
       where("subjectSteamId", "==", steamId),
     ]);
@@ -272,6 +285,10 @@ export class NotificationFireRepo implements NotificationRepo {
     }
 
     await commit();
+
+    Logger.verbose(
+      `NotificationRepo.markAllAsViewed(${steamId}) -> ${notificationsForUser.length} | DB`
+    );
   };
 
   private removeOldViewedNotification = async (

@@ -54,8 +54,6 @@ export const makeUserRouter = (userService: UserService): Router => {
 
     const users = await userService.all(userFilter);
 
-    Logger.verbose("UserRouter.getUsers", users.length);
-
     return res.status(200).send(users);
   });
 

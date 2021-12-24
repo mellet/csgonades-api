@@ -111,14 +111,11 @@ export class NadeService {
 
     const combined = [...missingTeam, ...missingLineup];
 
-    Logger.verbose("NadeService.getFlagged");
-
     return combined.filter((n) => n.map !== "cobblestone");
   };
 
   isSlugAvailable = async (slug: string): Promise<boolean> => {
     const slugAvailable = this.nadeRepo.isSlugAvailable(slug);
-    Logger.verbose("NadeService.isSlugAvailable");
     return slugAvailable;
   };
 
@@ -143,8 +140,6 @@ export class NadeService {
       await this.notificationRepo.newFavorite(nade, userFavoriting);
     }
 
-    Logger.verbose("NadeService.favoriteNade", nadeId);
-
     return favorite;
   };
 
@@ -160,8 +155,6 @@ export class NadeService {
     await this.favoriteRepo.removeFavoriteForNade(nadeId, steamId);
     await this.nadeRepo.decrementFavoriteCount(nadeId);
 
-    Logger.verbose("NadeService.unFavoriteNade", nadeId);
-
     if (!isOwnNade) {
       await this.notificationRepo.removeFavoriteNotification({
         bySteamId: steamId,
@@ -172,28 +165,24 @@ export class NadeService {
 
   getRecent = async (limit?: number): Promise<NadeMiniDto[]> => {
     const nades = await this.nadeRepo.getAll(limit);
-    Logger.verbose("NadeService.getRecent");
 
     return convertNadesToLightDto(nades);
   };
 
   getPending = async (): Promise<NadeMiniDto[]> => {
     const pendingNades = await this.nadeRepo.getPending();
-    Logger.verbose("NadeService.getPending");
 
     return convertNadesToLightDto(pendingNades);
   };
 
   getDeclined = async (): Promise<NadeMiniDto[]> => {
     const declinedNades = await this.nadeRepo.getDeclined();
-    Logger.verbose("NadeService.getDeclined");
 
     return convertNadesToLightDto(declinedNades);
   };
 
   getDeleted = async () => {
     const declinedNades = await this.nadeRepo.getDeleted();
-    Logger.verbose("NadeService.getDeleted");
 
     return convertNadesToLightDto(declinedNades);
   };
@@ -203,8 +192,6 @@ export class NadeService {
     if (nade) {
       await this.tryUpdateViewCounter(nade);
     }
-
-    Logger.verbose("NadeService.getById", nadeId);
 
     return nade;
   };
@@ -232,7 +219,6 @@ export class NadeService {
     map?: CsgoMap
   ): Promise<NadeMiniDto[]> => {
     const nadesByUser = await this.nadeRepo.getByUser(steamId, map);
-    Logger.verbose("NadeService.getByUser", steamId, map);
 
     return convertNadesToLightDto(nadesByUser);
   };
@@ -289,7 +275,6 @@ export class NadeService {
       await this.statsRepo.incrementNadeCounter(nade.type);
     }
     await this.notificationRepo.newNade(nade.id);
-    Logger.verbose("NadeService.save", nade.id);
 
     return nade;
   };
@@ -313,8 +298,6 @@ export class NadeService {
     if (nade.type) {
       await this.statsRepo.decrementNadeCounter(nade.type);
     }
-
-    Logger.verbose("NadeService.delete", nadeId);
   };
 
   update = async (
@@ -388,8 +371,6 @@ export class NadeService {
     if (didJustGetAccepted) {
       await this.setNadeSlug(updatedNade);
     }
-
-    Logger.verbose("NadeService.update", nadeId);
 
     return updatedNade;
   };
