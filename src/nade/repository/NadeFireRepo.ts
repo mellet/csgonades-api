@@ -294,7 +294,7 @@ export class NadeFireRepo implements NadeRepo {
 
     this.removeNadeFromCache(nade);
 
-    Logger.verbose(`NadeRepo.update(${nadeId})`);
+    Logger.verbose(`NadeRepo.update(${nadeId})`, updates);
 
     return nade;
   };
