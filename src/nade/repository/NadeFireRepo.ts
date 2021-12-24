@@ -138,8 +138,7 @@ export class NadeFireRepo implements NadeRepo {
   };
 
   getById = async (nadeId: string): Promise<NadeDto | null> => {
-    const cacheKey = `nade/${nadeId}`;
-    const cachedNade = this.cache.get<NadeDto>(cacheKey);
+    const cachedNade = this.getFromCache({ id: nadeId });
     if (cachedNade) {
       Logger.verbose(`NadeRepo.getById(${nadeId}) | CACHE`);
       return cachedNade;
@@ -150,9 +149,7 @@ export class NadeFireRepo implements NadeRepo {
       Logger.verbose(`NadeRepo.getById(${nadeId}) | DB`);
       const nade = nadeDoc ? this.toNadeDTO(nadeDoc) : null;
 
-      if (nade) {
-        this.cache.set(cacheKey, nade);
-      }
+      this.addNadeToCache(nade);
 
       return nade;
     } catch (error) {
@@ -162,14 +159,14 @@ export class NadeFireRepo implements NadeRepo {
   };
 
   getBySlug = async (slug: string): Promise<NadeDto | null> => {
-    const cacheKey = `nade/${slug}`;
-    try {
-      const cachedNade = this.cache.get<NadeDto>(cacheKey);
-      if (cachedNade) {
-        Logger.verbose(`NadeRepo.getBySlug(${slug}) | CACHE`);
-        return cachedNade;
-      }
+    const cachedNade = this.getFromCache({ slug: slug });
 
+    if (cachedNade) {
+      Logger.verbose(`NadeRepo.getBySlug(${slug}) | CACHE`);
+      return cachedNade;
+    }
+
+    try {
       const nadeDocs = await query(this.collection, [
         where("slug", "==", slug),
       ]);
@@ -182,9 +179,7 @@ export class NadeFireRepo implements NadeRepo {
 
       const freshNade = await this.getById(nade.ref.id);
 
-      if (freshNade) {
-        this.cache.set(cacheKey, freshNade);
-      }
+      this.addNadeToCache(freshNade);
 
       Logger.verbose(`NadeRepo.getBySlug(${slug}) | DB`);
 
@@ -415,6 +410,30 @@ export class NadeFireRepo implements NadeRepo {
     const score = (votes / Math.pow(addedHoursAgo, gravity)) * 1000;
 
     return score;
+  };
+
+  private getFromCache = (partialNade: { id?: string; slug?: string }) => {
+    const cacheKeySlug = `nade/${partialNade.slug}`;
+    const cacheKeyId = `nade/${partialNade.id}`;
+    if (partialNade.slug) {
+      return this.cache.get<NadeDto>(cacheKeySlug);
+    } else if (partialNade.id) {
+      return this.cache.get<NadeDto>(cacheKeyId);
+    }
+  };
+
+  private addNadeToCache = (nade?: NadeDto | null) => {
+    if (!nade) {
+      return;
+    }
+
+    const cacheKeySlug = `nade/${nade.slug}`;
+    const cacheKeyId = `nade/${nade.id}`;
+
+    if (nade.slug) {
+      this.cache.set(cacheKeySlug, nade);
+    }
+    this.cache.set(cacheKeyId, nade);
   };
 
   private removeNadeFromCache = (opts: { id: string; slug?: string }) => {
