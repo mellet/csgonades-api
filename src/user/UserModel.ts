@@ -1,3 +1,5 @@
+import { Tickrate } from "../nade/nadeSubTypes/Tickrate";
+
 export type Role = "administrator" | "moderator" | "user";
 
 export type UserModel = {
@@ -10,6 +12,7 @@ export type UserModel = {
   createdAt: Date;
   updatedAt: Date;
   lastActive: Date;
+  preferredTick?: Tickrate;
 };
 
 export type UserModelAnon = {

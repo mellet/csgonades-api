@@ -1,3 +1,4 @@
+import { Tickrate } from "../nade/nadeSubTypes/Tickrate";
 import { Role } from "./UserModel";
 
 export type UserDto = {
@@ -10,13 +11,7 @@ export type UserDto = {
   createdAt: Date;
   updatedAt: Date;
   lastActive: Date;
-};
-
-export type UserLightDTO = {
-  nickname: string;
-  steamId: string;
-  avatar: string;
-  createdAt: Date;
+  preferredTick?: Tickrate;
 };
 
 export type UserMiniDto = {
@@ -39,4 +34,5 @@ export type UserUpdateDto = {
   email?: string;
   createdAt?: string;
   avatar?: string;
+  preferredTick?: Tickrate;
 };

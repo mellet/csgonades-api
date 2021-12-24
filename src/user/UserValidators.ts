@@ -1,5 +1,6 @@
 import Joi from "@hapi/joi";
 import { Request } from "express-serve-static-core";
+import { nadeValidTickrate } from "../nade/nadeSubTypes/Tickrate";
 import { sanitizeIt } from "../utils/Sanitize";
 import { UserUpdateDto } from "./UserDTOs";
 
@@ -10,6 +11,9 @@ export const validateUserUpdateDTO = (req: Request): UserUpdateDto => {
     bio: Joi.string().allow("").optional(),
     email: Joi.string().allow("").optional(),
     createdAt: Joi.string().optional(),
+    preferredTick: Joi.string()
+      .valid(...nadeValidTickrate())
+      .optional(),
   }).unknown(false);
 
   const value = Joi.attempt(body, articleUpdateSchema) as UserUpdateDto;

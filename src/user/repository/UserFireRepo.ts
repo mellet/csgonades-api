@@ -56,6 +56,7 @@ export class UserFireRepo implements UserRepo {
           steamId: userDoc.steamId,
           bio: userDoc.bio,
           email: userDoc.email,
+          preferredTick: userDoc.preferredTick,
         };
         userDocs.push(userModel);
       });
@@ -71,6 +72,7 @@ export class UserFireRepo implements UserRepo {
           updatedAt: userDoc.updatedAt,
           bio: userDoc.bio,
           email: userDoc.email,
+          preferredTick: userDoc.preferredTick,
         })
       );
 
@@ -144,6 +146,7 @@ export class UserFireRepo implements UserRepo {
         email: updateFields.email,
         bio: updateFields.bio,
         avatar: updateFields.avatar,
+        preferredTick: updateFields.preferredTick,
         createdAt: updateFields.createdAt
           ? new Date(updateFields.createdAt)
           : undefined,
