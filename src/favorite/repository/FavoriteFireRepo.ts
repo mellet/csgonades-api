@@ -25,7 +25,7 @@ export class FavoriteFireRepo implements FavoriteRepo {
     this.collection = collection("favorites");
   }
 
-  addFavorite = async (
+  public addFavorite = async (
     favorite: FavoriteCreateModel
   ): Promise<FavoriteDto | null> => {
     try {
@@ -47,6 +47,8 @@ export class FavoriteFireRepo implements FavoriteRepo {
 
       const favRef = await add(this.collection, newFavorite);
 
+      Logger.verbose(`FavoriteRepo.addFavorite(${favorite.nadeId})`);
+
       return this.byId(favRef.id);
     } catch (error) {
       Logger.error(error);
@@ -54,11 +56,14 @@ export class FavoriteFireRepo implements FavoriteRepo {
     }
   };
 
-  removeFavorite = async (favoriteId: string): Promise<FavoriteDto | null> => {
+  public removeFavorite = async (
+    favoriteId: string
+  ): Promise<FavoriteDto | null> => {
     try {
       const favorite = await this.byId(favoriteId);
 
       if (favorite) {
+        Logger.verbose(`FavoriteRepo.removeFavorite(${favorite.nadeId})`);
         await remove(this.collection, favoriteId);
       }
 
@@ -69,7 +74,7 @@ export class FavoriteFireRepo implements FavoriteRepo {
     }
   };
 
-  removeFavoriteForNade = async (
+  public removeFavoriteForNade = async (
     nadeId: string,
     steamId: string
   ): Promise<void> => {
@@ -87,13 +92,17 @@ export class FavoriteFireRepo implements FavoriteRepo {
       });
 
       await commit();
+
+      Logger.verbose(
+        `FavoriteRepo.removeFavoriteForNade(${nadeId}, ${steamId}) -> ${idsToRemove.length}`
+      );
     } catch (error) {
       Logger.error(error);
       throw ErrorFactory.InternalServerError("Failed to reomveFavoriteForNade");
     }
   };
 
-  deleteWhereNadeId = async (nadeId: string) => {
+  public deleteWhereNadeId = async (nadeId: string) => {
     try {
       const favsForNadeId = await this.byNadeId(nadeId);
 
@@ -106,6 +115,9 @@ export class FavoriteFireRepo implements FavoriteRepo {
       });
 
       await commit();
+      Logger.verbose(
+        `FavoriteRepo.deleteWhereNadeId(${nadeId}) -> ${idsToRemove.length}`
+      );
     } catch (error) {
       Logger.error(error);
       throw ErrorFactory.InternalServerError("Failed to reomveFavoriteForNade");
@@ -120,6 +132,8 @@ export class FavoriteFireRepo implements FavoriteRepo {
         return null;
       }
 
+      Logger.verbose(`FavoriteRepo.byId(${favoriteId})`);
+
       return this.docToDto(doc);
     } catch (error) {
       Logger.error(error);
@@ -127,13 +141,15 @@ export class FavoriteFireRepo implements FavoriteRepo {
     }
   };
 
-  byUser = async (steamId: string): Promise<FavoriteDto[]> => {
+  public byUser = async (steamId: string): Promise<FavoriteDto[]> => {
     try {
       const docs = await query(this.collection, [
         where("userId", "==", steamId),
       ]);
 
       const favorites = docs.map(this.docToDto);
+
+      Logger.verbose(`FavoriteRepo.byUser(${steamId}) -> ${favorites.length}`);
 
       return favorites;
     } catch (error) {

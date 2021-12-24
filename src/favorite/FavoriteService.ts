@@ -1,4 +1,3 @@
-import { Logger } from "../logger/Logger";
 import { NadeRepo } from "../nade/repository/NadeRepo";
 import { NotificationRepo } from "../notifications/repository/NotificationRepo";
 import { UserRepo } from "../user/repository/UserRepo";
@@ -29,7 +28,6 @@ export class FavoriteService {
 
   getFavoritesForUser = async (steamId: string) => {
     const favorites = await this.favoriteRepo.byUser(steamId);
-    Logger.verbose("FavoriteService.getFavoritesForUser", steamId);
 
     return favorites;
   };
@@ -59,7 +57,6 @@ export class FavoriteService {
           nadeBeingFavorited,
           userFavoriting
         );
-        Logger.verbose("FavoriteService.addFavorite", favorite?.nadeId);
       }
     }
 
@@ -87,8 +84,6 @@ export class FavoriteService {
     if (!nadeBeingUnFavorited) {
       throw ErrorFactory.NotFound("Nade not found.");
     }
-
-    Logger.verbose("FavoriteService.removeFavorite", favorite.nadeId);
 
     if (favorite.userId !== nadeBeingUnFavorited.steamId) {
       await this.notificationRepo.removeFavoriteNotification({
