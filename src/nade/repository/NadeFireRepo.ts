@@ -291,12 +291,10 @@ export class NadeFireRepo implements NadeRepo {
     await update(this.collection, nadeId, removeUndefines(modelUpdates));
 
     const nade = await this.byIdAfterSave(nadeId);
-
     this.removeNadeFromCache(nade);
-
     Logger.verbose(`NadeRepo.update(${nadeId})`);
 
-    return nade;
+    return this.byIdAfterSave(nadeId);
   };
 
   delete = async (nadeId: string) => {
