@@ -406,12 +406,14 @@ export class NadeFireRepo implements NadeRepo {
   };
 
   private newCalcScore = (nade: NadeFireModel): number => {
-    const gravity = 1.3;
+    const gravity = 0.9; // Lower gravity makes new nades drop faster
     const votes = nade.commentCount + nade.favoriteCount || 1;
     const addedHoursAgo =
       moment().diff(moment(nade.createdAt), "hours", false) + 2;
 
-    const score = (votes / Math.pow(addedHoursAgo, gravity)) * 1000;
+    const score = Math.round(
+      (votes / Math.pow(addedHoursAgo, gravity)) * 10000
+    );
 
     return score;
   };
