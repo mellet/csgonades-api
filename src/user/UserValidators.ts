@@ -11,7 +11,7 @@ export const validateUserUpdateDTO = (req: Request): UserUpdateDto => {
     bio: Joi.string().allow("").optional(),
     email: Joi.string().allow("").optional(),
     createdAt: Joi.string().optional(),
-    preferredTick: Joi.string()
+    defaultTick: Joi.string()
       .valid(...nadeValidTickrate())
       .optional(),
   }).unknown(false);

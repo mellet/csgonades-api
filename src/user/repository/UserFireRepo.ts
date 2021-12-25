@@ -56,7 +56,7 @@ export class UserFireRepo implements UserRepo {
           steamId: userDoc.steamId,
           bio: userDoc.bio,
           email: userDoc.email,
-          preferredTick: userDoc.preferredTick,
+          defaultTick: userDoc.defaultTick,
         };
         userDocs.push(userModel);
       });
@@ -72,7 +72,7 @@ export class UserFireRepo implements UserRepo {
           updatedAt: userDoc.updatedAt,
           bio: userDoc.bio,
           email: userDoc.email,
-          preferredTick: userDoc.preferredTick,
+          defaultTick: userDoc.defaultTick,
         })
       );
       Logger.verbose(`UserRepo.all() -> ${users.length} | DB`);
@@ -147,7 +147,7 @@ export class UserFireRepo implements UserRepo {
         email: updateFields.email,
         bio: updateFields.bio,
         avatar: updateFields.avatar,
-        preferredTick: updateFields.preferredTick,
+        defaultTick: updateFields.defaultTick,
         createdAt: updateFields.createdAt
           ? new Date(updateFields.createdAt)
           : undefined,

@@ -12,7 +12,7 @@ export type UserModel = {
   createdAt: Date;
   updatedAt: Date;
   lastActive: Date;
-  preferredTick?: Tickrate;
+  defaultTick?: Tickrate;
 };
 
 export type UserModelAnon = {

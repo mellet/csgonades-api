@@ -11,7 +11,7 @@ export type UserDto = {
   createdAt: Date;
   updatedAt: Date;
   lastActive: Date;
-  preferredTick?: Tickrate;
+  defaultTick?: Tickrate;
 };
 
 export type UserMiniDto = {
@@ -34,5 +34,5 @@ export type UserUpdateDto = {
   email?: string;
   createdAt?: string;
   avatar?: string;
-  preferredTick?: Tickrate;
+  defaultTick?: Tickrate;
 };
