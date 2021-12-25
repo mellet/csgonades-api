@@ -13,7 +13,7 @@ import {
   remove,
   update,
   value,
-  where,
+  where
 } from "typesaurus";
 import { AddModel } from "typesaurus/add";
 import { UpdateModel } from "typesaurus/update";
@@ -438,8 +438,8 @@ export class NadeFireRepo implements NadeRepo {
     const cacheKeySlug = `nade/${opts.slug}`;
     const cacheKeyId = `nade/${opts.id}`;
 
-    this.cache.del(opts.id);
-    if (cacheKeyId) {
+    this.cache.del(cacheKeyId);
+    if (opts.slug) {
       this.cache.del(cacheKeySlug);
     }
   };
