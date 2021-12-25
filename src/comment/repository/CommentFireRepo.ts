@@ -30,11 +30,15 @@ export class CommentFireRepo implements CommentRepo {
     this.collection = collection<CommentModel>("nadecomments");
   }
 
-  getForNade = async (nadeId: string): Promise<CommentDto[]> => {
+  public getForNade = async (nadeId: string): Promise<CommentDto[]> => {
     try {
       const nadeCommentDocs = await query(this.collection, [
         where("nadeId", "==", nadeId),
       ]);
+
+      Logger.verbose(
+        `CommentRepo.getForNade(${nadeId}) -> ${nadeCommentDocs.length} | DB`
+      );
 
       return nadeCommentDocs.map(this.toDto);
     } catch (error) {
@@ -51,6 +55,8 @@ export class CommentFireRepo implements CommentRepo {
         return null;
       }
 
+      Logger.verbose(`CommentRepo.getById(${commentId}) | DB`);
+
       return this.toDto(commentDoc);
     } catch (error) {
       Logger.error(error);
@@ -65,6 +71,10 @@ export class CommentFireRepo implements CommentRepo {
         limit(20),
       ]);
 
+      Logger.verbose(
+        `CommentRepo.getRecent() -> ${nadeCommentDocs.length}  | DB`
+      );
+
       return nadeCommentDocs.map(this.toDto);
     } catch (error) {
       Logger.error(error);
@@ -72,7 +82,7 @@ export class CommentFireRepo implements CommentRepo {
     }
   };
 
-  save = async (
+  createComment = async (
     user: UserMiniDto,
     commentModel: CommentCreateDto
   ): Promise<CommentDto> => {
@@ -95,6 +105,8 @@ export class CommentFireRepo implements CommentRepo {
         );
       }
 
+      Logger.verbose(`CommentRepo.createComment(${commentModel.nadeId})`);
+
       return comment;
     } catch (error) {
       Logger.error(error);
@@ -102,7 +114,9 @@ export class CommentFireRepo implements CommentRepo {
     }
   };
 
-  update = async (updateModel: CommentUpddateDto): Promise<CommentDto> => {
+  updateComment = async (
+    updateModel: CommentUpddateDto
+  ): Promise<CommentDto> => {
     try {
       await update(this.collection, updateModel.id, {
         message: updateModel.message,
@@ -116,6 +130,8 @@ export class CommentFireRepo implements CommentRepo {
         );
       }
 
+      Logger.verbose(`CommentRepo.updateComment(${updateModel.id})`);
+
       return comment;
     } catch (error) {
       Logger.error(error);
@@ -123,9 +139,10 @@ export class CommentFireRepo implements CommentRepo {
     }
   };
 
-  delete = async (commentId: string) => {
+  deleteComment = async (commentId: string) => {
     try {
       await remove(this.collection, commentId);
+      Logger.verbose(`CommentRepo.deleteComment(${commentId})`);
     } catch (error) {
       Logger.error(error);
       throw ErrorFactory.InternalServerError("Failed to delete comment");
@@ -143,6 +160,10 @@ export class CommentFireRepo implements CommentRepo {
       commentsForNade.forEach((comment) => {
         remove(this.collection, comment.ref.id);
       });
+
+      Logger.verbose(
+        `CommentRepo.deleteForNadeId(${nadeId}) -> ${commentsForNade.length}`
+      );
 
       await commit();
     } catch (error) {
@@ -170,6 +191,10 @@ export class CommentFireRepo implements CommentRepo {
       });
 
       await commit();
+
+      Logger.verbose(
+        `CommentRepo.updateUserDetailsForComments(${user.steamId}) -> ${commentsByUser.length}`
+      );
     } catch (error) {
       Logger.error(error);
       throw ErrorFactory.InternalServerError(

@@ -32,13 +32,11 @@ export class CommentService {
 
   getForNade = async (nadeId: string): Promise<CommentDto[]> => {
     const comments = await this.commentRepo.getForNade(nadeId);
-    Logger.verbose("CommentService.getForNade", comments.length);
     return comments;
   };
 
   getRecent = async (): Promise<CommentDto[]> => {
     const comments = await this.commentRepo.getRecent();
-    Logger.verbose("CommentService.getRecent - Success");
     return comments;
   };
 
@@ -67,7 +65,7 @@ export class CommentService {
       throw ErrorFactory.BadRequest("No nade found to create comment");
     }
 
-    const comment = await this.commentRepo.save(user, commentBody);
+    const comment = await this.commentRepo.createComment(user, commentBody);
 
     // Don't send notfication when commenting own nade
     if (authUser.steamId !== nade.steamId) {
@@ -75,8 +73,6 @@ export class CommentService {
     }
 
     this.nadeRepo.incrementCommentCount(nade.id);
-
-    Logger.verbose("CommentService.save - Success");
 
     return comment;
   };
@@ -96,8 +92,7 @@ export class CommentService {
       throw ErrorFactory.Forbidden("You can only edit your own comments");
     }
 
-    const updatedComment = await this.commentRepo.update(updateModel);
-    Logger.verbose("CommentService.update - Success");
+    const updatedComment = await this.commentRepo.updateComment(updateModel);
 
     return updatedComment;
   };
@@ -117,14 +112,11 @@ export class CommentService {
       throw ErrorFactory.Forbidden("You can only delete your own comments");
     }
 
-    await this.commentRepo.delete(commentId);
+    await this.commentRepo.deleteComment(commentId);
     await this.nadeRepo.decrementCommentCount(originalComment.nadeId);
-
-    Logger.verbose("CommentService.delete - Success");
   };
 
   deleteForNadeId = async (nadeId: string) => {
     await this.commentRepo.deleteForNadeId(nadeId);
-    Logger.verbose("CommentService.deleteForNadeId - Success");
   };
 }

@@ -7,7 +7,7 @@ export function sessionRoute(req: Request, res: Response) {
 
   const authenticated = isAuthenticated(req);
 
-  Logger.verbose("SessionRouter.initSession", req.ip);
+  Logger.verbose(`SessionRouter.initSession [auth:${authenticated}]`, req.ip);
 
   return res.status(200).send({ authenticated });
 }

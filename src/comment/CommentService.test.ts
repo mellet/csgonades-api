@@ -71,7 +71,9 @@ describe("Comment service", () => {
       when(nadeRepo.getById("123")).thenResolve(
         createMockedNade("123", testSteamId)
       );
-      when(commentRepo.save(testUser, commentDto)).thenResolve(expectedComment);
+      when(commentRepo.createComment(testUser, commentDto)).thenResolve(
+        expectedComment
+      );
 
       // Act
       const comment = await commentService.save(testContext, commentDto);
@@ -79,7 +81,7 @@ describe("Comment service", () => {
       // Expect
       verify(userRepo.byId(testSteamId)).once();
       verify(nadeRepo.getById("123")).once();
-      verify(commentRepo.save(testUser, commentDto)).once();
+      verify(commentRepo.createComment(testUser, commentDto)).once();
       verify(
         notificationRepo.newCommentNotification(anything(), anything())
       ).never();
@@ -104,7 +106,9 @@ describe("Comment service", () => {
       when(nadeRepo.getById("123")).thenResolve(
         createMockedNade("123", "other-steam-id")
       );
-      when(commentRepo.save(testUser, commentDto)).thenResolve(expectedComment);
+      when(commentRepo.createComment(testUser, commentDto)).thenResolve(
+        expectedComment
+      );
       when(notificationRepo.newContactMessage()).thenResolve();
 
       // Act
@@ -133,7 +137,7 @@ describe("Comment service", () => {
       }
 
       // Expect
-      verify(commentRepo.save(anything(), anything())).never();
+      verify(commentRepo.createComment(anything(), anything())).never();
     });
 
     it("Fail if not authenticated", async () => {
@@ -157,7 +161,7 @@ describe("Comment service", () => {
       }
 
       // Expect
-      verify(commentRepo.save(anything(), anything())).never();
+      verify(commentRepo.createComment(anything(), anything())).never();
     });
   });
 
@@ -180,7 +184,9 @@ describe("Comment service", () => {
       when(nadeRepo.getById("123")).thenResolve(
         createMockedNade("123", "other-steam-id")
       );
-      when(commentRepo.save(testUser, commentDto)).thenResolve(expectedComment);
+      when(commentRepo.createComment(testUser, commentDto)).thenResolve(
+        expectedComment
+      );
       when(notificationRepo.newContactMessage()).thenResolve();
 
       // Act
@@ -203,12 +209,14 @@ describe("Comment service", () => {
       };
 
       when(commentRepo.getById(updateCommentDto.id)).thenResolve(testComment);
-      when(commentRepo.update(updateCommentDto)).thenResolve(testComment);
+      when(commentRepo.updateComment(updateCommentDto)).thenResolve(
+        testComment
+      );
 
       await commentService.update(testContext, updateCommentDto);
 
       verify(commentRepo.getById(anything())).once();
-      verify(commentRepo.update(anything())).once();
+      verify(commentRepo.updateComment(anything())).once();
     });
 
     it("Disallows editing others comments", async () => {
@@ -224,14 +232,16 @@ describe("Comment service", () => {
       };
 
       when(commentRepo.getById(updateCommentDto.id)).thenResolve(testComment);
-      when(commentRepo.update(updateCommentDto)).thenResolve(testComment);
+      when(commentRepo.updateComment(updateCommentDto)).thenResolve(
+        testComment
+      );
 
       try {
         await commentService.update(testContext, updateCommentDto);
       } catch (error) {}
 
       verify(commentRepo.getById(anything())).once();
-      verify(commentRepo.update(anything())).never();
+      verify(commentRepo.updateComment(anything())).never();
     });
 
     it("Throws when not authenticates", async () => {
@@ -253,7 +263,7 @@ describe("Comment service", () => {
       } catch (error) {}
 
       verify(commentRepo.getById(anything())).once();
-      verify(commentRepo.update(anything())).never();
+      verify(commentRepo.updateComment(anything())).never();
     });
   });
 
@@ -264,11 +274,11 @@ describe("Comment service", () => {
     const testComment = createFakeComment({ steamId: testSteamId });
 
     when(commentRepo.getById(testComment.id)).thenResolve(testComment);
-    when(commentRepo.delete(testComment.id)).thenResolve();
+    when(commentRepo.deleteComment(testComment.id)).thenResolve();
 
     await commentService.delete(testContext, testComment.id);
 
-    verify(commentRepo.delete(testComment.id)).once();
+    verify(commentRepo.deleteComment(testComment.id)).once();
   });
 
   it("Can disallows deleting others comments", async () => {
@@ -278,13 +288,13 @@ describe("Comment service", () => {
     const testComment = createFakeComment({ steamId: "other-users-id" });
 
     when(commentRepo.getById(testComment.id)).thenResolve(testComment);
-    when(commentRepo.delete(testComment.id)).thenResolve();
+    when(commentRepo.deleteComment(testComment.id)).thenResolve();
 
     try {
       await commentService.delete(testContext, testComment.id);
     } catch (error) {}
 
-    verify(commentRepo.delete(testComment.id)).never();
+    verify(commentRepo.deleteComment(testComment.id)).never();
   });
 
   it("Can fails if comment not found", async () => {
@@ -294,7 +304,7 @@ describe("Comment service", () => {
     const testComment = createFakeComment({ steamId: "other-users-id" });
 
     when(commentRepo.getById(testComment.id)).thenResolve(null);
-    when(commentRepo.delete(testComment.id)).thenResolve();
+    when(commentRepo.deleteComment(testComment.id)).thenResolve();
 
     try {
       await commentService.delete(testContext, testComment.id);
@@ -302,7 +312,7 @@ describe("Comment service", () => {
       expect(error).toBeDefined();
     }
 
-    verify(commentRepo.delete(testComment.id)).never();
+    verify(commentRepo.deleteComment(testComment.id)).never();
   });
 
   it("Deletes comments for nades", async () => {
