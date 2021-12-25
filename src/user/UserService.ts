@@ -1,6 +1,5 @@
 import { CommentRepo } from "../comment/repository/CommentRepo";
 import { SteamApi } from "../external-api/SteamApi";
-import { Logger } from "../logger/Logger";
 import { NadeRepo } from "../nade/repository/NadeRepo";
 import { StatsRepo } from "../stats/repository/StatsRepo";
 import { AppContext } from "../utils/AppContext";
@@ -33,7 +32,6 @@ export class UserService {
   }
 
   all = (filter: UserFilter) => {
-    Logger.verbose("UserService.all");
     return this.userRepo.all(filter);
   };
 
@@ -66,8 +64,6 @@ export class UserService {
 
     if (user) {
       this.tryAvatarRefresh(user);
-      Logger.verbose("UserService.getOrCreate - get", user.nickname);
-
       return user;
     }
 
@@ -104,8 +100,6 @@ export class UserService {
   };
 
   updateActivity = (steamId: string) => {
-    Logger.verbose("UserService.updateActivity", steamId);
-
     return this.userRepo.updateActivity(steamId);
   };
 

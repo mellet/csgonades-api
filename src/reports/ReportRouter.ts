@@ -32,7 +32,6 @@ export class ReportRouter {
   private getReports: RequestHandler = async (_, res) => {
     try {
       const reports = await this.reportService.getAll();
-      Logger.verbose("ReportRouter.getReports", reports.length);
 
       return res.status(200).send(reports);
     } catch (error) {
@@ -47,7 +46,6 @@ export class ReportRouter {
     try {
       const dto = validateReportSaveDTO(req);
       const result = await this.reportService.save(dto);
-      Logger.verbose("ReportRouter.saveReport");
 
       if (!result) {
         return res.status(401).send();
@@ -65,7 +63,6 @@ export class ReportRouter {
     try {
       const id = validateReportId(req);
       await this.reportService.delete(id);
-      Logger.verbose("ReportRouter.deleteReport", id);
 
       return res.status(204).send();
     } catch (error) {

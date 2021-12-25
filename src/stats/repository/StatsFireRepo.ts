@@ -1,4 +1,5 @@
 import { collection, Collection, get, update, value } from "typesaurus";
+import { Logger } from "../../logger/Logger";
 import { NadeType } from "../../nade/nadeSubTypes/NadeType";
 import { SiteStats } from "../SiteStats";
 import { StatsRepo } from "./StatsRepo";
@@ -20,6 +21,8 @@ export class StatsFireRepo implements StatsRepo {
       return null;
     }
 
+    Logger.verbose(`StatsRepo.getClientConfig() | DB`);
+
     return clientConfig.data;
   };
 
@@ -30,16 +33,22 @@ export class StatsFireRepo implements StatsRepo {
       return null;
     }
 
+    Logger.verbose(`StatsRepo.getStats() | DB`);
+
     return stats.data;
   };
 
   incrementUserCounter = () => {
+    Logger.verbose(`StatsRepo.incrementUserCounter()`);
+
     return update(this.collection, this.siteDocId, {
       numUsers: value("increment", 1),
     });
   };
 
   incrementNadeCounter = (nadeType: NadeType) => {
+    Logger.verbose(`StatsRepo.incrementNadeCounter(${nadeType})`);
+
     switch (nadeType) {
       case "smoke":
         update(this.collection, this.siteDocId, {
@@ -71,6 +80,8 @@ export class StatsFireRepo implements StatsRepo {
   };
 
   decrementNadeCounter = (nadeType: NadeType) => {
+    Logger.verbose(`StatsRepo.decrementNadeCounter(${nadeType})`);
+
     switch (nadeType) {
       case "smoke":
         update(this.collection, this.siteDocId, {
@@ -107,6 +118,10 @@ export class StatsFireRepo implements StatsRepo {
     numMolotovs: number,
     numGrenades: number
   ) => {
+    Logger.verbose(
+      `StatsRepo.setNadeCount(${numSmokes}, ${numFlashes}, ${numMolotovs}, ${numGrenades})`
+    );
+
     const numNades = numSmokes + numFlashes + numMolotovs + numGrenades;
 
     return update(this.collection, this.siteDocId, {

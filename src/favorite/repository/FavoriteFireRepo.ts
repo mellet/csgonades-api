@@ -132,7 +132,7 @@ export class FavoriteFireRepo implements FavoriteRepo {
         return null;
       }
 
-      Logger.verbose(`FavoriteRepo.byId(${favoriteId})`);
+      Logger.verbose(`FavoriteRepo.byId(${favoriteId}) | DB`);
 
       return this.docToDto(doc);
     } catch (error) {

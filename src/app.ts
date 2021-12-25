@@ -33,7 +33,7 @@ export const AppServer = (config: CSGNConfig) => {
   app.set("trust proxy", 1);
 
   const limiter = rateLimit({
-    windowMs: 10 * 60 * 1000, // 15 minutes
+    windowMs: 5 * 60 * 1000, // 5 minutes
     max: 100,
     onLimitReached: (req) => {
       console.log(

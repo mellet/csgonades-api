@@ -8,6 +8,7 @@ import {
   remove,
   value,
 } from "typesaurus";
+import { Logger } from "../../logger/Logger";
 import { ReportDto, ReportModel, ReportSaveDto } from "../Report";
 import { ReportRepo } from "./ReportRepo";
 
@@ -25,11 +26,14 @@ export class ReportFireRepo implements ReportRepo {
       return null;
     }
 
+    Logger.verbose(`ReportRepo.byId(${id}) | DB`);
+
     return this.toDto(report);
   };
 
   getAll = async (): Promise<ReportDto[]> => {
     const reports = await all(this.collection);
+    Logger.verbose(`ReportRepo.getAll() -> ${reports.length} | DB`);
 
     return reports.map(this.toDto);
   };
@@ -41,10 +45,14 @@ export class ReportFireRepo implements ReportRepo {
       createdAt: value("serverDate"),
     });
 
+    Logger.verbose(`ReportRepo.save()`);
+
     return this.byId(ref.id);
   };
 
   delete = async (id: string) => {
+    Logger.verbose(`ReportRepo.delete()`);
+
     await remove(this.collection, id);
   };
 

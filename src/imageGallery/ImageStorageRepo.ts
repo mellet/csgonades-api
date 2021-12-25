@@ -46,6 +46,10 @@ export class ImageStorageRepo {
     fileName: string,
     collection: ImageCollection
   ): Promise<ImageData> => {
+    Logger.verbose(
+      `ImageRepo.saveImage(${imageLocalPath}, ${fileName}, ${collection})`
+    );
+
     const imageRemotePath = `${collection}/${fileName}`;
 
     await this.uploadToBucket(imageLocalPath, imageRemotePath);
@@ -68,6 +72,7 @@ export class ImageStorageRepo {
       const path = imagePath.includes("/") ? imagePath : `nades/${imagePath}`;
       const image = this.bucket.file(path);
       await image.delete();
+      Logger.verbose(`ImageRepo.deleteImage(${imagePath})`);
     } catch (error) {
       try {
         const image = this.bucket.file(imagePath);
@@ -93,6 +98,9 @@ export class ImageStorageRepo {
           cacheControl: "public, max-age=31536000",
         },
       });
+      Logger.verbose(
+        `ImageRepo.uploadToBucket(${imagePath}, ${fullFilePathAndName})`
+      );
     } catch (error) {
       Logger.error(error);
       throw ErrorFactory.ExternalError("Failed to upload image.");

@@ -75,6 +75,7 @@ export class UserFireRepo implements UserRepo {
           preferredTick: userDoc.preferredTick,
         })
       );
+      Logger.verbose(`UserRepo.all() -> ${users.length} | DB`);
 
       return users;
     } catch (error) {
@@ -91,7 +92,7 @@ export class UserFireRepo implements UserRepo {
         return null;
       }
 
-      Logger.verbose(`UserRepo.byId(${steamId})`);
+      Logger.verbose(`UserRepo.byId(${steamId}) | DB`);
 
       return userDoc.data;
     } catch (error) {
@@ -108,7 +109,7 @@ export class UserFireRepo implements UserRepo {
         throw ErrorFactory.InternalServerError("UserRepo.byIdExpected");
       }
 
-      Logger.verbose(`UserRepo.byIdExpected(${steamId})`);
+      Logger.verbose(`UserRepo.byIdExpected(${steamId}) | DB`);
 
       return userDoc.data;
     } catch (error) {
