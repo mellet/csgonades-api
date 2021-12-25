@@ -355,7 +355,7 @@ export class NadeService {
       imageLineupThumb: lineupImages?.lineupImageThumb,
     };
 
-    const updatedNade = await this.nadeRepo.update(
+    const updatedNade = await this.nadeRepo.updateNade(
       nadeId,
       newNadeData,
       true,
@@ -409,7 +409,7 @@ export class NadeService {
     // Check base slug
     const baseSlugWorks = await this.isSlugAvailable(baseSlug);
     if (baseSlugWorks) {
-      return this.nadeRepo.update(nade.id, { slug: baseSlug });
+      return this.nadeRepo.updateNade(nade.id, { slug: baseSlug });
     }
 
     // Find next iteration of slug
@@ -424,7 +424,7 @@ export class NadeService {
       }
     }
 
-    return this.nadeRepo.update(nade.id, { slug: foundSlug });
+    return this.nadeRepo.updateNade(nade.id, { slug: foundSlug });
   };
 
   private typeSlug(type: NadeType) {
@@ -511,7 +511,7 @@ export class NadeService {
       return nade;
     }
 
-    const updatedNade = await this.nadeRepo.update(nade.id, newNadeStats);
+    const updatedNade = await this.nadeRepo.updateNade(nade.id, newNadeStats);
 
     return updatedNade;
   };

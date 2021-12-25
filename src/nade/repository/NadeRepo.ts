@@ -16,7 +16,7 @@ export interface NadeRepo {
   getByMap(csgoMap: CsgoMap, nadeType?: NadeType): Promise<NadeDto[]>;
   getByUser(steamId: string, csgoMap?: CsgoMap): Promise<NadeDto[]>;
   save(nadeCreate: NadeCreateModel): Promise<NadeDto>;
-  update(
+  updateNade(
     nadeId: string,
     updates: Partial<NadeFireModel>,
     setNewUpdateNade?: boolean,

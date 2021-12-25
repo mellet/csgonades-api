@@ -273,7 +273,7 @@ export class NadeFireRepo implements NadeRepo {
     return result;
   };
 
-  update = async (
+  updateNade = async (
     nadeId: string,
     updates: Partial<NadeFireModel>,
     setNewUpdateNade?: boolean,
@@ -435,9 +435,12 @@ export class NadeFireRepo implements NadeRepo {
   };
 
   private removeNadeFromCache = (opts: { id: string; slug?: string }) => {
+    const cacheKeySlug = `nade/${opts.slug}`;
+    const cacheKeyId = `nade/${opts.id}`;
+
     this.cache.del(opts.id);
-    if (opts.slug) {
-      this.cache.del(opts.slug);
+    if (cacheKeyId) {
+      this.cache.del(cacheKeySlug);
     }
   };
 }
