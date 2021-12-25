@@ -13,7 +13,7 @@ import {
   remove,
   update,
   value,
-  where
+  where,
 } from "typesaurus";
 import { AddModel } from "typesaurus/add";
 import { UpdateModel } from "typesaurus/update";
@@ -293,6 +293,12 @@ export class NadeFireRepo implements NadeRepo {
     const nade = await this.byIdAfterSave(nadeId);
     this.removeNadeFromCache(nade);
     Logger.verbose(`NadeRepo.update(${nadeId})`);
+
+    // Clear cache for map nades when slug is created
+    if (updates.slug && !nade.slug && nade.status === "accepted") {
+      const cacheKey = ["map", nade.map, nade.type].join("/");
+      this.mapNadeCache.del(cacheKey);
+    }
 
     return this.byIdAfterSave(nadeId);
   };
