@@ -34,14 +34,9 @@ export const AppServer = (config: CSGNConfig) => {
 
   const limiter = rateLimit({
     windowMs: 5 * 60 * 1000, // 5 minutes
-    max: 100,
+    max: 200,
     onLimitReached: (req) => {
-      console.log(
-        "> Global request limit reached",
-        req.ip,
-        req.rateLimit.resetTime,
-        req.rateLimit.current
-      );
+      console.log("> Global request limit reached");
     },
   });
   app.use(limiter);

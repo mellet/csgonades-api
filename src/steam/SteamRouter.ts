@@ -32,7 +32,7 @@ export class SteamRouter {
     this.userService = userService;
     const rateLimiter = rateLimit({
       windowMs: 1 * 60 * 1000, // 1 minutes
-      max: 5,
+      max: 20,
       onLimitReached: (_req) => {
         Logger.warning("SteamRouter rate limited");
       },
