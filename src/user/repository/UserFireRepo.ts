@@ -1,12 +1,13 @@
 import { collection, Collection, get, set, update, value } from "typesaurus";
 import { AddModel } from "typesaurus/add";
 import { UpdateModel } from "typesaurus/update";
+import { AppCache, IAppCache } from "../../cache/AppCache";
 import { Logger } from "../../logger/Logger";
 import { removeUndefines } from "../../utils/Common";
 import { ErrorFactory } from "../../utils/ErrorUtil";
 import { UserCreateDto, UserDto, UserUpdateDto } from "../UserDTOs";
 import { UserModel } from "../UserModel";
-import { UserRepo } from "./UserRepo";
+import { UserByIdConfig, UserRepo } from "./UserRepo";
 
 export type UserFilter = {
   limit?: number;
@@ -17,10 +18,14 @@ export type UserFilter = {
 export class UserFireRepo implements UserRepo {
   private collection: Collection<UserModel>;
   private db: FirebaseFirestore.Firestore;
+  private cache: IAppCache;
 
   constructor(db: FirebaseFirestore.Firestore) {
+    const oneHourTtl = 60 * 60 * 12; // 12 hour cache
+
     this.collection = collection<UserModel>("users");
     this.db = db;
+    this.cache = new AppCache(oneHourTtl);
   }
 
   all = async (filter: UserFilter): Promise<UserDto[]> => {
@@ -84,7 +89,18 @@ export class UserFireRepo implements UserRepo {
     }
   };
 
-  byId = async (steamId: string): Promise<UserModel | null> => {
+  byId = async (
+    steamId: string,
+    config?: UserByIdConfig
+  ): Promise<UserModel | null> => {
+    const skipCache = config?.skipCache || false;
+    const cachedUser = this.getCachedUser(steamId);
+
+    if (!skipCache && cachedUser) {
+      Logger.verbose(`UserRepo.byId(${steamId}) | CACHE`);
+      return cachedUser;
+    }
+
     try {
       const userDoc = await get(this.collection, steamId);
 
@@ -94,27 +110,13 @@ export class UserFireRepo implements UserRepo {
 
       Logger.verbose(`UserRepo.byId(${steamId}) | DB`);
 
-      return userDoc.data;
+      const user = userDoc.data;
+      this.setCachedUser(user);
+
+      return user;
     } catch (error) {
       Logger.error(error);
       throw ErrorFactory.InternalServerError("UserRepo.byId");
-    }
-  };
-
-  byIdExpected = async (steamId: string): Promise<UserModel> => {
-    try {
-      const userDoc = await get(this.collection, steamId);
-
-      if (!userDoc) {
-        throw ErrorFactory.InternalServerError("UserRepo.byIdExpected");
-      }
-
-      Logger.verbose(`UserRepo.byIdExpected(${steamId}) | DB`);
-
-      return userDoc.data;
-    } catch (error) {
-      Logger.error("UserRepo.byIdExpected, user not found");
-      throw ErrorFactory.InternalServerError("UserRepo.byIdExpected");
     }
   };
 
@@ -159,6 +161,8 @@ export class UserFireRepo implements UserRepo {
 
       Logger.verbose(`UserRepo.update(${steamId})`);
 
+      this.deleteCachedUser(steamId);
+
       return this.byIdExpected(steamId);
     } catch (error) {
       Logger.error(error);
@@ -172,5 +176,39 @@ export class UserFireRepo implements UserRepo {
     await update(this.collection, steamId, {
       lastActive: value("serverDate"),
     });
+  };
+
+  private byIdExpected = async (steamId: string): Promise<UserModel> => {
+    try {
+      const userDoc = await get(this.collection, steamId);
+
+      if (!userDoc) {
+        throw ErrorFactory.InternalServerError("UserRepo.byIdExpected");
+      }
+
+      Logger.verbose(`UserRepo.byIdExpected(${steamId}) | DB`);
+
+      return userDoc.data;
+    } catch (error) {
+      Logger.error("UserRepo.byIdExpected, user not found");
+      throw ErrorFactory.InternalServerError("UserRepo.byIdExpected");
+    }
+  };
+
+  private getCachedUser = (steamId: string) => {
+    const cacheKey = `user/${steamId}`;
+    const cachedUser = this.cache.get<UserModel>(cacheKey);
+    return cachedUser;
+  };
+
+  private setCachedUser = (user: UserModel) => {
+    const cacheKey = `user/${user.steamId}`;
+    const cachedUser = this.cache.set(cacheKey, user);
+    return cachedUser;
+  };
+
+  private deleteCachedUser = (steamId: string) => {
+    const cacheKey = `user/${steamId}`;
+    this.cache.del(cacheKey);
   };
 }
