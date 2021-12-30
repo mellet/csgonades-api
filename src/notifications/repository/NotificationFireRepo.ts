@@ -15,6 +15,7 @@ import {
   where,
 } from "typesaurus";
 import { AddModel } from "typesaurus/add";
+import { AppCache, IAppCache } from "../../cache/AppCache";
 import { CommentDto } from "../../comment/dto/CommentDto";
 import { Logger } from "../../logger/Logger";
 import { NadeDto } from "../../nade/dto/NadeDto";
@@ -32,13 +33,23 @@ import { NotificationRepo, RemoveFavNotiOpts } from "./NotificationRepo";
 export class NotificationFireRepo implements NotificationRepo {
   private collection: Collection<NotificationModel>;
   private adminId = "76561198026064832";
+  private cache: IAppCache;
 
   constructor() {
     this.collection = collection("notifications");
     this.cleanStaleNotification();
+    this.cache = new AppCache("twelveHour");
   }
 
   forUser = async (steamId: string) => {
+    const cachedNotis = this.getFromCache(steamId);
+    if (cachedNotis) {
+      Logger.verbose(
+        `NotificationRepo.forUser(${steamId}) -> ${cachedNotis.length} | CACHE`
+      );
+      return cachedNotis;
+    }
+
     const notisForUserDocs = await query(this.collection, [
       where("subjectSteamId", "==", steamId),
     ]);
@@ -51,6 +62,8 @@ export class NotificationFireRepo implements NotificationRepo {
       `NotificationRepo.forUser(${steamId}) -> ${notisForUserDocs.length} | DB`
     );
 
+    this.addToCache(steamId, notisForUser);
+
     return notisForUser;
   };
 
@@ -61,7 +74,7 @@ export class NotificationFireRepo implements NotificationRepo {
       return null;
     }
 
-    Logger.verbose(`NotificationRepo.byId(${id})`);
+    Logger.verbose(`NotificationRepo.byId(${id}) | DB`);
 
     return this.toDto(notification);
   };
@@ -134,6 +147,7 @@ export class NotificationFireRepo implements NotificationRepo {
     const ref = await this.addOfType(noti);
 
     Logger.verbose(`NotificationRepo.add()`);
+    this.clearCache(noti.subjectSteamId);
 
     return this.byId(ref.id);
   };
@@ -161,8 +175,37 @@ export class NotificationFireRepo implements NotificationRepo {
 
     await remove(this.collection, notificationId);
 
+    this.clearCache(bySteamId);
+
     Logger.verbose(
       `NotificationRepo.removeFavoriteNotification(${bySteamId}) -> ${foundNotification.length} | DB`
+    );
+  };
+
+  public markAsViewed = async (id: string, subjectSteamId: string) => {
+    update(this.collection, id, { viewed: true });
+    this.clearCache(subjectSteamId);
+  };
+
+  public markAllAsViewed = async (steamId: string) => {
+    const notificationsForUser = await query(this.collection, [
+      where("subjectSteamId", "==", steamId),
+    ]);
+
+    const { update, commit } = batch();
+
+    for (let notification of notificationsForUser) {
+      update(this.collection, notification.ref.id, {
+        viewed: true,
+      });
+    }
+
+    await commit();
+
+    this.clearCache(steamId);
+
+    Logger.verbose(
+      `NotificationRepo.markAllAsViewed(${steamId}) -> ${notificationsForUser.length} | DB`
     );
   };
 
@@ -245,10 +288,6 @@ export class NotificationFireRepo implements NotificationRepo {
     return add(this.collection, removeUndefines(model));
   };
 
-  markAsViewed = async (id: string) => {
-    update(this.collection, id, { viewed: true });
-  };
-
   private cleanStaleNotification = async () => {
     const timeAgo = new Date();
     timeAgo.setMonth(timeAgo.getMonth() - 3);
@@ -269,26 +308,6 @@ export class NotificationFireRepo implements NotificationRepo {
     }
 
     await commit();
-  };
-
-  public markAllAsViewed = async (steamId: string) => {
-    const notificationsForUser = await query(this.collection, [
-      where("subjectSteamId", "==", steamId),
-    ]);
-
-    const { update, commit } = batch();
-
-    for (let notification of notificationsForUser) {
-      update(this.collection, notification.ref.id, {
-        viewed: true,
-      });
-    }
-
-    await commit();
-
-    Logger.verbose(
-      `NotificationRepo.markAllAsViewed(${steamId}) -> ${notificationsForUser.length} | DB`
-    );
   };
 
   private removeOldViewedNotification = async (
@@ -326,4 +345,19 @@ export class NotificationFireRepo implements NotificationRepo {
       id: favId,
     };
   };
+
+  private addToCache(steamId: string, notis: NotificationDTO[]) {
+    const cacheKey = `notifications/${steamId}`;
+    this.cache.set(cacheKey, notis);
+  }
+
+  private getFromCache(steamId: string) {
+    const cacheKey = `notifications/${steamId}`;
+    return this.cache.get<NotificationDTO[]>(cacheKey);
+  }
+
+  private clearCache(steamId: string) {
+    const cacheKey = `notifications/${steamId}`;
+    this.cache.del(cacheKey);
+  }
 }

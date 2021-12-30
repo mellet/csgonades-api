@@ -29,7 +29,7 @@ export class NotificationService {
       throw ErrorFactory.Forbidden("This notification does not belong to you.");
     }
 
-    return this.notiRepo.markAsViewed(id);
+    return this.notiRepo.markAsViewed(id, noti.subjectSteamId);
   };
 
   markAllAsRead = async (context: AppContext) => {

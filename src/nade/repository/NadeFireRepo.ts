@@ -35,12 +35,9 @@ export class NadeFireRepo implements NadeRepo {
   private mapNadeCache: IAppCache;
 
   constructor() {
-    const oneHourTtl = 60 * 60 * 1;
-    const twelveHourTttl = 60 * 60 * 12;
-
     this.collection = collection("nades");
-    this.cache = new AppCache(twelveHourTttl);
-    this.mapNadeCache = new AppCache(oneHourTtl);
+    this.cache = new AppCache("twelveHour");
+    this.mapNadeCache = new AppCache("oneHour");
   }
 
   isSlugAvailable = async (slug: string): Promise<boolean> => {

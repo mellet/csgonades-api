@@ -6,10 +6,28 @@ export interface IAppCache {
   del: (key: string) => void;
 }
 
+type CacheDuration = "oneHour" | "twelveHour" | "oneDay";
+
+function cacheDurationAsSeconds(cacheDuration: CacheDuration) {
+  const oneHour = 60 * 60 * 1;
+
+  switch (cacheDuration) {
+    case "oneDay":
+      return oneHour * 24;
+    case "twelveHour":
+      return oneHour * 12;
+    case "oneHour":
+      return oneHour;
+    default:
+      return oneHour;
+  }
+}
+
 export class AppCache implements IAppCache {
   private cache: NodeCache;
 
-  constructor(ttlSeconds: number) {
+  constructor(duration: CacheDuration) {
+    const ttlSeconds = cacheDurationAsSeconds(duration);
     this.cache = new NodeCache({
       stdTTL: ttlSeconds,
       checkperiod: ttlSeconds * 0.2,

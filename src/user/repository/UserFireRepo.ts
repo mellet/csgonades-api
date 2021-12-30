@@ -21,11 +21,9 @@ export class UserFireRepo implements UserRepo {
   private cache: IAppCache;
 
   constructor(db: FirebaseFirestore.Firestore) {
-    const oneHourTtl = 60 * 60 * 12; // 12 hour cache
-
     this.collection = collection<UserModel>("users");
     this.db = db;
-    this.cache = new AppCache(oneHourTtl);
+    this.cache = new AppCache("twelveHour");
   }
 
   all = async (filter: UserFilter): Promise<UserDto[]> => {

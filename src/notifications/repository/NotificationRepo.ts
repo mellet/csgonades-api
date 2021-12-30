@@ -20,6 +20,6 @@ export interface NotificationRepo {
   newCommentNotification: (comment: CommentDto, nade: NadeDto) => Promise<void>;
   add: (noti: NotificationCreateDto) => Promise<NotificationDTO | null>;
   removeFavoriteNotification: (opts: RemoveFavNotiOpts) => Promise<void>;
-  markAsViewed: (id: string) => Promise<void>;
+  markAsViewed: (id: string, subjectSteamId: string) => Promise<void>;
   markAllAsViewed: (steamId: string) => Promise<void>;
 }
