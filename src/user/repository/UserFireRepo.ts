@@ -23,7 +23,7 @@ export class UserFireRepo implements UserRepo {
   constructor(db: FirebaseFirestore.Firestore) {
     this.collection = collection<UserModel>("users");
     this.db = db;
-    this.cache = new AppCache("twelveHour");
+    this.cache = new AppCache({ cacheHours: 24 });
   }
 
   all = async (filter: UserFilter): Promise<UserDto[]> => {

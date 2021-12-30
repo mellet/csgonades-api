@@ -38,7 +38,7 @@ export class NotificationFireRepo implements NotificationRepo {
   constructor() {
     this.collection = collection("notifications");
     this.cleanStaleNotification();
-    this.cache = new AppCache("twelveHour");
+    this.cache = new AppCache({ cacheHours: 24 });
   }
 
   forUser = async (steamId: string) => {

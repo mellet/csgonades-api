@@ -36,8 +36,8 @@ export class NadeFireRepo implements NadeRepo {
 
   constructor() {
     this.collection = collection("nades");
-    this.cache = new AppCache("twelveHour");
-    this.mapNadeCache = new AppCache("oneHour");
+    this.cache = new AppCache({ cacheHours: 24 });
+    this.mapNadeCache = new AppCache({ cacheHours: 2 });
   }
 
   isSlugAvailable = async (slug: string): Promise<boolean> => {
