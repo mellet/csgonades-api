@@ -11,6 +11,7 @@ import {
   where,
 } from "typesaurus";
 import { AddModel } from "typesaurus/add";
+import { AppCache, IAppCache } from "../../cache/AppCache";
 import { Logger } from "../../logger/Logger";
 import { ErrorFactory } from "../../utils/ErrorUtil";
 import { FavoriteCreateModel } from "../dto/FavoriteCreateModel";
@@ -20,9 +21,11 @@ import { FavoriteRepo } from "./FavoriteRepo";
 
 export class FavoriteFireRepo implements FavoriteRepo {
   private collection: Collection<FavoriteFireModel>;
+  private cache: IAppCache;
 
   constructor() {
     this.collection = collection("favorites");
+    this.cache = new AppCache({ cacheHours: 24 });
   }
 
   public addFavorite = async (
@@ -49,6 +52,8 @@ export class FavoriteFireRepo implements FavoriteRepo {
 
       Logger.verbose(`FavoriteRepo.addFavorite(${favorite.nadeId})`);
 
+      this.clearCache(newFavorite.userId);
+
       return this.byId(favRef.id);
     } catch (error) {
       Logger.error(error);
@@ -65,6 +70,7 @@ export class FavoriteFireRepo implements FavoriteRepo {
       if (favorite) {
         Logger.verbose(`FavoriteRepo.removeFavorite(${favorite.nadeId})`);
         await remove(this.collection, favoriteId);
+        this.clearCache(favorite.userId);
       }
 
       return favorite;
@@ -84,17 +90,17 @@ export class FavoriteFireRepo implements FavoriteRepo {
         where("userId", "==", steamId),
       ]);
 
-      const idsToRemove = favorites.map((f) => f.ref.id);
       const { commit, remove } = batch();
 
-      idsToRemove.forEach((id) => {
-        remove(this.collection, id);
+      favorites.forEach((fav) => {
+        this.clearCache(fav.data.userId);
+        remove(this.collection, fav.ref.id);
       });
 
       await commit();
 
       Logger.verbose(
-        `FavoriteRepo.removeFavoriteForNade(${nadeId}, ${steamId}) -> ${idsToRemove.length}`
+        `FavoriteRepo.removeFavoriteForNade(${nadeId}, ${steamId}) -> ${favorites.length}`
       );
     } catch (error) {
       Logger.error(error);
@@ -109,6 +115,10 @@ export class FavoriteFireRepo implements FavoriteRepo {
       const idsToRemove = favsForNadeId.map((f) => f.id);
 
       const { commit, remove } = batch();
+
+      favsForNadeId.forEach((fav) => {
+        this.clearCache(fav.userId);
+      });
 
       idsToRemove.forEach((id) => {
         remove(this.collection, id);
@@ -142,6 +152,14 @@ export class FavoriteFireRepo implements FavoriteRepo {
   };
 
   public byUser = async (steamId: string): Promise<FavoriteDto[]> => {
+    const cachedFavorites = this.getFromCache(steamId);
+    if (cachedFavorites) {
+      Logger.verbose(
+        `FavoriteRepo.byUser(${steamId}) -> ${cachedFavorites.length} | CACHE`
+      );
+      return cachedFavorites;
+    }
+
     try {
       const docs = await query(this.collection, [
         where("userId", "==", steamId),
@@ -149,8 +167,11 @@ export class FavoriteFireRepo implements FavoriteRepo {
 
       const favorites = docs.map(this.docToDto);
 
-      Logger.verbose(`FavoriteRepo.byUser(${steamId}) -> ${favorites.length}`);
+      Logger.verbose(
+        `FavoriteRepo.byUser(${steamId}) -> ${favorites.length} | DB`
+      );
 
+      this.addToCache(steamId, favorites);
       return favorites;
     } catch (error) {
       Logger.error(error);
@@ -178,5 +199,20 @@ export class FavoriteFireRepo implements FavoriteRepo {
       ...doc.data,
       id: doc.ref.id,
     };
+  };
+
+  private addToCache = (steamId: string, favorites: FavoriteDto[]) => {
+    const cacheKey = `favorites/${steamId}`;
+    this.cache.set(cacheKey, favorites);
+  };
+
+  private getFromCache = (steamId: string) => {
+    const cacheKey = `favorites/${steamId}`;
+    return this.cache.get<FavoriteDto[]>(cacheKey);
+  };
+
+  private clearCache = (steamId: string) => {
+    const cacheKey = `favorites/${steamId}`;
+    this.cache.del(cacheKey);
   };
 }
