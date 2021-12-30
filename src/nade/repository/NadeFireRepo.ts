@@ -172,15 +172,14 @@ export class NadeFireRepo implements NadeRepo {
         return null;
       }
 
-      const nade = nadeDocs[0];
+      const nadeDoc = nadeDocs[0];
 
-      const freshNade = await this.getById(nade.ref.id);
-
-      this.addNadeToCache(freshNade);
+      const nade = this.toNadeDTO(nadeDoc);
 
       Logger.verbose(`NadeRepo.getBySlug(${slug}) | DB`);
+      this.addNadeToCache(nade);
 
-      return freshNade;
+      return nade;
     } catch (error) {
       Logger.error("NadeRepo.getBySlug", error);
       throw ErrorFactory.InternalServerError("Failed get nade with slug");
