@@ -17,7 +17,8 @@ import {
 } from "typesaurus";
 import { AddModel } from "typesaurus/add";
 import { UpdateModel } from "typesaurus/update";
-import { AppCache, IAppCache } from "../../cache/AppCache";
+import { ICache } from "../../cache/AppCache";
+import { IAppCaches } from "../../cache/initCache";
 import { Logger } from "../../logger/Logger";
 import { UserLightModel } from "../../user/UserModel";
 import { removeUndefines } from "../../utils/Common";
@@ -31,13 +32,13 @@ import { NadeRepo } from "./NadeRepo";
 
 export class NadeFireRepo implements NadeRepo {
   private collection: Collection<NadeFireModel>;
-  private cache: IAppCache;
-  private mapNadeCache: IAppCache;
+  private cache: ICache;
+  private mapNadeCache: ICache;
 
-  constructor() {
+  constructor(caches: IAppCaches) {
     this.collection = collection("nades");
-    this.cache = new AppCache({ cacheHours: 24 });
-    this.mapNadeCache = new AppCache({ cacheHours: 2 });
+    this.cache = caches.longtermCache;
+    this.mapNadeCache = caches.shorttermCache;
   }
 
   isSlugAvailable = async (slug: string): Promise<boolean> => {

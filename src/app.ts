@@ -6,6 +6,7 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import passport from "passport";
 import { AuditRouter } from "./audit/AuditRouter";
+import { initCache } from "./cache/initCache";
 import { CommentRouter } from "./comment/CommentRouter";
 import { CSGNConfig } from "./config/enironment";
 import { ContactRouter } from "./contact/ContactRouter";
@@ -77,8 +78,10 @@ export const AppServer = (config: CSGNConfig) => {
   const gfycatApi = new GfycatApi(config);
   const steamApi = new SteamApi(config);
 
+  const caches = initCache();
+
   const persist = persistInit(config);
-  const repositories = repoInit(persist);
+  const repositories = repoInit(persist, caches);
   const {
     auditService,
     commentService,
@@ -91,7 +94,7 @@ export const AppServer = (config: CSGNConfig) => {
   } = serviceInit(config, repositories, gfycatApi, steamApi);
 
   // Routers
-  const statusRouter = new StatusRouter();
+  const statusRouter = new StatusRouter(caches);
   const nadeRouter = new NadeRouter({
     gfycatApi,
     nadeService,

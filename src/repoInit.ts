@@ -1,5 +1,6 @@
 import { AuditFireRepo } from "./audit/repository/AuditFireRepo";
 import { AuditRepo } from "./audit/repository/AuditRepo";
+import { IAppCaches } from "./cache/initCache";
 import { CommentFireRepo } from "./comment/repository/CommentFireRepo";
 import { CommentRepo } from "./comment/repository/CommentRepo";
 import { ContactFireRepo } from "./contact/repository/ContactFireRepo";
@@ -31,11 +32,14 @@ export interface AppRepositories {
   auditRepo: AuditRepo;
 }
 
-export function repoInit(persist: PersistedStorage): AppRepositories {
-  const notificationRepo = new NotificationFireRepo();
-  const userRepo = new UserFireRepo(persist.db);
-  const nadeRepo = new NadeFireRepo();
-  const favoriteRepo = new FavoriteFireRepo();
+export function repoInit(
+  persist: PersistedStorage,
+  caches: IAppCaches
+): AppRepositories {
+  const notificationRepo = new NotificationFireRepo(caches.longtermCache);
+  const userRepo = new UserFireRepo(persist.db, caches.longtermCache);
+  const nadeRepo = new NadeFireRepo(caches);
+  const favoriteRepo = new FavoriteFireRepo(caches.longtermCache);
   const statsRepo = new StatsFireRepo();
   const contactRepo = new ContactFireRepo();
   const reportRepo = new ReportFireRepo();

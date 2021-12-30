@@ -11,7 +11,7 @@ import {
   where,
 } from "typesaurus";
 import { AddModel } from "typesaurus/add";
-import { AppCache, IAppCache } from "../../cache/AppCache";
+import { ICache } from "../../cache/AppCache";
 import { Logger } from "../../logger/Logger";
 import { ErrorFactory } from "../../utils/ErrorUtil";
 import { FavoriteCreateModel } from "../dto/FavoriteCreateModel";
@@ -21,11 +21,11 @@ import { FavoriteRepo } from "./FavoriteRepo";
 
 export class FavoriteFireRepo implements FavoriteRepo {
   private collection: Collection<FavoriteFireModel>;
-  private cache: IAppCache;
+  private cache: ICache;
 
-  constructor() {
+  constructor(cache: ICache) {
     this.collection = collection("favorites");
-    this.cache = new AppCache({ cacheHours: 24 });
+    this.cache = cache;
   }
 
   public addFavorite = async (

@@ -1,7 +1,7 @@
 import { collection, Collection, get, set, update, value } from "typesaurus";
 import { AddModel } from "typesaurus/add";
 import { UpdateModel } from "typesaurus/update";
-import { AppCache, IAppCache } from "../../cache/AppCache";
+import { ICache } from "../../cache/AppCache";
 import { Logger } from "../../logger/Logger";
 import { removeUndefines } from "../../utils/Common";
 import { ErrorFactory } from "../../utils/ErrorUtil";
@@ -18,12 +18,12 @@ export type UserFilter = {
 export class UserFireRepo implements UserRepo {
   private collection: Collection<UserModel>;
   private db: FirebaseFirestore.Firestore;
-  private cache: IAppCache;
+  private cache: ICache;
 
-  constructor(db: FirebaseFirestore.Firestore) {
+  constructor(db: FirebaseFirestore.Firestore, cache: ICache) {
     this.collection = collection<UserModel>("users");
     this.db = db;
-    this.cache = new AppCache({ cacheHours: 24 });
+    this.cache = cache;
   }
 
   all = async (filter: UserFilter): Promise<UserDto[]> => {

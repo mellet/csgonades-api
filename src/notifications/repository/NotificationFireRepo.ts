@@ -15,7 +15,7 @@ import {
   where,
 } from "typesaurus";
 import { AddModel } from "typesaurus/add";
-import { AppCache, IAppCache } from "../../cache/AppCache";
+import { ICache } from "../../cache/AppCache";
 import { CommentDto } from "../../comment/dto/CommentDto";
 import { Logger } from "../../logger/Logger";
 import { NadeDto } from "../../nade/dto/NadeDto";
@@ -33,12 +33,12 @@ import { NotificationRepo, RemoveFavNotiOpts } from "./NotificationRepo";
 export class NotificationFireRepo implements NotificationRepo {
   private collection: Collection<NotificationModel>;
   private adminId = "76561198026064832";
-  private cache: IAppCache;
+  private cache: ICache;
 
-  constructor() {
+  constructor(cache: ICache) {
     this.collection = collection("notifications");
     this.cleanStaleNotification();
-    this.cache = new AppCache({ cacheHours: 24 });
+    this.cache = cache;
   }
 
   forUser = async (steamId: string) => {

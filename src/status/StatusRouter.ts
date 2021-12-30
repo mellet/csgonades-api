@@ -1,12 +1,15 @@
 import { Router } from "express";
+import { IAppCaches } from "../cache/initCache";
 import { Logger } from "../logger/Logger";
 
 export class StatusRouter {
   private router: Router;
+  private caches: IAppCaches;
 
-  constructor() {
+  constructor(caches: IAppCaches) {
     this.router = Router();
     this.setupRoutes();
+    this.caches = caches;
   }
 
   getRouter = () => {
@@ -20,11 +23,24 @@ export class StatusRouter {
   private statusHandler = async (_, res) => {
     Logger.verbose("StatusRouter.statusHandler");
 
+    const shorttermCacheStats = this.caches.shorttermCache.stats();
+    const longtermCacheStats = this.caches.longtermCache.stats();
+
     return res.send({
       status: "OK",
       serverClock: new Date(),
       uptime: format(process.uptime()),
       node_env: process.env.NODE_ENV,
+      caches: {
+        shortTerm: {
+          hits: shorttermCacheStats.hits,
+          misses: shorttermCacheStats.misses,
+        },
+        longTerm: {
+          hits: longtermCacheStats.hits,
+          misses: longtermCacheStats.misses,
+        },
+      },
     });
   };
 }

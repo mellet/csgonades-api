@@ -1,16 +1,24 @@
 import NodeCache from "node-cache";
 
-export interface IAppCache {
+export interface ICache {
   get: <T>(key: string) => T | undefined;
   set: <T>(key: string, value: T) => void;
   del: (key: string) => void;
+  flush: () => void;
+
+  stats: () => CacheStats;
 }
 
 type CacheConfig = {
   cacheHours: number;
 };
 
-export class AppCache implements IAppCache {
+type CacheStats = {
+  hits: number;
+  misses: number;
+};
+
+export class AppCache implements ICache {
   private cache: NodeCache;
 
   constructor(config: CacheConfig) {
@@ -36,5 +44,14 @@ export class AppCache implements IAppCache {
 
   flush = () => {
     this.cache.flushAll();
+  };
+
+  stats = (): CacheStats => {
+    const stats = this.cache.getStats();
+
+    return {
+      hits: stats.hits,
+      misses: stats.misses,
+    };
   };
 }
