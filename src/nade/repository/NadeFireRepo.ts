@@ -297,6 +297,12 @@ export class NadeFireRepo implements NadeRepo {
       this.mapNadeCache.del(cacheKey);
     }
 
+    // Clear cache for map nades when coordinates change
+    if (updates.mapEndCoord) {
+      const cacheKey = ["map", nade.map, nade.type].join("/");
+      this.mapNadeCache.del(cacheKey);
+    }
+
     return this.byIdAfterSave(nadeId);
   };
 
