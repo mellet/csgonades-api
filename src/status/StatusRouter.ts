@@ -51,6 +51,14 @@ function format(seconds: number) {
 }
 
 function calculateCacheStats(stats: { hits: number; misses: number }) {
+  if (stats.hits === 0 || stats.misses === 0) {
+    return {
+      hits: stats.hits,
+      misses: stats.misses,
+      hitPercentage: 0,
+    };
+  }
+
   const hitPercentage = (stats.hits * 100) / (stats.misses + stats.hits);
 
   return {
