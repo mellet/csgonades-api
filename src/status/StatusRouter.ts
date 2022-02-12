@@ -32,20 +32,8 @@ export class StatusRouter {
       uptime: format(process.uptime()),
       node_env: process.env.NODE_ENV,
       caches: {
-        shortTerm: {
-          hits: shorttermCacheStats.hits,
-          misses: shorttermCacheStats.misses,
-          hitPercentage:
-            (shorttermCacheStats.hits * 100) /
-            (shorttermCacheStats.misses + shorttermCacheStats.hits),
-        },
-        longTerm: {
-          hits: longtermCacheStats.hits,
-          misses: longtermCacheStats.misses,
-          hitPercentage:
-            (longtermCacheStats.hits * 100) /
-            (longtermCacheStats.misses + longtermCacheStats.hits),
-        },
+        shortTerm: calculateCacheStats(shorttermCacheStats),
+        longTerm: calculateCacheStats(longtermCacheStats),
       },
     });
   };
@@ -60,4 +48,14 @@ function format(seconds: number) {
   var seconds = Math.floor(seconds % 60);
 
   return pad(hours) + ":" + pad(minutes) + ":" + pad(seconds);
+}
+
+function calculateCacheStats(stats: { hits: number; misses: number }) {
+  const hitPercentage = (stats.hits * 100) / (stats.misses + stats.hits);
+
+  return {
+    hits: stats.hits,
+    misses: stats.misses,
+    hitPercentage: Math.round(hitPercentage),
+  };
 }
