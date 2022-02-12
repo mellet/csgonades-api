@@ -35,10 +35,16 @@ export class StatusRouter {
         shortTerm: {
           hits: shorttermCacheStats.hits,
           misses: shorttermCacheStats.misses,
+          hitPercentage:
+            (shorttermCacheStats.hits * 100) /
+            (shorttermCacheStats.misses + shorttermCacheStats.hits),
         },
         longTerm: {
           hits: longtermCacheStats.hits,
           misses: longtermCacheStats.misses,
+          hitPercentage:
+            (longtermCacheStats.hits * 100) /
+            (longtermCacheStats.misses + longtermCacheStats.hits),
         },
       },
     });

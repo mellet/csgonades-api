@@ -34,9 +34,9 @@ export const AppServer = (config: CSGNConfig) => {
   app.set("trust proxy", 1);
 
   const limiter = rateLimit({
-    windowMs: 5 * 60 * 1000, // 5 minutes
-    max: 200,
-    onLimitReached: (req) => {
+    windowMs: 1 * 60 * 1000, // 5 minutes
+    max: 100,
+    onLimitReached: (_req) => {
       console.log("> Global request limit reached");
     },
   });
@@ -138,7 +138,7 @@ export const AppServer = (config: CSGNConfig) => {
 
   const sessionLimiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minutes
-    max: 5,
+    max: 10,
     onLimitReached: () => {
       Logger.warning("SessionHandler.initSession | limit reached");
     },
