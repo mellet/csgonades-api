@@ -5,6 +5,12 @@ import { NadeFireModel } from "../dto/NadeFireModel";
 import { CsgoMap } from "../nadeSubTypes/CsgoMap";
 import { NadeType } from "../nadeSubTypes/NadeType";
 
+export type NadeUpdateConfig = {
+  setNewUpdatedAt?: boolean;
+  setNewCreatedAt?: boolean;
+  invalidateCache?: boolean;
+};
+
 export interface NadeRepo {
   isSlugAvailable(slug: string): Promise<boolean>;
   getAll(nadeLimit?: number): Promise<NadeDto[]>;
@@ -19,8 +25,7 @@ export interface NadeRepo {
   updateNade(
     nadeId: string,
     updates: Partial<NadeFireModel>,
-    setNewUpdateNade?: boolean,
-    setNewCreatedAt?: boolean
+    config?: NadeUpdateConfig
   ): Promise<NadeDto>;
 
   delete(nadeId: string): Promise<void>;

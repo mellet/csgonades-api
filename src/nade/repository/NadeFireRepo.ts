@@ -28,7 +28,7 @@ import { NadeDto } from "../dto/NadeDto";
 import { NadeFireModel } from "../dto/NadeFireModel";
 import { CsgoMap } from "../nadeSubTypes/CsgoMap";
 import { NadeType } from "../nadeSubTypes/NadeType";
-import { NadeRepo } from "./NadeRepo";
+import { NadeRepo, NadeUpdateConfig } from "./NadeRepo";
 
 export class NadeFireRepo implements NadeRepo {
   private collection: Collection<NadeFireModel>;
@@ -273,24 +273,31 @@ export class NadeFireRepo implements NadeRepo {
   updateNade = async (
     nadeId: string,
     updates: Partial<NadeFireModel>,
-    setNewUpdateNade?: boolean,
-    setNewCreatedAt?: boolean
+    config?: NadeUpdateConfig
   ): Promise<NadeDto> => {
+    const updateConfig = {
+      setNewUpdatedAt: config?.setNewUpdatedAt || false,
+      setNewCreatedAt: config?.setNewCreatedAt || false,
+      invalidateCache: config?.invalidateCache || false,
+    };
+
     let modelUpdates: UpdateModel<NadeFireModel> = {
       ...updates,
       lastGfycatUpdate: updates.lastGfycatUpdate
         ? value("serverDate")
         : undefined,
-      updatedAt: setNewUpdateNade ? value("serverDate") : undefined,
-      createdAt: setNewCreatedAt ? value("serverDate") : undefined,
+      updatedAt: updateConfig.setNewUpdatedAt ? value("serverDate") : undefined,
+      createdAt: updateConfig.setNewCreatedAt ? value("serverDate") : undefined,
     };
 
     await update(this.collection, nadeId, removeUndefines(modelUpdates));
 
     const nade = await this.byIdAfterSave(nadeId);
     this.removeNadeFromCache(nade);
-    const cacheKey = ["map", nade.map, nade.type].join("/");
-    this.mapNadeCache.del(cacheKey);
+    if (updateConfig.invalidateCache) {
+      const cacheKey = ["map", nade.map, nade.type].join("/");
+      this.mapNadeCache.del(cacheKey);
+    }
     Logger.verbose(`NadeRepo.update(${nadeId})`);
 
     // Clear cache for map nades when slug is created
