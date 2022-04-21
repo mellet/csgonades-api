@@ -1,3 +1,4 @@
+import moment from "moment";
 import { CommentRepo } from "../comment/repository/CommentRepo";
 import { GfycatApi } from "../external-api/GfycatApi";
 import { FavoriteRepo } from "../favorite/repository/FavoriteRepo";
@@ -70,6 +71,7 @@ export class NadeService {
     this.userRepo = userRepo;
 
     // this.recountNades();
+    this.getDeletedToRemove();
   }
 
   recountNades = async () => {
@@ -185,6 +187,20 @@ export class NadeService {
     const declinedNades = await this.nadeRepo.getDeleted();
 
     return convertNadesToLightDto(declinedNades);
+  };
+
+  private getDeletedToRemove = async () => {
+    const toDelete = await this.nadeRepo.getDeletedToRemove();
+
+    const olderThanTwoMonths = toDelete.filter((nade) => {
+      const addedDaysAgo = moment().diff(moment(nade.createdAt), "days", false);
+      return addedDaysAgo > 60;
+    });
+
+    const deletePromises = olderThanTwoMonths.map((nade) =>
+      this.delete(nade.id)
+    );
+    await Promise.all(deletePromises);
   };
 
   getById = async (nadeId: string): Promise<NadeDto | null> => {

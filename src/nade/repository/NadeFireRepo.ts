@@ -135,6 +135,22 @@ export class NadeFireRepo implements NadeRepo {
     }
   };
 
+  getDeletedToRemove = async (): Promise<NadeDto[]> => {
+    try {
+      const deletedToRemove = await query(this.collection, [
+        where("status", "==", "deleted"),
+        order("createdAt", "asc"),
+        limit(10),
+      ]);
+      return deletedToRemove.map(this.toNadeDTO);
+    } catch (error) {
+      Logger.error("NadeFireRepo.getDeletedToRemove", error);
+      throw ErrorFactory.InternalServerError(
+        "Failed get deleted nades to remove"
+      );
+    }
+  };
+
   getById = async (nadeId: string): Promise<NadeDto | null> => {
     const cachedNade = this.getFromCache({ id: nadeId });
     if (cachedNade) {
