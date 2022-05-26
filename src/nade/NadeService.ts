@@ -243,7 +243,7 @@ export class NadeService {
     const user = await this.userRepo.byId(steamID);
 
     if (!user) {
-      throw ErrorFactory.BadRequest("User not found");
+      throw ErrorFactory.BadRequest("User not found when creating nade");
     }
 
     const userLight: UserLightModel = {

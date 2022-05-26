@@ -56,17 +56,25 @@ export class ImageRepo {
 
     const tmpImage = await this.resizeImage(imageBase64, imageName, size);
 
-    const image = await this.imageStorageRepo.saveImage(
-      tmpImage,
-      imageName,
-      collection
-    );
-
-    return image;
+    try {
+      const image = await this.imageStorageRepo.saveImage(
+        tmpImage,
+        imageName,
+        collection
+      );
+      return image;
+    } catch (error) {
+      throw ErrorFactory.ExternalError("Failed to save image");
+    }
   };
 
-  deleteImage = (internalPath: string): Promise<void> => {
-    return this.imageStorageRepo.deleteImage(internalPath);
+  deleteImage = async (internalPath: string): Promise<void> => {
+    try {
+      await this.imageStorageRepo.deleteImage(internalPath);
+      return;
+    } catch (error) {
+      throw ErrorFactory.ExternalError("Failed to save image");
+    }
   };
 
   deleteImageResult = (imageRes: ImageData) => {
