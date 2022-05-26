@@ -1,5 +1,5 @@
 type LogLevel = "verbose" | "warning" | "error";
-const LOG_LEVEL: LogLevel = "verbose";
+const LOG_LEVEL: LogLevel = "warning";
 
 export class Logger {
   static verbose(message?: any, ...optionalParams: any[]) {
