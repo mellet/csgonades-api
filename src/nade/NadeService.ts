@@ -193,7 +193,7 @@ export class NadeService {
 
     const olderThanTwoMonths = toDelete.filter((nade) => {
       const addedDaysAgo = moment().diff(moment(nade.createdAt), "days", false);
-      return addedDaysAgo > 60;
+      return addedDaysAgo > 35;
     });
 
     const deletePromises = olderThanTwoMonths.map((nade) =>
@@ -207,7 +207,7 @@ export class NadeService {
 
     const oldDeclinedNades = declinedNades.filter((nade) => {
       const addedDaysAgo = moment().diff(moment(nade.createdAt), "days", false);
-      return addedDaysAgo > 30;
+      return addedDaysAgo > 21;
     });
 
     oldDeclinedNades.forEach((nade) => {
