@@ -1,5 +1,7 @@
 type LogLevel = "verbose" | "warning" | "error";
-const LOG_LEVEL: LogLevel = "warning";
+
+const LOG_LEVEL: LogLevel =
+  process.env.NODE_ENV === "development" ? "verbose" : "warning";
 
 export class Logger {
   static verbose(message?: any, ...optionalParams: any[]) {

@@ -95,6 +95,14 @@ export class NadeService {
     const numMolotovs = flatNades.filter((n) => n.type === "molotov").length;
     const numGrenades = flatNades.filter((n) => n.type === "hegrenade").length;
 
+    Logger.verbose(
+      "Recounting nades",
+      numSmokes,
+      numFlashes,
+      numMolotovs,
+      numGrenades
+    );
+
     this.statsRepo.setNadeCount(
       numSmokes,
       numFlashes,
