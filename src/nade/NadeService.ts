@@ -72,6 +72,7 @@ export class NadeService {
 
     // this.recountNades();
     this.getDeletedToRemove();
+    this.markOldDeclinedNadesAsRemoved();
   }
 
   recountNades = async () => {
@@ -171,10 +172,8 @@ export class NadeService {
     return convertNadesToLightDto(nades);
   };
 
-  getPending = async (): Promise<NadeMiniDto[]> => {
-    const pendingNades = await this.nadeRepo.getPending();
-
-    return convertNadesToLightDto(pendingNades);
+  getPending = async (): Promise<NadeDto[]> => {
+    return this.nadeRepo.getPending();
   };
 
   getDeclined = async (): Promise<NadeMiniDto[]> => {
@@ -201,6 +200,19 @@ export class NadeService {
       this.delete(nade.id)
     );
     await Promise.all(deletePromises);
+  };
+
+  private markOldDeclinedNadesAsRemoved = async () => {
+    const declinedNades = await this.getDeclined();
+
+    const oldDeclinedNades = declinedNades.filter((nade) => {
+      const addedDaysAgo = moment().diff(moment(nade.createdAt), "days", false);
+      return addedDaysAgo > 30;
+    });
+
+    oldDeclinedNades.forEach((nade) => {
+      this.markAsDeleted(nade.id);
+    });
   };
 
   getById = async (nadeId: string): Promise<NadeDto | null> => {
@@ -314,6 +326,17 @@ export class NadeService {
     if (nade.type) {
       await this.statsRepo.decrementNadeCounter(nade.type);
     }
+  };
+
+  private markAsDeleted = async (nadeId: string) => {
+    const originalNade = await this.getById(nadeId);
+
+    if (!originalNade) {
+      Logger.error("NadeService.markAsDeleted - No nade found");
+      throw ErrorFactory.NotFound("Can't find nade to update");
+    }
+
+    await this.nadeRepo.updateNade(nadeId, { status: "deleted" });
   };
 
   update = async (

@@ -13,6 +13,7 @@ export class GfycatApi {
       clientSecret: config.secrets.gfycat_secret,
     });
   }
+
   getGfycatData = async (
     gfyIdOrUrl: string
   ): Promise<GfycatDetailsResponse> => {
@@ -23,8 +24,8 @@ export class GfycatApi {
       Logger.verbose("GfycatApi.getGfycatData", gfyId);
       return gfyResponse;
     } catch (error) {
-      Logger.error("GfycatApi.getGfycatData - Gfycat offline");
-      throw ErrorFactory.ExternalError("Gfycat offline");
+      Logger.error("GfycatApi.getGfycatData - Gfycat offline", error);
+      throw ErrorFactory.ExternalError(`Gfycat offline - ${error.message}`);
     }
   };
 }
