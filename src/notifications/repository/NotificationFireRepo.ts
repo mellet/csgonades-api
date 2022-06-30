@@ -232,12 +232,6 @@ export class NotificationFireRepo implements NotificationRepo {
         return this.addFavoriteNotification(noti);
       case "report":
         return add(this.collection, { ...commonValues, type: "report" });
-      case "new-nade":
-        return add(this.collection, {
-          ...commonValues,
-          type: "new-nade",
-          nadeId: noti.nadeId,
-        });
       case "new-comment":
         return add(
           this.collection,

@@ -42,18 +42,12 @@ interface NewContactNotification extends CommonNotificationValues {
   type: "contact-msg";
 }
 
-interface NewNadeNotification extends CommonNotificationValues {
-  type: "new-nade";
-  nadeId: string;
-}
-
 export type NotificationModel =
   | AcceptedNadeNotification
   | DeclinedNadeNotification
   | FavoriteNotification
   | ReportNotification
   | NewContactNotification
-  | NewNadeNotification
   | NewCommentNotification;
 
 export type NotificationDTO = NotificationModel & { id: string };
