@@ -11,7 +11,6 @@ export type RemoveFavNotiOpts = {
 export interface NotificationRepo {
   forUser(steamId: string): Promise<NotificationDTO[]>;
   byId(id: string): Promise<NotificationDTO | null>;
-  newNade(nadeId: string): Promise<void>;
   newReport: () => Promise<void>;
   nadeAccepted: (nade: NadeDto) => Promise<void>;
   nadeDeclined: (nade: NadeDto) => Promise<void>;

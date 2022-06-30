@@ -79,14 +79,6 @@ export class NotificationFireRepo implements NotificationRepo {
     return this.toDto(notification);
   };
 
-  newNade = async (nadeId: string) => {
-    this.add({
-      type: "new-nade",
-      nadeId,
-      subjectSteamId: this.adminId,
-    });
-  };
-
   newReport = async () => {
     this.add({
       type: "report",

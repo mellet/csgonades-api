@@ -310,7 +310,6 @@ export class NadeService {
     if (nade.type) {
       await this.statsRepo.incrementNadeCounter(nade.type);
     }
-    await this.notificationRepo.newNade(nade.id);
 
     return nade;
   };
