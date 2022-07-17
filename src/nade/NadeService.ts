@@ -205,7 +205,7 @@ export class NadeService {
     });
 
     const deletePromises = olderThanTwoMonths.map((nade) =>
-      this.delete(nade.id)
+      this.delete(nade.id, { role: "administrator", steamId: "none" })
     );
     await Promise.all(deletePromises);
   };
@@ -314,11 +314,15 @@ export class NadeService {
     return nade;
   };
 
-  delete = async (nadeId: string) => {
+  delete = async (nadeId: string, user: RequestUser) => {
     const nade = await this.nadeRepo.getById(nadeId);
 
     if (!nade) {
       throw ErrorFactory.NotFound("Nade to delete not found");
+    }
+
+    if (user.steamId !== nade.steamId && user.role === "user") {
+      throw ErrorFactory.Forbidden("Not allowed to delete this nade");
     }
 
     const deleteParts = [

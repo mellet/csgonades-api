@@ -7,11 +7,7 @@ import { GfycatApi } from "../external-api/GfycatApi";
 import { Logger } from "../logger/Logger";
 import { UserService } from "../user/UserService";
 import { createAppContext } from "../utils/AppContext";
-import {
-  adminOnlyHandler,
-  adminOrModHandler,
-  authOnlyHandler,
-} from "../utils/AuthHandlers";
+import { adminOrModHandler, authOnlyHandler } from "../utils/AuthHandlers";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import { userFromRequest } from "../utils/RouterUtils";
 import { sanitizeIt } from "../utils/Sanitize";
@@ -72,7 +68,7 @@ export class NadeRouter {
     this.router.put("/nades/:id", authOnlyHandler, this.updateNade);
     this.router.post("/nades/:id/countView", this.incrementViewCount);
     this.router.post("/nades/validateGfycat", this.validateGfy);
-    this.router.delete("/nades/:id", adminOnlyHandler, this.deleteNade);
+    this.router.delete("/nades/:id", authOnlyHandler, this.deleteNade);
     this.router.get("/nades/:id/checkslug", this.checkSlug);
 
     // Favorite routes
@@ -277,8 +273,20 @@ export class NadeRouter {
   };
 
   private deleteNade: RequestHandler = async (req, res) => {
-    const id = sanitizeIt(req.params.id);
-    await this.nadeService.delete(id);
+    const nadeId = sanitizeIt(req.params.id);
+    const user = userFromRequest(req);
+
+    if (!user || !user.steamId) {
+      Logger.error("NadeRouter.deleteNade Not signed in");
+      throw ErrorFactory.Forbidden("Not signed in");
+    }
+
+    if (!nadeId) {
+      Logger.error("NadeRouter.deleteNade No nade selected");
+      throw ErrorFactory.BadRequest("Not signed in or no nade selected");
+    }
+
+    await this.nadeService.delete(nadeId, user);
 
     return res.status(204).send();
   };

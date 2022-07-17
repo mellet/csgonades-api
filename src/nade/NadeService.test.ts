@@ -149,7 +149,10 @@ describe("Nade service", () => {
 
     when(mockedDeps.nadeRepo.getById(nadeId)).thenResolve(fakeResult);
 
-    await nadeService.delete(nadeId);
+    await nadeService.delete(nadeId, {
+      role: "administrator",
+      steamId: "none",
+    });
 
     verify(mockedDeps.imageRepo.deleteImageResult(anything())).times(2);
     verify(mockedDeps.commentRepo.deleteForNadeId(nadeId)).once();
