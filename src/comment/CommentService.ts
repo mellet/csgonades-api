@@ -1,7 +1,10 @@
+import moment from "moment";
 import { Logger } from "../logger/Logger";
+import { NadeDto } from "../nade/dto/NadeDto";
 import { NadeRepo } from "../nade/repository/NadeRepo";
 import { NotificationRepo } from "../notifications/repository/NotificationRepo";
 import { UserRepo } from "../user/repository/UserRepo";
+import { UserModel } from "../user/UserModel";
 import { AppContext } from "../utils/AppContext";
 import { isEntityOwnerOrPrivilegedUser } from "../utils/AuthUtils";
 import { ErrorFactory } from "../utils/ErrorUtil";
@@ -74,6 +77,9 @@ export class CommentService {
 
     this.nadeRepo.incrementCommentCount(nade.id);
 
+    // Send notifications to users who recently commented on nade
+    this.sendNotificationToRecentCommenters(nade, user);
+
     return comment;
   };
 
@@ -119,4 +125,41 @@ export class CommentService {
   deleteForNadeId = async (nadeId: string) => {
     await this.commentRepo.deleteForNadeId(nadeId);
   };
+
+  private async sendNotificationToRecentCommenters(
+    nadeCommentedOn: NadeDto,
+    commentUser: UserModel
+  ) {
+    const recentComments = await this.usersWhoRecentlyCommentedOnNade(
+      nadeCommentedOn.id
+    );
+
+    recentComments.forEach((comment) => {
+      this.notificationRepo.add({
+        type: "new-comment",
+        subjectSteamId: comment.steamId,
+        byNickname: commentUser.nickname,
+        bySteamId: commentUser.steamId,
+        nadeId: nadeCommentedOn.id,
+        nadeOwner: nadeCommentedOn.steamId,
+        nadeSlug: nadeCommentedOn.slug,
+        thumnailUrl: nadeCommentedOn.imageMain.url,
+      });
+    });
+  }
+
+  private async usersWhoRecentlyCommentedOnNade(nadeId: string) {
+    const commentsForNade = await this.getForNade(nadeId);
+
+    const commentsNewerThanTwoWeeks = commentsForNade.filter((comment) => {
+      const addedDaysAgo = moment().diff(
+        moment(comment.createdAt),
+        "days",
+        false
+      );
+      return addedDaysAgo < 14;
+    });
+
+    return commentsNewerThanTwoWeeks;
+  }
 }

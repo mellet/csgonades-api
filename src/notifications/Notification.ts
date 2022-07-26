@@ -11,6 +11,7 @@ interface NewCommentNotification extends CommonNotificationValues {
   bySteamId: string;
   byNickname: string;
   thumnailUrl?: string;
+  nadeOwner?: string;
 }
 
 interface AcceptedNadeNotification extends CommonNotificationValues {

@@ -50,14 +50,6 @@ export class FavoriteService {
 
     if (favorite) {
       await this.nadeRepo.incrementFavoriteCount(nadeId);
-
-      // Avoid favorite notification for own nades
-      if (favorite.userId !== nadeBeingFavorited.steamId) {
-        await this.notificationRepo.newFavorite(
-          nadeBeingFavorited,
-          userFavoriting
-        );
-      }
     }
 
     return favorite;

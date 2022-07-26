@@ -130,6 +130,7 @@ export class NotificationFireRepo implements NotificationRepo {
       subjectSteamId: nade.steamId,
       nadeSlug: nade.slug,
       thumnailUrl: nade.imageMain?.url,
+      nadeOwner: nade.user.steamId,
     });
   };
 
@@ -243,6 +244,7 @@ export class NotificationFireRepo implements NotificationRepo {
             byNickname: noti.byNickname,
             bySteamId: noti.bySteamId,
             nadeSlug: noti.nadeSlug,
+            nadeOwner: noti.nadeOwner,
           })
         );
       default:

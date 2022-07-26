@@ -147,10 +147,6 @@ export class NadeService {
 
     await this.nadeRepo.incrementFavoriteCount(nadeId);
 
-    if (!isOwnNade) {
-      await this.notificationRepo.newFavorite(nade, userFavoriting);
-    }
-
     return favorite;
   };
 
