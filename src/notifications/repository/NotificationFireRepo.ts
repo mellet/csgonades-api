@@ -12,7 +12,7 @@ import {
   remove,
   update,
   value,
-  where
+  where,
 } from "typesaurus";
 import { AddModel } from "typesaurus/add";
 import { ICache } from "../../cache/AppCache";
@@ -26,7 +26,7 @@ import {
   FavoriteNotification,
   NotificationCreateDto,
   NotificationDTO,
-  NotificationModel
+  NotificationModel,
 } from "../Notification";
 import { NotificationRepo, RemoveFavNotiOpts } from "./NotificationRepo";
 
