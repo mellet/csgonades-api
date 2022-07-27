@@ -12,7 +12,7 @@ import {
   remove,
   update,
   value,
-  where,
+  where
 } from "typesaurus";
 import { AddModel } from "typesaurus/add";
 import { ICache } from "../../cache/AppCache";
@@ -26,7 +26,7 @@ import {
   FavoriteNotification,
   NotificationCreateDto,
   NotificationDTO,
-  NotificationModel,
+  NotificationModel
 } from "../Notification";
 import { NotificationRepo, RemoveFavNotiOpts } from "./NotificationRepo";
 
@@ -143,11 +143,14 @@ export class NotificationFireRepo implements NotificationRepo {
     }
 
     // Notifiy recent commenters on nade
-    recentComments.forEach((commenter) => {
-      if (commenter.steamId !== nade.steamId || commenter.id !== comment.id) {
+    recentComments.forEach((recentComment) => {
+      if (
+        recentComment.steamId !== nade.steamId || // Skip if owner of nade
+        recentComment.steamId !== comment.steamId // Skip if own comment
+      ) {
         this.add({
           type: "new-comment",
-          subjectSteamId: commenter.steamId,
+          subjectSteamId: recentComment.steamId,
           nadeId: comment.nadeId,
           byNickname: comment.nickname,
           bySteamId: comment.steamId,
