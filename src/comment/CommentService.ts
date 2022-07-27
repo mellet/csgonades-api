@@ -1,10 +1,8 @@
 import moment from "moment";
 import { Logger } from "../logger/Logger";
-import { NadeDto } from "../nade/dto/NadeDto";
 import { NadeRepo } from "../nade/repository/NadeRepo";
 import { NotificationRepo } from "../notifications/repository/NotificationRepo";
 import { UserRepo } from "../user/repository/UserRepo";
-import { UserModel } from "../user/UserModel";
 import { AppContext } from "../utils/AppContext";
 import { isEntityOwnerOrPrivilegedUser } from "../utils/AuthUtils";
 import { ErrorFactory } from "../utils/ErrorUtil";
@@ -72,13 +70,15 @@ export class CommentService {
 
     // Don't send notfication when commenting own nade
     if (authUser.steamId !== nade.steamId) {
-      this.notificationRepo.newCommentNotification(comment, nade);
+      const recentCommenters = await this.recentCommentsOnNade(nade.id);
+      this.notificationRepo.newCommentNotification(
+        comment,
+        nade,
+        recentCommenters
+      );
     }
 
     this.nadeRepo.incrementCommentCount(nade.id);
-
-    // Send notifications to users who recently commented on nade
-    this.sendNotificationToRecentCommenters(nade, user);
 
     return comment;
   };
@@ -126,29 +126,7 @@ export class CommentService {
     await this.commentRepo.deleteForNadeId(nadeId);
   };
 
-  private async sendNotificationToRecentCommenters(
-    nadeCommentedOn: NadeDto,
-    commentUser: UserModel
-  ) {
-    const recentComments = await this.usersWhoRecentlyCommentedOnNade(
-      nadeCommentedOn.id
-    );
-
-    recentComments.forEach((comment) => {
-      this.notificationRepo.add({
-        type: "new-comment",
-        subjectSteamId: comment.steamId,
-        byNickname: commentUser.nickname,
-        bySteamId: commentUser.steamId,
-        nadeId: nadeCommentedOn.id,
-        nadeOwner: nadeCommentedOn.steamId,
-        nadeSlug: nadeCommentedOn.slug,
-        thumnailUrl: nadeCommentedOn.imageMain.url,
-      });
-    });
-  }
-
-  private async usersWhoRecentlyCommentedOnNade(nadeId: string) {
+  private async recentCommentsOnNade(nadeId: string): Promise<CommentDto[]> {
     const commentsForNade = await this.getForNade(nadeId);
 
     const commentsNewerThanTwoWeeks = commentsForNade.filter((comment) => {

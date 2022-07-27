@@ -121,16 +121,41 @@ export class NotificationFireRepo implements NotificationRepo {
     });
   };
 
-  newCommentNotification = async (comment: CommentDto, nade: NadeDto) => {
+  newCommentNotification = async (
+    comment: CommentDto,
+    nade: NadeDto,
+    recentComments?: CommentDto[]
+  ) => {
+    // Notificy nade owner
     this.add({
       type: "new-comment",
+      subjectSteamId: nade.steamId,
       nadeId: comment.nadeId,
       byNickname: comment.nickname,
       bySteamId: comment.steamId,
-      subjectSteamId: nade.steamId,
       nadeSlug: nade.slug,
       thumnailUrl: nade.imageMain?.url,
       nadeOwner: nade.user.steamId,
+    });
+
+    if (!recentComments) {
+      return;
+    }
+
+    // Notifiy recent commenters on nade
+    recentComments.forEach((commenter) => {
+      if (commenter.steamId !== nade.steamId || commenter.id !== comment.id) {
+        this.add({
+          type: "new-comment",
+          subjectSteamId: commenter.steamId,
+          nadeId: comment.nadeId,
+          byNickname: comment.nickname,
+          bySteamId: comment.steamId,
+          nadeOwner: nade.steamId,
+          nadeSlug: nade.slug,
+          thumnailUrl: nade.imageMain?.url,
+        });
+      }
     });
   };
 
