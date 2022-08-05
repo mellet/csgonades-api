@@ -83,7 +83,11 @@ describe("Comment service", () => {
       verify(nadeRepo.getById("123")).once();
       verify(commentRepo.createComment(testUser, commentDto)).once();
       verify(
-        notificationRepo.newCommentNotification(anything(), anything())
+        notificationRepo.newCommentNotification(
+          anything(),
+          anything(),
+          anything()
+        )
       ).never();
       expect(comment).toEqual(expectedComment);
     });
@@ -116,7 +120,11 @@ describe("Comment service", () => {
 
       // Expect
       verify(
-        notificationRepo.newCommentNotification(anything(), anything())
+        notificationRepo.newCommentNotification(
+          anything(),
+          anything(),
+          anything()
+        )
       ).once();
     });
 

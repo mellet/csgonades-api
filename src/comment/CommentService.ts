@@ -68,15 +68,13 @@ export class CommentService {
 
     const comment = await this.commentRepo.createComment(user, commentBody);
 
-    // Don't send notfication when commenting own nade
-    if (authUser.steamId !== nade.steamId) {
-      const recentCommenters = await this.recentCommentsOnNade(nade.id);
-      this.notificationRepo.newCommentNotification(
-        comment,
-        nade,
-        recentCommenters
-      );
-    }
+    const recentCommenters = await this.recentCommentsOnNade(nade.id);
+    this.notificationRepo.newCommentNotification(
+      authUser,
+      comment,
+      nade,
+      recentCommenters
+    );
 
     this.nadeRepo.incrementCommentCount(nade.id);
 

@@ -1,6 +1,7 @@
 import { CommentDto } from "../../comment/dto/CommentDto";
 import { NadeDto } from "../../nade/dto/NadeDto";
 import { UserDto } from "../../user/UserDTOs";
+import { RequestUser } from "../../utils/AuthUtils";
 import { NotificationCreateDto, NotificationDTO } from "../Notification";
 
 export type RemoveFavNotiOpts = {
@@ -17,6 +18,7 @@ export interface NotificationRepo {
   newFavorite: (nade: NadeDto, user: UserDto) => Promise<void>;
   newContactMessage: () => Promise<void>;
   newCommentNotification: (
+    authUser: RequestUser,
     comment: CommentDto,
     nade: NadeDto,
     recentComments?: CommentDto[]

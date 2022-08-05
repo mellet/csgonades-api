@@ -20,6 +20,7 @@ import { CommentDto } from "../../comment/dto/CommentDto";
 import { Logger } from "../../logger/Logger";
 import { NadeDto } from "../../nade/dto/NadeDto";
 import { UserDto } from "../../user/UserDTOs";
+import { RequestUser } from "../../utils/AuthUtils";
 import { assertNever, removeUndefines } from "../../utils/Common";
 import { ErrorFactory } from "../../utils/ErrorUtil";
 import {
@@ -122,10 +123,16 @@ export class NotificationFireRepo implements NotificationRepo {
   };
 
   newCommentNotification = async (
+    authUser: RequestUser,
     comment: CommentDto,
     nade: NadeDto,
     recentComments?: CommentDto[]
   ) => {
+    // Skip if commenting on own nade
+    if (authUser.steamId === nade.steamId) {
+      return;
+    }
+
     // Notificy nade owner
     this.add({
       type: "new-comment",
@@ -145,20 +152,21 @@ export class NotificationFireRepo implements NotificationRepo {
     // Notifiy recent commenters on nade
     recentComments.forEach((recentComment) => {
       if (
-        recentComment.steamId !== nade.steamId || // Skip if owner of nade
-        recentComment.steamId !== comment.steamId // Skip if own comment
+        recentComment.steamId === authUser.steamId || // Dont notify self
+        recentComment.steamId === nade.steamId // Dont double notify nade creator
       ) {
-        this.add({
-          type: "new-comment",
-          subjectSteamId: recentComment.steamId,
-          nadeId: comment.nadeId,
-          byNickname: comment.nickname,
-          bySteamId: comment.steamId,
-          nadeOwner: nade.steamId,
-          nadeSlug: nade.slug,
-          thumnailUrl: nade.imageMain?.url,
-        });
+        return;
       }
+      this.add({
+        type: "new-comment",
+        subjectSteamId: recentComment.steamId,
+        nadeId: comment.nadeId,
+        byNickname: comment.nickname,
+        bySteamId: comment.steamId,
+        nadeOwner: nade.steamId,
+        nadeSlug: nade.slug,
+        thumnailUrl: nade.imageMain?.url,
+      });
     });
   };
 
