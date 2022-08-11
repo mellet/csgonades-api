@@ -133,7 +133,7 @@ export class CommentService {
         "days",
         false
       );
-      return addedDaysAgo < 14;
+      return addedDaysAgo < 30;
     });
 
     return commentsNewerThanTwoWeeks;
