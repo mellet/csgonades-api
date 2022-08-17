@@ -173,7 +173,9 @@ export class NadeService {
   getRecent = async (limit?: number): Promise<NadeMiniDto[]> => {
     const nades = await this.nadeRepo.getAll(limit);
 
-    return convertNadesToLightDto(nades);
+    const cleanedNades = nades.filter((nade) => nade.map !== "cobblestone");
+
+    return convertNadesToLightDto(cleanedNades);
   };
 
   getPending = async (): Promise<NadeDto[]> => {
