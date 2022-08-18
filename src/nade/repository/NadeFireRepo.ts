@@ -66,15 +66,21 @@ export class NadeFireRepo implements NadeRepo {
       ];
 
       if (nadeLimit) {
-        queryBuilder.push(limit(nadeLimit));
+        queryBuilder.push(limit(nadeLimit * 2));
       }
 
       const nadesDocs = await query(this.collection, queryBuilder);
 
-      const nades = nadesDocs.map(this.toNadeDTO);
+      const nades = nadesDocs
+        .map(this.toNadeDTO)
+        .filter((n) => n.map !== "cobblestone")
+        .filter((n) => n.map !== "anubis");
 
       Logger.verbose(`NadeRepo.getAll(${nadeLimit}) -> ${nades.length} | DB`);
 
+      if (nadeLimit) {
+        return nades.slice(0, nadeLimit);
+      }
       return nades;
     } catch (error) {
       Logger.error("NadeFireRepo.isSlugAvailable", error);
