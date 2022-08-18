@@ -50,7 +50,7 @@ export function convertToNadeMiniDto(nadeDto: NadeDto): NadeMiniDto {
     createdAt: nadeDto.createdAt,
     downVoteCount: nadeDto.downVoteCount,
     endPosition: nadeDto.endPosition,
-    favoriteCount: nadeDto.favoriteCount,
+    favoriteCount: nadeDto.favoriteCount || 0,
     gfycat: nadeDto.gfycat,
     imageLineupThumbUrl: nadeDto.imageLineupThumb?.url,
     imageLineupThumb: nadeDto.imageLineupThumb,

@@ -430,6 +430,7 @@ export class NadeFireRepo implements NadeRepo {
       ...doc.data,
       id: doc.ref.id,
       score: this.newCalcScore(doc.data),
+      favoriteCount: doc.data.favoriteCount || 0,
     };
   };
 
