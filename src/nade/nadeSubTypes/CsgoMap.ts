@@ -3,6 +3,7 @@ const CsGoMaps = {
   anubis: "Anubis",
   cache: "Cache",
   cobblestone: "Cobblestone",
+  tuscan: "Tuscan",
   dust2: "Dust2",
   inferno: "Inferno",
   mirage: "Mirage",

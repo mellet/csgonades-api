@@ -71,10 +71,7 @@ export class NadeFireRepo implements NadeRepo {
 
       const nadesDocs = await query(this.collection, queryBuilder);
 
-      const nades = nadesDocs
-        .map(this.toNadeDTO)
-        .filter((n) => n.map !== "cobblestone")
-        .filter((n) => n.map !== "anubis");
+      const nades = nadesDocs.map(this.toNadeDTO);
 
       Logger.verbose(`NadeRepo.getAll(${nadeLimit}) -> ${nades.length} | DB`);
 

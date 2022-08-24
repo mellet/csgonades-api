@@ -122,7 +122,7 @@ export class NadeService {
 
     const combined = [...missingTeam, ...missingLineup];
 
-    return combined.filter((n) => n.map !== "cobblestone");
+    return combined;
   };
 
   isSlugAvailable = async (slug: string): Promise<boolean> => {
