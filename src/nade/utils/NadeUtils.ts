@@ -58,6 +58,7 @@ export function convertToNadeMiniDto(nadeDto: NadeDto): NadeMiniDto {
     imageMain: nadeDto.imageMain,
     images: nadeDto.images,
     isPro: nadeDto.isPro,
+    isNew: isNewNade(nadeDto),
     mapEndCoord: nadeDto.mapEndCoord,
     movement: nadeDto.movement,
     oneWay: nadeDto.oneWay,
@@ -76,6 +77,16 @@ export function convertToNadeMiniDto(nadeDto: NadeDto): NadeMiniDto {
     teamSide: nadeDto.teamSide,
     setPos: nadeDto.setPos,
   };
+}
+
+function isNewNade(nadeDto: NadeDto): boolean {
+  const daysSinceAdded = moment().diff(
+    moment(nadeDto.createdAt),
+    "days",
+    false
+  );
+
+  return daysSinceAdded < 14;
 }
 
 export function convertNadesToLightDto(nades: NadeDto[]): NadeMiniDto[] {
