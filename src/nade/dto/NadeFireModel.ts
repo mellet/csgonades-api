@@ -20,10 +20,10 @@ export interface NadeFireModel {
   endPosition?: string;
   favoriteCount: number;
   gfycat: GfycatData;
-  images?: NadeImages;
   imageLineup?: ImageData;
   imageLineupThumb?: ImageData;
   imageMain: ImageData;
+  images?: NadeImages;
   isPro?: boolean;
   lastGfycatUpdate: Date;
   map?: CsgoMap;
@@ -31,19 +31,20 @@ export interface NadeFireModel {
   mapStartCoord?: MapCoordinates;
   movement?: Movement;
   oneWay?: boolean;
+  proUrl?: string;
+  setPos?: string;
   slug?: string;
   startPosition?: string;
   status: NadeStatus;
   statusInfo?: StatusInfo;
   steamId: string;
+  teamSide?: TeamSide;
   technique?: Technique;
   tickrate?: Tickrate;
-  teamSide?: TeamSide;
   title?: string;
   type?: NadeType;
   updatedAt: Date;
   upVoteCount?: number;
   user: UserLightModel;
   viewCount: number;
-  setPos?: string;
 }

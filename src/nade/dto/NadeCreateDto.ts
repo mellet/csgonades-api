@@ -17,10 +17,11 @@ export type NadeCreateDto = {
   mapEndCoord: MapCoordinates;
   movement: Movement;
   oneWay?: boolean;
+  proUrl?: string;
+  setPos?: string;
   startPosition: string;
+  teamSide?: TeamSide;
   technique: Technique;
   tickrate?: Tickrate;
   type: NadeType;
-  teamSide?: TeamSide;
-  setPos?: string;
 };
