@@ -45,27 +45,30 @@ export function shouldUpdateNadeStats(nade: NadeDto) {
 
 export function convertToNadeMiniDto(nadeDto: NadeDto): NadeMiniDto {
   return {
-    id: nadeDto.id,
     commentCount: nadeDto.commentCount,
     createdAt: nadeDto.createdAt,
     downVoteCount: nadeDto.downVoteCount,
     endPosition: nadeDto.endPosition,
     favoriteCount: nadeDto.favoriteCount || 0,
     gfycat: nadeDto.gfycat,
-    imageLineupThumbUrl: nadeDto.imageLineupThumb?.url,
-    imageLineupThumb: nadeDto.imageLineupThumb,
+    id: nadeDto.id,
     imageLineup: nadeDto.imageLineup,
+    imageLineupThumb: nadeDto.imageLineupThumb,
+    imageLineupThumbUrl: nadeDto.imageLineupThumb?.url,
     imageMain: nadeDto.imageMain,
     images: nadeDto.images,
-    isPro: nadeDto.isPro,
     isNew: isNewNade(nadeDto),
+    isPro: nadeDto.isPro,
     mapEndCoord: nadeDto.mapEndCoord,
     movement: nadeDto.movement,
     oneWay: nadeDto.oneWay,
+    proUrl: nadeDto.proUrl,
     score: nadeDto.score,
+    setPos: nadeDto.setPos,
     slug: nadeDto.slug,
     startPosition: nadeDto.startPosition,
     status: nadeDto.status,
+    teamSide: nadeDto.teamSide,
     technique: nadeDto.technique,
     tickrate: nadeDto.tickrate,
     title: nadeDto.title,
@@ -74,8 +77,6 @@ export function convertToNadeMiniDto(nadeDto: NadeDto): NadeMiniDto {
     upVoteCount: nadeDto.upVoteCount,
     user: nadeDto.user,
     viewCount: nadeDto.viewCount,
-    teamSide: nadeDto.teamSide,
-    setPos: nadeDto.setPos,
   };
 }
 

@@ -23,11 +23,12 @@ export type NadeMiniDto = {
   imageLineupThumbUrl?: string;
   imageMain: ImageData;
   images?: NadeImages;
-  isPro?: boolean;
   isNew?: boolean;
+  isPro?: boolean;
   mapEndCoord?: MapCoordinates;
   movement?: Movement;
   oneWay?: boolean;
+  proUrl?: string;
   score: number;
   setPos?: string;
   slug?: string;
