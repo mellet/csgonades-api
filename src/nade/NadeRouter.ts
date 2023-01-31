@@ -267,6 +267,7 @@ export class NadeRouter {
       largeVideoUrl: gfyItem.mp4Url,
       largeVideoWebm: gfyItem.webmUrl,
       avgColor: gfyItem.avgColor,
+      size: gfyItem.mp4Size,
     };
 
     return res.status(200).send(gfyData);
