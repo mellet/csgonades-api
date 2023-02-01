@@ -21,6 +21,7 @@ export const validateNadeCreateBody = (req: Request): NadeCreateDto => {
         largeVideoWebm: Joi.string().uri(),
         avgColor: Joi.string().optional(),
         duration: Joi.string().optional(),
+        size: Joi.number().optional(),
       })
       .required(),
     imageBase64: Joi.string().required(),
@@ -74,6 +75,7 @@ export const validateNadeEditBody = (req: Request): NadeUpdateDto => {
         largeVideoWebm: Joi.string().uri(),
         avgColor: Joi.string().optional(),
         duration: Joi.string().optional(),
+        size: Joi.number().optional(),
       })
       .optional(),
     // imageBase64?: string;
