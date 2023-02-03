@@ -154,6 +154,7 @@ export const AppServer = (config: CSGNConfig) => {
     _next: NextFunction
   ) => {
     Sentry.captureException(err);
+    Logger.error(err);
     const error = errorCatchConverter(err);
     return res.status(error.code).send(error.message);
   };
