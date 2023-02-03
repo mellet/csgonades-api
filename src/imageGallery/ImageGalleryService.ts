@@ -1,6 +1,7 @@
 import { nanoid } from "nanoid";
 import sharp from "sharp";
 import { CSGNConfig } from "../config/enironment";
+import { Logger } from "../logger/Logger";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import { ImageData, ImageStorageRepo } from "./ImageStorageRepo";
 
@@ -77,9 +78,13 @@ export class ImageRepo {
     }
   };
 
-  deleteImageResult = (imageRes: ImageData) => {
-    const internalPath = `${imageRes.collection}/${imageRes.id}`;
-    return this.imageStorageRepo.deleteImage(internalPath);
+  deleteImageResult = async (imageRes: ImageData) => {
+    try {
+      const internalPath = `${imageRes.collection}/${imageRes.id}`;
+      await this.imageStorageRepo.deleteImage(internalPath);
+    } catch (error) {
+      Logger.error("ImageGalleryService - deleteImageResult", error);
+    }
   };
 
   private resizeImage = async (
