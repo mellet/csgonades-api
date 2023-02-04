@@ -8,7 +8,10 @@ import {
   remove,
   value,
 } from "typesaurus";
+import { AddModel } from "typesaurus/add";
 import { Logger } from "../../logger/Logger";
+import { UserMiniDto } from "../../user/UserDTOs";
+import { removeUndefines } from "../../utils/Common";
 import { ReportDto, ReportModel, ReportSaveDto } from "../Report";
 import { ReportRepo } from "./ReportRepo";
 
@@ -38,12 +41,18 @@ export class ReportFireRepo implements ReportRepo {
     return reports.map(this.toDto);
   };
 
-  save = async (saveDto: ReportSaveDto): Promise<ReportDto | null> => {
-    const ref = await add(this.collection, {
+  save = async (
+    saveDto: ReportSaveDto,
+    user?: UserMiniDto
+  ): Promise<ReportDto | null> => {
+    const reportSaveDto: AddModel<ReportModel> = {
       message: saveDto.message,
       nadeId: saveDto.nadeId,
+      user,
       createdAt: value("serverDate"),
-    });
+    };
+
+    const ref = await add(this.collection, removeUndefines(reportSaveDto));
 
     Logger.verbose(`ReportRepo.save()`);
 
@@ -51,9 +60,8 @@ export class ReportFireRepo implements ReportRepo {
   };
 
   delete = async (id: string) => {
-    Logger.verbose(`ReportRepo.delete()`);
-
     await remove(this.collection, id);
+    Logger.verbose(`ReportRepo.delete(${id})`);
   };
 
   private toDto = (doc: Doc<ReportModel>): ReportDto => {

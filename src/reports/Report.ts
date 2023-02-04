@@ -1,7 +1,15 @@
+import { NadeMiniDto } from "../nade/dto/NadeMiniDto";
+import { UserMiniDto } from "../user/UserDTOs";
+
+type ReportStatus = "new" | "resolved" | "ignored";
+
 export interface ReportModel {
-  nadeId: string;
-  message: string;
   createdAt: Date;
+  message: string;
+  nadeId: string;
+  status?: ReportStatus;
+  user?: UserMiniDto;
+  nade?: NadeMiniDto;
 }
 
 export interface ReportDto extends ReportModel {
@@ -9,6 +17,6 @@ export interface ReportDto extends ReportModel {
 }
 
 export interface ReportSaveDto {
-  nadeId: string;
   message: string;
+  nadeId: string;
 }

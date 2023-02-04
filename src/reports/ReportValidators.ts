@@ -6,7 +6,7 @@ import { ReportSaveDto } from "./Report";
 export const validateReportSaveDTO = (req: Request): ReportSaveDto => {
   const body = req.body as ReportSaveDto;
 
-  const schema = Joi.object({
+  const schema = Joi.object<ReportSaveDto>({
     nadeId: Joi.string().required(),
     message: Joi.string().required(),
   }).unknown(false);
@@ -21,8 +21,8 @@ export const validateReportId = (req: Request): string => {
     reportId: Joi.string().required(),
   }).unknown(false);
 
-  const value = Joi.attempt(req.params, schema) as string;
-  const reportId = sanitizeIt<string>(value);
+  const value = Joi.attempt(req.params, schema);
+  const reportId = sanitizeIt<string>(value.reportId);
 
   return reportId;
 };

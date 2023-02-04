@@ -1,21 +1,26 @@
 import moment from "moment";
 import { NotificationRepo } from "../notifications/repository/NotificationRepo";
+import { UserRepo } from "../user/repository/UserRepo";
+import { UserMiniDto } from "../user/UserDTOs";
+import { RequestUser } from "../utils/AuthUtils";
 import { ReportDto, ReportSaveDto } from "./Report";
 import { ReportFireRepo } from "./reposityory/ReportFireRepo";
 
 type ReportServiceDeps = {
   reportRepo: ReportFireRepo;
   notificationRepo: NotificationRepo;
+  userRepo: UserRepo;
 };
 
 export class ReportService {
   private reportRepo: ReportFireRepo;
   private notificationRepo: NotificationRepo;
+  private userRepo: UserRepo;
 
   constructor(deps: ReportServiceDeps) {
     this.notificationRepo = deps.notificationRepo;
     this.reportRepo = deps.reportRepo;
-
+    this.userRepo = deps.userRepo;
     this.deleteOldReports();
   }
 
@@ -39,13 +44,36 @@ export class ReportService {
     return this.reportRepo.getAll();
   };
 
-  save = async (saveDto: ReportSaveDto): Promise<ReportDto | null> => {
-    const report = await this.reportRepo.save(saveDto);
+  save = async (
+    saveDto: ReportSaveDto,
+    requestUser?: RequestUser
+  ): Promise<ReportDto | null> => {
+    const user = await this.getUserIfPresent(requestUser);
+    const report = await this.reportRepo.save(saveDto, user);
     this.notificationRepo.newReport();
     return report;
   };
 
-  delete = async (id: string) => {
-    return this.reportRepo.delete(id);
+  delete = async (reportId: string) => {
+    return this.reportRepo.delete(reportId);
   };
+
+  private async getUserIfPresent(
+    requestUser?: RequestUser
+  ): Promise<UserMiniDto | undefined> {
+    if (!requestUser) {
+      return;
+    }
+
+    const fullUser = await this.userRepo.byId(requestUser.steamId);
+
+    if (fullUser) {
+      return {
+        nickname: fullUser.nickname,
+        steamId: fullUser.steamId,
+        avatar: fullUser.avatar,
+        role: fullUser.role,
+      };
+    }
+  }
 }

@@ -2,6 +2,7 @@ import { RequestHandler, Router } from "express";
 import { Logger } from "../logger/Logger";
 import { adminOrModHandler } from "../utils/AuthHandlers";
 import { errorCatchConverter } from "../utils/ErrorUtil";
+import { maybeUserFromRequest } from "../utils/RouterUtils";
 import { ReportService } from "./ReportService";
 import { validateReportId, validateReportSaveDTO } from "./ReportValidators";
 
@@ -44,8 +45,9 @@ export class ReportRouter {
 
   private saveReport: RequestHandler = async (req, res) => {
     try {
+      const user = maybeUserFromRequest(req);
       const dto = validateReportSaveDTO(req);
-      const result = await this.reportService.save(dto);
+      const result = await this.reportService.save(dto, user);
 
       if (!result) {
         return res.status(401).send();

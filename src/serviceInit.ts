@@ -38,7 +38,11 @@ export function serviceInit(
     imageStorageRepo,
   });
 
-  const reporService = new ReportService({ reportRepo, notificationRepo });
+  const reporService = new ReportService({
+    reportRepo,
+    notificationRepo,
+    userRepo,
+  });
 
   const userService = new UserService({
     steamApi,

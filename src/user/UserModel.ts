@@ -1,6 +1,20 @@
 import { Tickrate } from "../nade/nadeSubTypes/Tickrate";
 
-export type Role = "administrator" | "moderator" | "user";
+const Roles = {
+  administrator: "administrator",
+  moderator: "moderator",
+  user: "user",
+};
+
+export type Role = keyof typeof Roles;
+
+export function validUserRoles() {
+  const roles: string[] = [];
+  for (const key in Roles) {
+    roles.push(key);
+  }
+  return roles;
+}
 
 export type UserModel = {
   nickname: string;
