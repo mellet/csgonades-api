@@ -26,7 +26,7 @@ export type NadeCreateModel = {
   setPos?: string;
   startPosition: string;
   steamId: string;
-  teamSide?: TeamSide;
+  teamSide: TeamSide;
   technique: Technique;
   tickrate?: Tickrate;
   type: NadeType;

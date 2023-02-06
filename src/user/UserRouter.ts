@@ -1,7 +1,11 @@
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { Logger } from "../logger/Logger";
-import { AppContext, createAppContext } from "../utils/AppContext";
+import {
+  AppContext,
+  createAppContext,
+  createAppContextAuth,
+} from "../utils/AppContext";
 import { adminOrModHandler, authOnlyHandler } from "../utils/AuthHandlers";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import { UserFilter } from "./repository/UserFireRepo";
@@ -20,8 +24,9 @@ export const makeUserRouter = (userService: UserService): Router => {
   });
 
   UserRouter.get("/users/self", authOnlyHandler, limiter, async (req, res) => {
-    const context = createAppContext(req);
-    const user = await userService.byId(context, context.authUser!.steamId);
+    const context = createAppContextAuth(req);
+
+    const user = await userService.byId(context, context.authUser.steamId);
 
     if (!user) {
       return res.status(404).send();

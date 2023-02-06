@@ -148,6 +148,7 @@ export class UserFireRepo implements UserRepo {
         bio: updateFields.bio,
         avatar: updateFields.avatar,
         defaultTick: updateFields.defaultTick,
+        numNades: updateFields.numNades,
         createdAt: updateFields.createdAt
           ? new Date(updateFields.createdAt)
           : undefined,
@@ -166,6 +167,16 @@ export class UserFireRepo implements UserRepo {
       Logger.error(error);
       throw ErrorFactory.InternalServerError("UserRepo.byIdExpected");
     }
+  };
+
+  incrementNadeCount = async (steamId: string) => {
+    Logger.verbose(`UserRepo.incrementNadeCount(${steamId})`);
+    update(this.collection, steamId, { numNades: value("increment", 1) });
+  };
+
+  decrementNadeCount = async (steamId: string) => {
+    Logger.verbose(`UserRepo.incrementNadeCount(${steamId})`);
+    update(this.collection, steamId, { numNades: value("increment", -1) });
   };
 
   updateActivity = async (steamId: string) => {

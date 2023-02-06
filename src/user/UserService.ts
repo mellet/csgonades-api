@@ -1,3 +1,4 @@
+import moment from "moment";
 import { CommentRepo } from "../comment/repository/CommentRepo";
 import { SteamApi } from "../external-api/SteamApi";
 import { NadeRepo } from "../nade/repository/NadeRepo";
@@ -55,6 +56,7 @@ export class UserService {
     }
 
     this.tryAvatarRefresh(user);
+    this.updateUserNadeCount(user);
 
     return user;
   };
@@ -74,6 +76,7 @@ export class UserService {
       nickname: player.nickname,
       avatar: player.avatar.medium,
       role: "user",
+      numNades: 0,
     };
 
     const newUser = await this.userRepo.create(createUserDto);
@@ -119,5 +122,24 @@ export class UserService {
 
     await this.nadeRepo.updateUserOnNades(steamId, updatedUser);
     await this.commentRepo.updateUserDetailsForComments(updatedUser);
+  }
+
+  private async updateUserNadeCount(user: UserModel) {
+    if (typeof user.numNades === "undefined") {
+      const nades = await this.nadeRepo.getByUser(user.steamId);
+      this.userRepo.update(user.steamId, { numNades: nades.length });
+    } else {
+      const daysSinceLastUpdate = moment().diff(
+        moment(user.updatedAt),
+        "days",
+        false
+      );
+
+      if (daysSinceLastUpdate > 7) {
+        const nades = await this.nadeRepo.getByUser(user.steamId);
+
+        this.userRepo.update(user.steamId, { numNades: nades.length });
+      }
+    }
   }
 }

@@ -13,7 +13,7 @@ import {
   remove,
   update,
   value,
-  where,
+  where
 } from "typesaurus";
 import { AddModel } from "typesaurus/add";
 import { UpdateModel } from "typesaurus/update";

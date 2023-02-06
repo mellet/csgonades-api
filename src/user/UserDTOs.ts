@@ -12,6 +12,7 @@ export type UserDto = {
   updatedAt: Date;
   lastActive: Date;
   defaultTick?: Tickrate;
+  numNades?: number;
 };
 
 export type UserMiniDto = {
@@ -26,6 +27,7 @@ export type UserCreateDto = {
   steamId: string;
   role: Role;
   avatar: string;
+  numNades: number;
 };
 
 export type UserUpdateDto = {
@@ -35,4 +37,5 @@ export type UserUpdateDto = {
   createdAt?: string;
   avatar?: string;
   defaultTick?: Tickrate;
+  numNades?: number;
 };

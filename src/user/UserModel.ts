@@ -27,6 +27,7 @@ export type UserModel = {
   updatedAt: Date;
   lastActive: Date;
   defaultTick?: Tickrate;
+  numNades?: number;
 };
 
 export type UserModelAnon = {
@@ -38,6 +39,7 @@ export type UserModelAnon = {
   createdAt: Date;
   updatedAt: Date;
   lastActive: Date;
+  numNades?: number;
 };
 
 export type UserLightModel = {

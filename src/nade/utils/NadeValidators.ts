@@ -53,7 +53,7 @@ export const validateNadeCreateBody = (req: Request): NadeCreateDto => {
     oneWay: Joi.boolean().optional(),
     teamSide: Joi.string()
       .valid(...nadeValidTeamSide())
-      .optional(),
+      .required(),
     setPos: Joi.string().optional(),
     proUrl: Joi.string().optional(),
   }).unknown(false);

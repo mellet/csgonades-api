@@ -11,5 +11,7 @@ export interface UserRepo {
   byId: (steamId: string, config?: UserByIdConfig) => Promise<UserModel | null>;
   create: (userCreate: UserCreateDto) => Promise<UserModel>;
   update: (steamId: string, updateFields: UserUpdateDto) => Promise<UserModel>;
+  incrementNadeCount: (steamId: string) => Promise<void>;
+  decrementNadeCount: (steamId: string) => Promise<void>;
   updateActivity: (steamId: string) => Promise<void>;
 }

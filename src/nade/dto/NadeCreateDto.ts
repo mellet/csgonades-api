@@ -20,7 +20,7 @@ export type NadeCreateDto = {
   proUrl?: string;
   setPos?: string;
   startPosition: string;
-  teamSide?: TeamSide;
+  teamSide: TeamSide;
   technique: Technique;
   tickrate?: Tickrate;
   type: NadeType;
