@@ -152,6 +152,7 @@ export class UserFireRepo implements UserRepo {
         createdAt: updateFields.createdAt
           ? new Date(updateFields.createdAt)
           : undefined,
+        updatedAt: value("serverDate"),
       };
 
       updateModel = removeUndefines(updateModel);
@@ -171,12 +172,18 @@ export class UserFireRepo implements UserRepo {
 
   incrementNadeCount = async (steamId: string) => {
     Logger.verbose(`UserRepo.incrementNadeCount(${steamId})`);
-    update(this.collection, steamId, { numNades: value("increment", 1) });
+    update(this.collection, steamId, {
+      numNades: value("increment", 1),
+      updatedAt: value("serverDate"),
+    });
   };
 
   decrementNadeCount = async (steamId: string) => {
     Logger.verbose(`UserRepo.incrementNadeCount(${steamId})`);
-    update(this.collection, steamId, { numNades: value("increment", -1) });
+    update(this.collection, steamId, {
+      numNades: value("increment", -1),
+      updatedAt: value("serverDate"),
+    });
   };
 
   updateActivity = async (steamId: string) => {
