@@ -16,7 +16,7 @@ export type NadeMiniDto = {
   downVoteCount?: number;
   endPosition?: string;
   favoriteCount: number;
-  gfycat?: GfycatData;
+  gfycat?: GfycatData | null;
   youTubeId?: string;
   id: string;
   imageLineup?: ImageData;

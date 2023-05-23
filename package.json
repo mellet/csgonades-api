@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "engines": {
-    "node": "15.x"
+    "node": "16.x"
   },
   "scripts": {
     "test": "jest --watch --runInBand",
