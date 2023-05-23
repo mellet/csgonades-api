@@ -23,7 +23,8 @@ export const validateNadeCreateBody = (req: Request): NadeCreateDto => {
         duration: Joi.string().optional(),
         size: Joi.number().optional(),
       })
-      .required(),
+      .optional(),
+    youTubeId: Joi.string().optional(),
     imageBase64: Joi.string().required(),
     lineUpImageBase64: Joi.string().required(),
     startPosition: Joi.string().required(),
@@ -66,7 +67,6 @@ export const validateNadeCreateBody = (req: Request): NadeCreateDto => {
 export const validateNadeEditBody = (req: Request): NadeUpdateDto => {
   const body = req.body as NadeUpdateDto;
   const schema = Joi.object<NadeUpdateDto>({
-    // gfycat?: GfycatData;
     gfycat: Joi.object()
       .keys({
         gfyId: Joi.string(),
@@ -78,47 +78,36 @@ export const validateNadeEditBody = (req: Request): NadeUpdateDto => {
         size: Joi.number().optional(),
       })
       .optional(),
-    // imageBase64?: string;
+    youTubeId: Joi.string().optional(),
     imageBase64: Joi.string().optional(),
     lineUpImageBase64: Joi.string().optional(),
-    // startPosition?: string;
     startPosition: Joi.string().optional(),
-    // endPosition?: string;
     endPosition: Joi.string().optional(),
-    // description?: string;
     description: Joi.string().optional(),
-    // map?: CsgoMap;
     map: Joi.string()
       .valid(...nadeValidMaps())
       .optional(),
-    // movement?: Movement;
     movement: Joi.string()
       .valid(...nadeValidMovements())
       .optional(),
-    // technique?: Technique;
     technique: Joi.string()
       .valid(...nadeValidTechniques())
       .optional(),
-    // tickrate?: Tickrate;
     tickrate: Joi.string()
       .valid(...nadeValidTickrate())
       .optional(),
-    // type?: NadeType;
     type: Joi.string()
       .valid(...nadeValidTypes())
       .optional(),
-    // mapEndCoord?: MapCoordinates;
     mapEndCoord: Joi.object()
       .keys({
         x: Joi.number(),
         y: Joi.number(),
       })
       .optional(),
-    //status?: NadeStatus;
     status: Joi.string()
       .valid(...nadeValidStatus())
       .optional(),
-    // slug?: string;
     slug: Joi.string().optional(),
     oneWay: Joi.boolean().optional(),
     isPro: Joi.boolean().optional(),

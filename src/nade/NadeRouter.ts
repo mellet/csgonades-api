@@ -12,10 +12,10 @@ import { ErrorFactory } from "../utils/ErrorUtil";
 import { userFromRequest } from "../utils/RouterUtils";
 import { sanitizeIt } from "../utils/Sanitize";
 import { getSessionId } from "../utils/SessionRoute";
+import { NadeService } from "./NadeService";
 import { GfycatData } from "./dto/GfycatData";
 import { NadeDto } from "./dto/NadeDto";
 import { NadeGfycatValidateDto } from "./dto/NadeGfycatValidateDto";
-import { NadeService } from "./NadeService";
 import { CsgoMap } from "./nadeSubTypes/CsgoMap";
 import { NadeType } from "./nadeSubTypes/NadeType";
 import {
@@ -306,8 +306,11 @@ export class NadeRouter {
     if (preUpdateNade.endPosition !== updatedNade.endPosition) {
       updatedField.push("endPosition");
     }
-    if (preUpdateNade.gfycat.gfyId !== updatedNade.gfycat.gfyId) {
+    if (preUpdateNade.gfycat?.gfyId !== updatedNade.gfycat?.gfyId) {
       updatedField.push("gfycat");
+    }
+    if (preUpdateNade.youTubeId !== updatedNade.youTubeId) {
+      updatedField.push("youtube");
     }
     if (preUpdateNade.imageMain?.url !== updatedNade.imageMain?.url) {
       updatedField.push("resultImg");

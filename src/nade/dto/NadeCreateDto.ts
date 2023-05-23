@@ -11,6 +11,7 @@ export type NadeCreateDto = {
   description: string;
   endPosition: string;
   gfycat: GfycatData;
+  youTubeId: string;
   imageBase64: string;
   lineUpImageBase64: string;
   map: CsgoMap;

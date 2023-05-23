@@ -1,3 +1,4 @@
+import { GfycatDetailsResponse } from "gfycat-sdk";
 import moment from "moment";
 import { CommentRepo } from "../comment/repository/CommentRepo";
 import { GfycatApi } from "../external-api/GfycatApi";
@@ -6,8 +7,8 @@ import { ImageRepo } from "../imageGallery/ImageGalleryService";
 import { Logger } from "../logger/Logger";
 import { NotificationRepo } from "../notifications/repository/NotificationRepo";
 import { StatsRepo } from "../stats/repository/StatsRepo";
-import { UserRepo } from "../user/repository/UserRepo";
 import { UserLightModel } from "../user/UserModel";
+import { UserRepo } from "../user/repository/UserRepo";
 import { RequestUser } from "../utils/AuthUtils";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import { NadeCreateDto } from "./dto/NadeCreateDto";
@@ -268,12 +269,16 @@ export class NadeService {
       steamId: user.steamId,
     };
 
-    const gfycatData = await this.gfycatApi.getGfycatData(body.gfycat.gfyId);
+    let gfycatData: GfycatDetailsResponse | undefined = undefined;
 
-    if (!gfycatData) {
-      throw ErrorFactory.ExternalError(
-        "Gfycat seems to be down. Try again later."
-      );
+    if (body.gfycat) {
+      gfycatData = await this.gfycatApi.getGfycatData(body.gfycat.gfyId);
+
+      if (!gfycatData) {
+        throw ErrorFactory.ExternalError(
+          "Gfycat seems to be down. Try again later."
+        );
+      }
     }
 
     const { imageLineupThumb, lineupImage, resultImage } =
@@ -285,6 +290,7 @@ export class NadeService {
       endPosition: body.endPosition,
       favoriteCount: 0,
       gfycat: body.gfycat,
+      youTubeId: body.youTubeId,
       imageLineup: lineupImage,
       imageLineupThumb: imageLineupThumb,
       imageMain: resultImage,
@@ -301,7 +307,7 @@ export class NadeService {
       tickrate: body.tickrate,
       type: body.type,
       user: userLight,
-      viewCount: gfycatData.gfyItem.views,
+      viewCount: gfycatData?.gfyItem.views || 0,
     };
 
     const nade = await this.nadeRepo.save(nadeModel);
@@ -381,7 +387,8 @@ export class NadeService {
     let newNadeData: Partial<NadeFireModel> = {
       description: updates.description,
       endPosition: updates.endPosition,
-      gfycat: updates.gfycat,
+      gfycat: updates.youTubeId ? null : updates.gfycat,
+      youTubeId: updates.gfycat ? null : updates.youTubeId,
       imageLineup: lineupImages?.lineupImage,
       imageLineupThumb: lineupImages?.lineupImageThumb,
       imageMain: mainImage,
@@ -554,7 +561,7 @@ export class NadeService {
   };
 
   private tryUpdateViewCounter = async (nade: NadeDto): Promise<NadeDto> => {
-    if (!shouldUpdateNadeStats(nade)) {
+    if (!shouldUpdateNadeStats(nade) || !nade.gfycat) {
       return nade;
     }
 

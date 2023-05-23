@@ -12,6 +12,7 @@ export type NadeUpdateDto = {
   description?: string;
   endPosition?: string;
   gfycat?: GfycatData;
+  youTubeId?: string;
   imageBase64?: string;
   isPro?: boolean;
   lineUpImageBase64?: string;

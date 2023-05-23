@@ -15,6 +15,7 @@ export type NadeCreateModel = {
   endPosition: string;
   favoriteCount: number;
   gfycat: GfycatData;
+  youTubeId?: string;
   imageLineup: ImageData;
   imageLineupThumb: ImageData;
   imageMain: ImageData;

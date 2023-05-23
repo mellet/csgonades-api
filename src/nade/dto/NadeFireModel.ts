@@ -19,7 +19,8 @@ export interface NadeFireModel {
   downVoteCount?: number;
   endPosition?: string;
   favoriteCount: number;
-  gfycat: GfycatData;
+  gfycat?: GfycatData | null;
+  youTubeId?: string | null;
   imageLineup?: ImageData;
   imageLineupThumb?: ImageData;
   imageMain: ImageData;
