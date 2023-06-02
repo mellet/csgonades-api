@@ -589,10 +589,16 @@ export class NadeService {
 
   private setGameModeIfNotSet(nade: NadeDto) {
     if (nade.gameMode) {
-      Logger.info("NadeService.setGameModeIfNotSet - Gamemode allready set");
+      Logger.info(
+        "NadeService.setGameModeIfNotSet - Gamemode allready set | ",
+        nade.slug
+      );
       return;
     }
-    Logger.info("NadeService.setGameModeIfNotSet - Did set gamemode to csgo");
+    Logger.info(
+      "NadeService.setGameModeIfNotSet - Did set gamemode to csgo | ",
+      nade.slug
+    );
 
     this.update(
       nade.id,
