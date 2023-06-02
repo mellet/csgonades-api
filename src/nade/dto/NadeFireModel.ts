@@ -1,6 +1,7 @@
 import { ImageData } from "../../imageGallery/ImageStorageRepo";
 import { UserLightModel } from "../../user/UserModel";
 import { CsgoMap } from "../nadeSubTypes/CsgoMap";
+import { GameMode } from "../nadeSubTypes/GameMode";
 import { Movement } from "../nadeSubTypes/Movements";
 import { NadeStatus } from "../nadeSubTypes/NadeStatus";
 import { NadeType } from "../nadeSubTypes/NadeType";
@@ -19,8 +20,8 @@ export interface NadeFireModel {
   downVoteCount?: number;
   endPosition?: string;
   favoriteCount: number;
+  gameMode?: GameMode;
   gfycat?: GfycatData | null;
-  youTubeId?: string | null;
   imageLineup?: ImageData;
   imageLineupThumb?: ImageData;
   imageMain: ImageData;
@@ -48,4 +49,5 @@ export interface NadeFireModel {
   upVoteCount?: number;
   user: UserLightModel;
   viewCount: number;
+  youTubeId?: string | null;
 }

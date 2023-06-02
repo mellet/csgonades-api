@@ -159,13 +159,4 @@ describe("Nade service", () => {
     verify(mockedDeps.favoriteRepo.deleteWhereNadeId(nadeId)).once();
     verify(mockedDeps.nadeRepo.delete(nadeId)).once();
   });
-
-  /*
-
-  it("save");
-
-  it("delete");
-
-  it("update");
-  */
 });

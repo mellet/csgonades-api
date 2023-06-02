@@ -50,8 +50,8 @@ export function convertToNadeMiniDto(nadeDto: NadeDto): NadeMiniDto {
     downVoteCount: nadeDto.downVoteCount,
     endPosition: nadeDto.endPosition,
     favoriteCount: nadeDto.favoriteCount || 0,
+    gameMode: nadeDto.gameMode,
     gfycat: nadeDto.gfycat || undefined,
-    youTubeId: nadeDto.youTubeId || undefined,
     id: nadeDto.id,
     imageLineup: nadeDto.imageLineup,
     imageLineupThumb: nadeDto.imageLineupThumb,
@@ -78,6 +78,7 @@ export function convertToNadeMiniDto(nadeDto: NadeDto): NadeMiniDto {
     upVoteCount: nadeDto.upVoteCount,
     user: nadeDto.user,
     viewCount: nadeDto.viewCount,
+    youTubeId: nadeDto.youTubeId || undefined,
   };
 }
 

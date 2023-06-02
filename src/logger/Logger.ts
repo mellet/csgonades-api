@@ -1,26 +1,36 @@
-type LogLevel = "verbose" | "warning" | "error";
+enum LogLevel {
+  verbose = 0,
+  info = 1,
+  warning = 2,
+
+  error = 3,
+}
 
 const LOG_LEVEL: LogLevel =
-  process.env.NODE_ENV === "development" ? "verbose" : "warning";
+  process.env.NODE_ENV === "development" ? LogLevel.verbose : LogLevel.info;
 
 export class Logger {
   static verbose(message?: any, ...optionalParams: any[]) {
-    if (process.env.NODE_ENV === "TEST") {
+    if (process.env.NODE_ENV === "TEST" || LOG_LEVEL > LogLevel.verbose) {
       return;
     }
-    if (LOG_LEVEL === "warning" || LOG_LEVEL === "error") {
-      return;
-    }
+
     console.log("VERBOSE |", message, ...optionalParams);
   }
 
+  static info(message?: any, ...optionalParams: any[]) {
+    if (process.env.NODE_ENV === "TEST" || LOG_LEVEL > LogLevel.info) {
+      return;
+    }
+
+    console.log("INFO |", message, ...optionalParams);
+  }
+
   static warning(message?: any, ...optionalParams: any[]) {
-    if (process.env.NODE_ENV === "TEST") {
+    if (process.env.NODE_ENV === "TEST" || LOG_LEVEL > LogLevel.warning) {
       return;
     }
-    if (LOG_LEVEL === "error") {
-      return;
-    }
+
     console.warn("WARN |", message, ...optionalParams);
   }
 

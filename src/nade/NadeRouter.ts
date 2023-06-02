@@ -17,6 +17,7 @@ import { GfycatData } from "./dto/GfycatData";
 import { NadeDto } from "./dto/NadeDto";
 import { NadeGfycatValidateDto } from "./dto/NadeGfycatValidateDto";
 import { CsgoMap } from "./nadeSubTypes/CsgoMap";
+import { GameMode } from "./nadeSubTypes/GameMode";
 import { NadeType } from "./nadeSubTypes/NadeType";
 import {
   validateNadeCreateBody,
@@ -189,8 +190,9 @@ export class NadeRouter {
 
   private getByMap: RequestHandler = async (req, res) => {
     const type = sanitizeIt(req.query.type) as NadeType | undefined;
+    const gameMode = sanitizeIt(req.query.gameMode) as GameMode | undefined;
     const mapName = sanitizeIt(req.params.mapname) as CsgoMap;
-    const nades = await this.nadeService.getByMap(mapName, type);
+    const nades = await this.nadeService.getByMap(mapName, type, gameMode);
 
     return res.status(200).send(nades);
   };
@@ -198,7 +200,8 @@ export class NadeRouter {
   private getByUser: RequestHandler = async (req, res) => {
     const csgoMap = sanitizeIt(req.query.map) as CsgoMap | undefined;
     const steamId = sanitizeIt(req.params.steamId);
-    const nades = await this.nadeService.getByUser(steamId, csgoMap);
+    const gameMode = sanitizeIt(req.query.gameMode) as GameMode | undefined;
+    const nades = await this.nadeService.getByUser(steamId, csgoMap, gameMode);
 
     return res.status(200).send(nades);
   };

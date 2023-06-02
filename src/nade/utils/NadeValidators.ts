@@ -3,6 +3,7 @@ import { Request } from "express-serve-static-core";
 import { NadeCreateDto } from "../dto/NadeCreateDto";
 import { NadeUpdateDto } from "../dto/NadeUpdateDto";
 import { nadeValidMaps } from "../nadeSubTypes/CsgoMap";
+import { nadeValidGameModes } from "../nadeSubTypes/GameMode";
 import { nadeValidMovements } from "../nadeSubTypes/Movements";
 import { nadeValidStatus } from "../nadeSubTypes/NadeStatus";
 import { nadeValidTypes } from "../nadeSubTypes/NadeType";
@@ -29,6 +30,9 @@ export const validateNadeCreateBody = (req: Request): NadeCreateDto => {
     lineUpImageBase64: Joi.string().required(),
     startPosition: Joi.string().required(),
     endPosition: Joi.string().required(),
+    gameMode: Joi.string()
+      .valid(...nadeValidGameModes())
+      .optional(),
     description: Joi.string().required(),
     map: Joi.string()
       .valid(...nadeValidMaps())
@@ -84,6 +88,9 @@ export const validateNadeEditBody = (req: Request): NadeUpdateDto => {
     startPosition: Joi.string().optional(),
     endPosition: Joi.string().optional(),
     description: Joi.string().optional(),
+    gameMode: Joi.string()
+      .valid(...nadeValidGameModes())
+      .optional(),
     map: Joi.string()
       .valid(...nadeValidMaps())
       .optional(),

@@ -1,4 +1,5 @@
 import { CsgoMap } from "../nadeSubTypes/CsgoMap";
+import { GameMode } from "../nadeSubTypes/GameMode";
 import { Movement } from "../nadeSubTypes/Movements";
 import { NadeType } from "../nadeSubTypes/NadeType";
 import { TeamSide } from "../nadeSubTypes/TeamSide";
@@ -10,8 +11,8 @@ import { MapCoordinates } from "./MapCoordinates";
 export type NadeCreateDto = {
   description: string;
   endPosition: string;
+  gameMode?: GameMode;
   gfycat: GfycatData;
-  youTubeId: string;
   imageBase64: string;
   lineUpImageBase64: string;
   map: CsgoMap;
@@ -25,4 +26,5 @@ export type NadeCreateDto = {
   technique: Technique;
   tickrate?: Tickrate;
   type: NadeType;
+  youTubeId: string;
 };

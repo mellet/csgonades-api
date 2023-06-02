@@ -138,7 +138,7 @@ export const AppServer = (config: CSGNConfig) => {
 
   const sessionLimiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minutes
-    max: 10,
+    max: 50,
     onLimitReached: () => {
       Logger.warning("SessionHandler.initSession | limit reached");
     },

@@ -1,6 +1,7 @@
 import { ImageData } from "../../imageGallery/ImageStorageRepo";
 import { UserLightModel } from "../../user/UserModel";
 import { CsgoMap } from "../nadeSubTypes/CsgoMap";
+import { GameMode } from "../nadeSubTypes/GameMode";
 import { Movement } from "../nadeSubTypes/Movements";
 import { NadeType } from "../nadeSubTypes/NadeType";
 import { TeamSide } from "../nadeSubTypes/TeamSide";
@@ -33,4 +34,5 @@ export type NadeCreateModel = {
   type: NadeType;
   user: UserLightModel;
   viewCount: number;
+  gameMode: GameMode;
 };

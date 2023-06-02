@@ -3,6 +3,7 @@ import { NadeCreateModel } from "../dto/NadeCreateModel";
 import { NadeDto } from "../dto/NadeDto";
 import { NadeFireModel } from "../dto/NadeFireModel";
 import { CsgoMap } from "../nadeSubTypes/CsgoMap";
+import { GameMode } from "../nadeSubTypes/GameMode";
 import { NadeType } from "../nadeSubTypes/NadeType";
 
 export type NadeUpdateConfig = {
@@ -13,15 +14,23 @@ export type NadeUpdateConfig = {
 
 export interface NadeRepo {
   isSlugAvailable(slug: string): Promise<boolean>;
-  getAll(nadeLimit?: number): Promise<NadeDto[]>;
+  getAll(nadeLimit?: number, gameMode?: GameMode): Promise<NadeDto[]>;
   getPending(): Promise<NadeDto[]>;
   getDeclined(): Promise<NadeDto[]>;
   getDeleted(): Promise<NadeDto[]>;
   getDeletedToRemove(): Promise<NadeDto[]>;
   getById(nadeId: string): Promise<NadeDto | null>;
   getBySlug(slug: string): Promise<NadeDto | null>;
-  getByMap(csgoMap: CsgoMap, nadeType?: NadeType): Promise<NadeDto[]>;
-  getByUser(steamId: string, csgoMap?: CsgoMap): Promise<NadeDto[]>;
+  getByMap(
+    csgoMap: CsgoMap,
+    nadeType?: NadeType,
+    gameMode?: GameMode
+  ): Promise<NadeDto[]>;
+  getByUser(
+    steamId: string,
+    csgoMap?: CsgoMap,
+    gameMode?: GameMode
+  ): Promise<NadeDto[]>;
   save(nadeCreate: NadeCreateModel): Promise<NadeDto>;
   updateNade(
     nadeId: string,

@@ -1,5 +1,6 @@
 import { ImageData } from "../../imageGallery/ImageStorageRepo";
 import { UserLightModel } from "../../user/UserModel";
+import { GameMode } from "../nadeSubTypes/GameMode";
 import { Movement } from "../nadeSubTypes/Movements";
 import { NadeStatus } from "../nadeSubTypes/NadeStatus";
 import { NadeType } from "../nadeSubTypes/NadeType";
@@ -16,8 +17,8 @@ export type NadeMiniDto = {
   downVoteCount?: number;
   endPosition?: string;
   favoriteCount: number;
+  gameMode?: GameMode;
   gfycat?: GfycatData | null;
-  youTubeId?: string;
   id: string;
   imageLineup?: ImageData;
   imageLineupThumb?: ImageData;
@@ -44,4 +45,5 @@ export type NadeMiniDto = {
   upVoteCount?: number;
   user: UserLightModel;
   viewCount: number;
+  youTubeId?: string;
 };

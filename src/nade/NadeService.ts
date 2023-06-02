@@ -18,6 +18,7 @@ import { NadeFireModel } from "./dto/NadeFireModel";
 import { NadeMiniDto } from "./dto/NadeMiniDto";
 import { NadeUpdateDto } from "./dto/NadeUpdateDto";
 import { CsgoMap } from "./nadeSubTypes/CsgoMap";
+import { GameMode } from "./nadeSubTypes/GameMode";
 import { NadeStatus } from "./nadeSubTypes/NadeStatus";
 import { NadeType } from "./nadeSubTypes/NadeType";
 import { NadeRepo } from "./repository/NadeRepo";
@@ -139,8 +140,6 @@ export class NadeService {
       throw ErrorFactory.NotFound("Nade or user not found");
     }
 
-    const isOwnNade = nade.steamId === steamId;
-
     const favorite = await this.favoriteRepo.addFavorite({
       nadeId,
       userId: steamId,
@@ -222,17 +221,14 @@ export class NadeService {
 
   getById = async (nadeId: string): Promise<NadeDto | null> => {
     const nade = await this.nadeRepo.getById(nadeId);
-    if (nade) {
-      await this.tryUpdateViewCounter(nade);
-    }
-
     return nade;
   };
 
   getBySlug = async (slug: string): Promise<NadeDto | null> => {
     const nade = await this.nadeRepo.getBySlug(slug);
     if (nade) {
-      await this.tryUpdateViewCounter(nade);
+      this.tryUpdateViewCounter(nade);
+      this.setGameModeIfNotSet(nade);
     }
 
     return nade;
@@ -240,18 +236,20 @@ export class NadeService {
 
   getByMap = async (
     map: CsgoMap,
-    nadeType?: NadeType
+    nadeType?: NadeType,
+    gameMode?: GameMode
   ): Promise<NadeMiniDto[]> => {
-    const nades = await this.nadeRepo.getByMap(map, nadeType);
+    const nades = await this.nadeRepo.getByMap(map, nadeType, gameMode);
 
     return convertNadesToLightDto(nades);
   };
 
   getByUser = async (
     steamId: string,
-    map?: CsgoMap
+    map?: CsgoMap,
+    gameMode?: GameMode
   ): Promise<NadeMiniDto[]> => {
-    const nadesByUser = await this.nadeRepo.getByUser(steamId, map);
+    const nadesByUser = await this.nadeRepo.getByUser(steamId, map, gameMode);
 
     return convertNadesToLightDto(nadesByUser);
   };
@@ -308,6 +306,7 @@ export class NadeService {
       type: body.type,
       user: userLight,
       viewCount: gfycatData?.gfyItem.views || 0,
+      gameMode: body.gameMode || "csgo",
     };
 
     const nade = await this.nadeRepo.save(nadeModel);
@@ -405,6 +404,7 @@ export class NadeService {
       technique: updates.technique,
       tickrate: updates.tickrate,
       type: updates.type,
+      gameMode: updates.gameMode,
     };
 
     const updatedNade = await this.nadeRepo.updateNade(nadeId, newNadeData, {
@@ -574,12 +574,32 @@ export class NadeService {
       return nade;
     }
 
-    const updatedNade = await this.nadeRepo.updateNade(nade.id, newNadeStats, {
-      invalidateCache: false,
-    });
+    const gameMode = nade.gameMode || "csgo"; // Update nades with no game mode to csgo
+
+    const updatedNade = await this.nadeRepo.updateNade(
+      nade.id,
+      { ...newNadeStats, gameMode },
+      {
+        invalidateCache: false,
+      }
+    );
 
     return updatedNade;
   };
+
+  private setGameModeIfNotSet(nade: NadeDto) {
+    if (nade.gameMode) {
+      Logger.info("NadeService.setGameModeIfNotSet - Gamemode allready set");
+      return;
+    }
+    Logger.info("NadeService.setGameModeIfNotSet - Did set gamemode to csgo");
+
+    this.update(
+      nade.id,
+      { gameMode: "csgo" },
+      { role: "administrator", steamId: "internal" }
+    );
+  }
 
   private saveImages = async (
     mainImageBase64: string,

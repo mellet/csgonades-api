@@ -27,6 +27,7 @@ import { NadeCreateModel } from "../dto/NadeCreateModel";
 import { NadeDto } from "../dto/NadeDto";
 import { NadeFireModel } from "../dto/NadeFireModel";
 import { CsgoMap } from "../nadeSubTypes/CsgoMap";
+import { GameMode } from "../nadeSubTypes/GameMode";
 import { NadeType } from "../nadeSubTypes/NadeType";
 import { NadeRepo, NadeUpdateConfig } from "./NadeRepo";
 
@@ -58,16 +59,24 @@ export class NadeFireRepo implements NadeRepo {
     }
   };
 
-  getAll = async (nadeLimit?: number): Promise<NadeDto[]> => {
+  getAll = async (
+    nadeLimit?: number,
+    gameMode?: GameMode
+  ): Promise<NadeDto[]> => {
     try {
       const queryBuilder: Query<NadeFireModel, keyof NadeFireModel>[] = [
         where("status", "==", "accepted"),
-        order("createdAt", "desc"),
       ];
 
       if (nadeLimit) {
         queryBuilder.push(limit(nadeLimit * 2));
       }
+
+      if (gameMode) {
+        queryBuilder.push(where("gameMode", "==", gameMode));
+      }
+
+      queryBuilder.push(order("createdAt", "desc"));
 
       const nadesDocs = await query(this.collection, queryBuilder);
 
@@ -208,9 +217,12 @@ export class NadeFireRepo implements NadeRepo {
 
   getByMap = async (
     csgoMap: CsgoMap,
-    nadeType?: NadeType
+    nadeType?: NadeType,
+    gameMode?: GameMode
   ): Promise<NadeDto[]> => {
-    const cacheKey = ["map", csgoMap, nadeType || ""].join("/");
+    const cacheKey = ["map", csgoMap, nadeType || "", gameMode || "csgo"].join(
+      "/"
+    );
     const cachedNades = this.mapNadeCache.get<NadeDto[]>(cacheKey);
     if (cachedNades) {
       Logger.verbose(
@@ -223,6 +235,10 @@ export class NadeFireRepo implements NadeRepo {
       where("status", "==", "accepted"),
       where("map", "==", csgoMap),
     ];
+
+    if (gameMode) {
+      queryBuilder.push(where("gameMode", "==", gameMode));
+    }
 
     if (nadeType) {
       queryBuilder.push(where("type", "==", nadeType));
@@ -245,7 +261,8 @@ export class NadeFireRepo implements NadeRepo {
 
   getByUser = async (
     steamId: string,
-    csgoMap?: CsgoMap
+    csgoMap?: CsgoMap,
+    gameMode?: GameMode
   ): Promise<NadeDto[]> => {
     const queryBuilder: Query<NadeFireModel, keyof NadeFireModel>[] = [
       where("steamId", "==", steamId),
@@ -253,6 +270,10 @@ export class NadeFireRepo implements NadeRepo {
 
     if (csgoMap) {
       queryBuilder.push(where("map", "==", csgoMap));
+    }
+
+    if (gameMode) {
+      queryBuilder.push(where("gameMode", "==", gameMode));
     }
 
     queryBuilder.push(order("createdAt", "desc"));
