@@ -2,6 +2,7 @@ import { GfycatDetailsResponse } from "gfycat-sdk";
 import moment from "moment";
 import { CommentRepo } from "../comment/repository/CommentRepo";
 import { GfycatApi } from "../external-api/GfycatApi";
+import { GoogleApi } from "../external-api/GoogleApi";
 import { FavoriteRepo } from "../favorite/repository/FavoriteRepo";
 import { ImageRepo } from "../imageGallery/ImageGalleryService";
 import { Logger } from "../logger/Logger";
@@ -31,25 +32,27 @@ import {
 } from "./utils/NadeUtils";
 
 export type NadeServiceDeps = {
-  nadeRepo: NadeRepo;
   commentRepo: CommentRepo;
-  statsRepo: StatsRepo;
-  imageRepo: ImageRepo;
-  gfycatApi: GfycatApi;
-  notificationRepo: NotificationRepo;
   favoriteRepo: FavoriteRepo;
+  gfycatApi: GfycatApi;
+  googleApi: GoogleApi;
+  imageRepo: ImageRepo;
+  nadeRepo: NadeRepo;
+  notificationRepo: NotificationRepo;
+  statsRepo: StatsRepo;
   userRepo: UserRepo;
 };
 
 export class NadeService {
-  private nadeRepo: NadeRepo;
-  private userRepo: UserRepo;
-  private imageRepo: ImageRepo;
-  private gfycatApi: GfycatApi;
-  private statsRepo: StatsRepo;
   private commentRepo: CommentRepo;
-  private notificationRepo: NotificationRepo;
   private favoriteRepo: FavoriteRepo;
+  private gfycatApi: GfycatApi;
+  private googleApi: GoogleApi;
+  private imageRepo: ImageRepo;
+  private nadeRepo: NadeRepo;
+  private notificationRepo: NotificationRepo;
+  private statsRepo: StatsRepo;
+  private userRepo: UserRepo;
 
   constructor(deps: NadeServiceDeps) {
     const {
@@ -61,6 +64,7 @@ export class NadeService {
       notificationRepo,
       favoriteRepo,
       userRepo,
+      googleApi,
     } = deps;
 
     this.nadeRepo = nadeRepo;
@@ -71,6 +75,7 @@ export class NadeService {
     this.notificationRepo = notificationRepo;
     this.favoriteRepo = favoriteRepo;
     this.userRepo = userRepo;
+    this.googleApi = googleApi;
 
     // this.recountNades();
     this.getDeletedToRemove();
@@ -561,6 +566,22 @@ export class NadeService {
   };
 
   private tryUpdateViewCounter = async (nade: NadeDto): Promise<NadeDto> => {
+    if (nade.youTubeId && shouldUpdateNadeStats(nade)) {
+      const viewCount = await this.googleApi.getYouTubeVideoViewCount(
+        nade.youTubeId
+      );
+
+      this.nadeRepo.updateNade(
+        nade.id,
+        {
+          viewCount,
+          lastGfycatUpdate: new Date(),
+        },
+        { invalidateCache: true }
+      );
+      return nade;
+    }
+
     if (!shouldUpdateNadeStats(nade) || !nade.gfycat) {
       return nade;
     }
@@ -580,7 +601,7 @@ export class NadeService {
       nade.id,
       { ...newNadeStats, gameMode },
       {
-        invalidateCache: false,
+        invalidateCache: true,
       }
     );
 
@@ -589,16 +610,8 @@ export class NadeService {
 
   private setGameModeIfNotSet(nade: NadeDto) {
     if (nade.gameMode) {
-      Logger.info(
-        "NadeService.setGameModeIfNotSet - Gamemode allready set | ",
-        nade.slug
-      );
       return;
     }
-    Logger.info(
-      "NadeService.setGameModeIfNotSet - Did set gamemode to csgo | ",
-      nade.slug
-    );
 
     this.update(
       nade.id,

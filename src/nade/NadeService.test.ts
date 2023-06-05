@@ -1,6 +1,7 @@
 import { anything, instance, mock, resetCalls, verify, when } from "ts-mockito";
 import { CommentRepo } from "../comment/repository/CommentRepo";
 import { GfycatApi } from "../external-api/GfycatApi";
+import { GoogleApi } from "../external-api/GoogleApi";
 import { FavoriteRepo } from "../favorite/repository/FavoriteRepo";
 import { ImageRepo } from "../imageGallery/ImageGalleryService";
 import { NotificationRepo } from "../notifications/repository/NotificationRepo";
@@ -25,6 +26,7 @@ describe("Nade service", () => {
       notificationRepo: mock<NotificationRepo>(),
       statsRepo: mock<StatsRepo>(),
       userRepo: mock<UserRepo>(),
+      googleApi: mock<GoogleApi>(),
     };
 
     deps = {
@@ -36,6 +38,7 @@ describe("Nade service", () => {
       notificationRepo: instance(mockedDeps.notificationRepo),
       statsRepo: instance(mockedDeps.statsRepo),
       userRepo: instance(mockedDeps.userRepo),
+      googleApi: instance(mockedDeps.googleApi),
     };
   });
 

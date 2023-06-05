@@ -3,6 +3,7 @@ import { CommentService } from "./comment/CommentService";
 import { CSGNConfig } from "./config/enironment";
 import { ContactService } from "./contact/ContactService";
 import { GfycatApi } from "./external-api/GfycatApi";
+import { GoogleApi } from "./external-api/GoogleApi";
 import { SteamApi } from "./external-api/SteamApi";
 import { FavoriteService } from "./favorite/FavoriteService";
 import { ImageRepo } from "./imageGallery/ImageGalleryService";
@@ -16,7 +17,8 @@ export function serviceInit(
   config: CSGNConfig,
   repositories: AppRepositories,
   gfycatApi: GfycatApi,
-  steamApi: SteamApi
+  steamApi: SteamApi,
+  googleApi: GoogleApi
 ) {
   const {
     auditRepo,
@@ -61,6 +63,7 @@ export function serviceInit(
     notificationRepo,
     favoriteRepo,
     userRepo,
+    googleApi,
   });
 
   const favoriteService = new FavoriteService({

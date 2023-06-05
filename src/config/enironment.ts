@@ -12,7 +12,8 @@ const envVarSchema = Joi.object({
   FIREBASE_PRIVATE_KEY: Joi.string().required(),
   GFYCAT_ID: Joi.string().required(),
   GFYCAT_SECRET: Joi.string().required(),
-  SENTRY_DSN: Joi.string().required()
+  SENTRY_DSN: Joi.string().required(),
+  GOOGLE_API_KEY: Joi.string().required(),
 })
   .unknown()
   .required();
@@ -38,6 +39,9 @@ export type CSGNConfig = {
     projectId: string;
     privateKey: string;
   };
+  google: {
+    apiKey: string;
+  };
 };
 
 export const makeConfig = (): CSGNConfig => {
@@ -52,25 +56,28 @@ export const makeConfig = (): CSGNConfig => {
       server_key: process.env.SERVER_SECRET || "",
       gfycat_id: process.env.GFYCAT_ID || "",
       gfycat_secret: process.env.GFYCAT_SECRET || "",
-      sentry_dsn: process.env.SENTRY_DSN || ""
+      sentry_dsn: process.env.SENTRY_DSN || "",
     },
     server: {
       port: Number(process.env.PORT),
       baseUrl: isProduction
         ? "https://api.csgonades.com"
-        : "http://localhost:5000"
+        : "http://localhost:5000",
     },
     client: {
       baseUrl: isProduction
         ? "https://www.csgonades.com"
-        : "http://localhost:3000"
+        : "http://localhost:3000",
     },
     firebase: {
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL || "",
       projectId: process.env.FIREBASE_CLIENT_ID || "",
       privateKey: process.env.FIREBASE_PRIVATE_KEY
         ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n")
-        : ""
-    }
+        : "",
+    },
+    google: {
+      apiKey: process.env.GOOGLE_API_KEY || "",
+    },
   };
 };
