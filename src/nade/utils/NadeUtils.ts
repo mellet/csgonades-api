@@ -32,13 +32,16 @@ export function verifyAdminFields(
 }
 
 export function shouldUpdateNadeStats(nade: NadeDto) {
+  const daysSinceCreated = moment().diff(moment(nade.createdAt), "days", false);
+  const updateFrequency = daysSinceCreated <= 7 ? 24 : 48;
+
   const hoursSinceUpdate = moment().diff(
     moment(nade.lastGfycatUpdate),
     "hours",
     false
   );
 
-  const shouldUpdate = hoursSinceUpdate >= 48;
+  const shouldUpdate = hoursSinceUpdate >= updateFrequency;
 
   return shouldUpdate;
 }
