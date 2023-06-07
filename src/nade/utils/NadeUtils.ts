@@ -33,7 +33,7 @@ export function verifyAdminFields(
 
 export function shouldUpdateNadeStats(nade: NadeDto) {
   const daysSinceCreated = moment().diff(moment(nade.createdAt), "days", false);
-  const updateFrequency = daysSinceCreated <= 7 ? 24 : 48;
+  const updateFrequency = daysSinceCreated <= 7 ? 12 : 48;
 
   const hoursSinceUpdate = moment().diff(
     moment(nade.lastGfycatUpdate),
@@ -131,4 +131,20 @@ function videoDuration(framerate?: number, numFrames?: number) {
   }
   const seconds = Math.floor(numFrames / framerate);
   return `PT0M${seconds}S`;
+}
+
+export function titleCase(value: string) {
+  return value
+    .toLowerCase()
+    .split(" ")
+    .map(function (word) {
+      if (word === "ct") {
+        return "CT";
+      } else if (word === "t") {
+        return "T";
+      }
+
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(" ");
 }

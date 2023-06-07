@@ -27,6 +27,7 @@ import {
   convertNadesToLightDto,
   newStatsFromGfycat,
   shouldUpdateNadeStats,
+  titleCase,
   verifyAdminFields,
   verifyAllowEdit,
 } from "./utils/NadeUtils";
@@ -290,10 +291,10 @@ export class NadeService {
     const nadeModel: NadeCreateModel = {
       commentCount: 0,
       description: body.description,
-      endPosition: body.endPosition,
+      endPosition: titleCase(body.endPosition),
       favoriteCount: 0,
+      gameMode: body.gameMode || "csgo",
       gfycat: body.gfycat,
-      youTubeId: body.youTubeId,
       imageLineup: lineupImage,
       imageLineupThumb: imageLineupThumb,
       imageMain: resultImage,
@@ -303,7 +304,7 @@ export class NadeService {
       oneWay: body.oneWay,
       proUrl: body.proUrl,
       setPos: body.setPos,
-      startPosition: body.startPosition,
+      startPosition: titleCase(body.startPosition),
       steamId: userLight.steamId,
       teamSide: body.teamSide,
       technique: body.technique,
@@ -311,7 +312,7 @@ export class NadeService {
       type: body.type,
       user: userLight,
       viewCount: gfycatData?.gfyItem.views || 0,
-      gameMode: body.gameMode || "csgo",
+      youTubeId: body.youTubeId,
     };
 
     const nade = await this.nadeRepo.save(nadeModel);
@@ -390,9 +391,11 @@ export class NadeService {
 
     let newNadeData: Partial<NadeFireModel> = {
       description: updates.description,
-      endPosition: updates.endPosition,
+      endPosition: updates.endPosition
+        ? titleCase(updates.endPosition)
+        : undefined,
+      gameMode: updates.gameMode,
       gfycat: updates.youTubeId ? null : updates.gfycat,
-      youTubeId: updates.gfycat ? null : updates.youTubeId,
       imageLineup: lineupImages?.lineupImage,
       imageLineupThumb: lineupImages?.lineupImageThumb,
       imageMain: mainImage,
@@ -403,13 +406,15 @@ export class NadeService {
       oneWay: updates.oneWay,
       proUrl: updates.proUrl,
       setPos: updates.setPos,
-      startPosition: updates.startPosition,
+      startPosition: updates.startPosition
+        ? titleCase(updates.startPosition)
+        : undefined,
       status: newStatus,
       teamSide: updates.teamSide,
       technique: updates.technique,
       tickrate: updates.tickrate,
       type: updates.type,
-      gameMode: updates.gameMode,
+      youTubeId: updates.gfycat ? null : updates.youTubeId,
     };
 
     const updatedNade = await this.nadeRepo.updateNade(nadeId, newNadeData, {
