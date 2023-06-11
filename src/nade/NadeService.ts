@@ -176,8 +176,12 @@ export class NadeService {
     }
   };
 
-  getRecent = async (limit?: number): Promise<NadeMiniDto[]> => {
-    const nades = await this.nadeRepo.getAll(limit);
+  getRecent = async (
+    limit?: number,
+    gameMode?: GameMode
+  ): Promise<NadeMiniDto[]> => {
+    console.log("Fetching recent", limit, gameMode);
+    const nades = await this.nadeRepo.getAll(limit, gameMode);
 
     return convertNadesToLightDto(nades);
   };

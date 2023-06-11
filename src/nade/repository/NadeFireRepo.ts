@@ -82,7 +82,9 @@ export class NadeFireRepo implements NadeRepo {
 
       const nades = nadesDocs.map(this.toNadeDTO);
 
-      Logger.verbose(`NadeRepo.getAll(${nadeLimit}) -> ${nades.length} | DB`);
+      Logger.verbose(
+        `NadeRepo.getAll(${nadeLimit}, ${gameMode}) -> ${nades.length} | DB`
+      );
 
       if (nadeLimit) {
         return nades.slice(0, nadeLimit);
@@ -284,7 +286,7 @@ export class NadeFireRepo implements NadeRepo {
     const nades = allNades.filter((n) => n.status !== "deleted");
 
     Logger.verbose(
-      `NadeRepo.getByUser(${steamId}, ${csgoMap}) -> ${nades.length} | DB`
+      `NadeRepo.getByUser(${steamId}, ${csgoMap}, ${gameMode}) -> ${nades.length} | DB`
     );
 
     return nades;

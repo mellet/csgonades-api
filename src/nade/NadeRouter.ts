@@ -129,14 +129,15 @@ export class NadeRouter {
   };
 
   private checkSlug: RequestHandler = async (req, res) => {
-    const slug = req.params.id;
+    const slug = sanitizeIt(req.params.id);
     const slugIsFree = await this.nadeService.isSlugAvailable(slug);
 
     return res.status(200).send(slugIsFree);
   };
 
   private getNades: RequestHandler = async (req, res) => {
-    const limitParam = req?.query?.limit;
+    const limitParam = sanitizeIt(req?.query?.limit);
+    const gameMode = (sanitizeIt(req?.query?.gameMode) || "csgo") as GameMode;
     let limit: number | undefined = undefined;
 
     if (!limitParam) {
@@ -147,7 +148,7 @@ export class NadeRouter {
       limit = Number(limit);
     }
 
-    const nades = await this.nadeService.getRecent(limit);
+    const nades = await this.nadeService.getRecent(limit, gameMode);
 
     return res.status(200).send(nades);
   };
@@ -190,7 +191,7 @@ export class NadeRouter {
 
   private getByMap: RequestHandler = async (req, res) => {
     const type = sanitizeIt(req.query.type) as NadeType | undefined;
-    const gameMode = sanitizeIt(req.query.gameMode) as GameMode | undefined;
+    const gameMode = (sanitizeIt(req?.query?.gameMode) || "csgo") as GameMode;
     const mapName = sanitizeIt(req.params.mapname) as CsgoMap;
     const nades = await this.nadeService.getByMap(mapName, type, gameMode);
 
@@ -200,7 +201,7 @@ export class NadeRouter {
   private getByUser: RequestHandler = async (req, res) => {
     const csgoMap = sanitizeIt(req.query.map) as CsgoMap | undefined;
     const steamId = sanitizeIt(req.params.steamId);
-    const gameMode = sanitizeIt(req.query.gameMode) as GameMode | undefined;
+    const gameMode = (sanitizeIt(req?.query?.gameMode) || "csgo") as GameMode;
     const nades = await this.nadeService.getByUser(steamId, csgoMap, gameMode);
 
     return res.status(200).send(nades);
