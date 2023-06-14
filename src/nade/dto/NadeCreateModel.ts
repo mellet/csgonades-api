@@ -22,6 +22,7 @@ export type NadeCreateModel = {
   imageMain: ImageData;
   map: CsgoMap;
   mapEndCoord: MapCoordinates;
+  mapStartCoord?: MapCoordinates;
   movement: Movement;
   oneWay?: boolean;
   proUrl?: string;

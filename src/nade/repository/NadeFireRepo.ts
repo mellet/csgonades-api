@@ -323,18 +323,19 @@ export class NadeFireRepo implements NadeRepo {
       invalidateCache: config?.invalidateCache || false,
     };
 
-    let modelUpdates: UpdateModel<NadeFireModel> = {
+    let modelUpdates: UpdateModel<NadeFireModel> = removeUndefines({
       ...updates,
       lastGfycatUpdate: updates.lastGfycatUpdate
         ? value("serverDate")
         : undefined,
       updatedAt: updateConfig.setNewUpdatedAt ? value("serverDate") : undefined,
       createdAt: updateConfig.setNewCreatedAt ? value("serverDate") : undefined,
-    };
+    });
 
-    await update(this.collection, nadeId, removeUndefines(modelUpdates));
+    await update(this.collection, nadeId, modelUpdates);
 
     const nade = await this.byIdAfterSave(nadeId);
+
     this.removeNadeFromCache(nade);
     if (updateConfig.invalidateCache) {
       const cacheKey = ["map", nade.map, nade.type].join("/");

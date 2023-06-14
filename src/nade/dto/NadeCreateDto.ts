@@ -17,6 +17,7 @@ export type NadeCreateDto = {
   lineUpImageBase64: string;
   map: CsgoMap;
   mapEndCoord: MapCoordinates;
+  mapStartCoord?: MapCoordinates;
   movement: Movement;
   oneWay?: boolean;
   proUrl?: string;

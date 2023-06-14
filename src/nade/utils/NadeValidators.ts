@@ -55,6 +55,9 @@ export const validateNadeCreateBody = (req: Request): NadeCreateDto => {
         y: Joi.number(),
       })
       .required(),
+    mapStartCoord: Joi.object()
+      .keys({ x: Joi.number(), y: Joi.number() })
+      .optional(),
     oneWay: Joi.boolean().optional(),
     teamSide: Joi.string()
       .valid(...nadeValidTeamSide())
@@ -111,6 +114,9 @@ export const validateNadeEditBody = (req: Request): NadeUpdateDto => {
         x: Joi.number(),
         y: Joi.number(),
       })
+      .optional(),
+    mapStartCoord: Joi.object()
+      .keys({ x: Joi.number(), y: Joi.number() })
       .optional(),
     status: Joi.string()
       .valid(...nadeValidStatus())
