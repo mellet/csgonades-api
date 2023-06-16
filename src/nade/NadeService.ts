@@ -462,7 +462,13 @@ export class NadeService {
   };
 
   private setNadeSlug = async (nade: NadeDto) => {
-    if (nade.slug || !nade.map || !nade.endPosition || !nade.type) {
+    if (
+      nade.slug ||
+      !nade.map ||
+      !nade.endPosition ||
+      !nade.type ||
+      !nade.gameMode
+    ) {
       return;
     }
 
@@ -473,9 +479,9 @@ export class NadeService {
       .join("-")
       .replace(/[^0-9a-z\-]/gi, "");
 
-    const baseSlug = `${nade.map}-${cleanEndPosition}-${this.typeSlug(
-      nade.type
-    )}`;
+    const baseSlug = `${nade.gameMode}-${
+      nade.map
+    }-${cleanEndPosition}-${this.typeSlug(nade.type)}`;
 
     // Check base slug
     const baseSlugWorks = await this.isSlugAvailable(baseSlug);
