@@ -474,10 +474,11 @@ export class NadeService {
 
     const cleanEndPosition = nade.endPosition
       .toLowerCase()
-      .trim()
+      .replace(/[^0-9a-z\-]/gi, "") // Remove special characters
+      .replace(/\s+/g, " ") // Remove any double spaces
+      .trim() // Trim string
       .split(" ")
-      .join("-")
-      .replace(/[^0-9a-z\-]/gi, "");
+      .join("-");
 
     const baseSlug = `${nade.gameMode}-${
       nade.map
