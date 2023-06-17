@@ -490,7 +490,7 @@ export class NadeService {
       return this.nadeRepo.updateNade(
         nade.id,
         { slug: baseSlug },
-        { setNewUpdatedAt: true }
+        { setNewUpdatedAt: true, invalidateCache: true }
       );
     }
 
@@ -509,7 +509,7 @@ export class NadeService {
     return this.nadeRepo.updateNade(
       nade.id,
       { slug: foundSlug },
-      { setNewUpdatedAt: true }
+      { setNewUpdatedAt: true, invalidateCache: true }
     );
   };
 
@@ -589,14 +589,10 @@ export class NadeService {
         nade.youTubeId
       );
 
-      this.nadeRepo.updateNade(
-        nade.id,
-        {
-          viewCount,
-          lastGfycatUpdate: new Date(),
-        },
-        { invalidateCache: true }
-      );
+      this.nadeRepo.updateNade(nade.id, {
+        viewCount,
+        lastGfycatUpdate: new Date(),
+      });
       return nade;
     }
 
@@ -615,13 +611,10 @@ export class NadeService {
 
     const gameMode = nade.gameMode || "csgo"; // Update nades with no game mode to csgo
 
-    const updatedNade = await this.nadeRepo.updateNade(
-      nade.id,
-      { ...newNadeStats, gameMode },
-      {
-        invalidateCache: true,
-      }
-    );
+    const updatedNade = await this.nadeRepo.updateNade(nade.id, {
+      ...newNadeStats,
+      gameMode,
+    });
 
     return updatedNade;
   };
