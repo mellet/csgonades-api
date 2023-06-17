@@ -368,7 +368,6 @@ export class NadeRouter {
     }
 
     if (updatedField.length === 0) {
-      console.log("Update withouth change");
       return;
     }
 

@@ -180,7 +180,6 @@ export class NadeService {
     limit?: number,
     gameMode?: GameMode
   ): Promise<NadeMiniDto[]> => {
-    console.log("Fetching recent", limit, gameMode);
     const nades = await this.nadeRepo.getAll(limit, gameMode);
 
     return convertNadesToLightDto(nades);

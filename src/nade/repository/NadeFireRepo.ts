@@ -63,6 +63,16 @@ export class NadeFireRepo implements NadeRepo {
     nadeLimit?: number,
     gameMode?: GameMode
   ): Promise<NadeDto[]> => {
+    const cacheKey = ["getAll", gameMode || "csgo"].join("");
+    const nades = this.mapNadeCache.get<NadeDto[]>(cacheKey);
+
+    if (nades) {
+      Logger.verbose(
+        `NadeRepo.getAll(${nadeLimit}, ${gameMode}) -> ${nades.length} | CACHE`
+      );
+      return nades;
+    }
+
     try {
       const queryBuilder: Query<NadeFireModel, keyof NadeFireModel>[] = [
         where("status", "==", "accepted"),
@@ -87,8 +97,12 @@ export class NadeFireRepo implements NadeRepo {
       );
 
       if (nadeLimit) {
-        return nades.slice(0, nadeLimit);
+        const actualNades = nades.slice(0, nadeLimit);
+        this.mapNadeCache.set<NadeDto[]>(cacheKey, actualNades);
+        return actualNades;
       }
+
+      this.mapNadeCache.set<NadeDto[]>(cacheKey, nades);
       return nades;
     } catch (error) {
       Logger.error("NadeFireRepo.isSlugAvailable", error);
