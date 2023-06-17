@@ -222,9 +222,8 @@ export class NadeFireRepo implements NadeRepo {
     nadeType?: NadeType,
     gameMode?: GameMode
   ): Promise<NadeDto[]> => {
-    const cacheKey = ["map", csgoMap, nadeType || "", gameMode || "csgo"].join(
-      "/"
-    );
+    const cacheKey = this.createMapCacheKey(csgoMap, nadeType, gameMode);
+
     const cachedNades = this.mapNadeCache.get<NadeDto[]>(cacheKey);
     if (cachedNades) {
       Logger.verbose(
@@ -338,14 +337,22 @@ export class NadeFireRepo implements NadeRepo {
 
     this.removeNadeFromCache(nade);
     if (updateConfig.invalidateCache) {
-      const cacheKey = ["map", nade.map, nade.type].join("/");
+      const cacheKey = this.createMapCacheKey(
+        nade.map,
+        nade.type,
+        nade.gameMode
+      );
       this.mapNadeCache.del(cacheKey);
     }
     Logger.verbose(`NadeRepo.update(${nadeId})`);
 
     // Clear cache for map nades when slug is created
     if (updates.slug && !nade.slug && nade.status === "accepted") {
-      const cacheKey = ["map", nade.map, nade.type].join("/");
+      const cacheKey = this.createMapCacheKey(
+        nade.map,
+        nade.type,
+        nade.gameMode
+      );
       this.mapNadeCache.del(cacheKey);
     }
 
@@ -500,5 +507,16 @@ export class NadeFireRepo implements NadeRepo {
     if (opts.slug) {
       this.cache.del(cacheKeySlug);
     }
+  };
+
+  private createMapCacheKey = (
+    csgoMap: CsgoMap,
+    nadeType?: NadeType,
+    gameMode?: GameMode
+  ) => {
+    const cacheKey = ["map", csgoMap, nadeType || "", gameMode || "csgo"].join(
+      "/"
+    );
+    return cacheKey;
   };
 }
