@@ -61,7 +61,7 @@ export function convertToNadeMiniDto(nadeDto: NadeDto): NadeMiniDto {
     imageLineupThumbUrl: nadeDto.imageLineupThumb?.url,
     imageMain: nadeDto.imageMain,
     images: nadeDto.images,
-    isNew: isNewNade(nadeDto),
+    isNew: isNewNade(nadeDto.createdAt),
     isPro: nadeDto.isPro,
     mapEndCoord: nadeDto.mapEndCoord,
     movement: nadeDto.movement,
@@ -82,17 +82,14 @@ export function convertToNadeMiniDto(nadeDto: NadeDto): NadeMiniDto {
     user: nadeDto.user,
     viewCount: nadeDto.viewCount,
     youTubeId: nadeDto.youTubeId || undefined,
+    eloScore: nadeDto.eloScore,
   };
 }
 
-function isNewNade(nadeDto: NadeDto): boolean {
-  const daysSinceAdded = moment().diff(
-    moment(nadeDto.createdAt),
-    "days",
-    false
-  );
+export function isNewNade(createdAt: Date | string): boolean {
+  const daysSinceAdded = moment().diff(moment(createdAt), "days", false);
 
-  return daysSinceAdded < 14;
+  return daysSinceAdded < 7;
 }
 
 export function convertNadesToLightDto(nades: NadeDto[]): NadeMiniDto[] {

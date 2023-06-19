@@ -20,6 +20,7 @@ import { CsgoMap } from "./nadeSubTypes/CsgoMap";
 import { GameMode } from "./nadeSubTypes/GameMode";
 import { NadeType } from "./nadeSubTypes/NadeType";
 import {
+  validateEloGameBody,
   validateNadeCreateBody,
   validateNadeEditBody,
 } from "./utils/NadeValidators";
@@ -75,6 +76,9 @@ export class NadeRouter {
     // Favorite routes
     this.router.post("/nades/:id/favorite", authOnlyHandler, this.favorite);
     this.router.delete("/nades/:id/favorite", authOnlyHandler, this.unFavorite);
+
+    // Elo game routes
+    this.router.post("/nades/elogame", this.scoreGame);
 
     // Moderator routes
     this.router.get(
@@ -213,6 +217,12 @@ export class NadeRouter {
     const nade = await this.nadeService.save(nadeBody, user.steamId);
 
     return res.status(201).send(nade);
+  };
+
+  private scoreGame: RequestHandler = async (req, res) => {
+    const eloGame = validateEloGameBody(req);
+
+    return this.nadeService.performNadeComparison(eloGame);
   };
 
   private updateNade: RequestHandler = async (req, res) => {

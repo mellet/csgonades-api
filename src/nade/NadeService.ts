@@ -12,7 +12,7 @@ import { UserLightModel } from "../user/UserModel";
 import { UserRepo } from "../user/repository/UserRepo";
 import { RequestUser } from "../utils/AuthUtils";
 import { ErrorFactory } from "../utils/ErrorUtil";
-import { NadeCreateDto } from "./dto/NadeCreateDto";
+import { NadeCreateDto, NadeEloGame } from "./dto/NadeCreateDto";
 import { NadeCreateModel } from "./dto/NadeCreateModel";
 import { NadeDto } from "./dto/NadeDto";
 import { NadeFireModel } from "./dto/NadeFireModel";
@@ -23,6 +23,7 @@ import { GameMode } from "./nadeSubTypes/GameMode";
 import { NadeStatus } from "./nadeSubTypes/NadeStatus";
 import { NadeType } from "./nadeSubTypes/NadeType";
 import { NadeRepo } from "./repository/NadeRepo";
+import { eloRating } from "./utils/EloUtils";
 import {
   convertNadesToLightDto,
   newStatsFromGfycat,
@@ -443,6 +444,32 @@ export class NadeService {
     }
 
     return updatedNade;
+  };
+
+  performNadeComparison = async (eloGame: NadeEloGame) => {
+    const nadeOne = await this.getById(eloGame.nadeOneId);
+    const nadeTwo = await this.getById(eloGame.nadeTwoId);
+    if (!nadeOne || !nadeTwo) {
+      console.log("Could not find a nade that was in the elo game");
+      return;
+    }
+
+    const { nadeOneNewElo, nadeTwoNewElo } = eloRating(
+      nadeOne,
+      nadeTwo,
+      eloGame.winnerId
+    );
+
+    this.nadeRepo.updateNade(
+      nadeOne.id,
+      { eloScore: nadeOneNewElo },
+      { invalidateCache: true }
+    );
+    this.nadeRepo.updateNade(
+      nadeTwo.id,
+      { eloScore: nadeTwoNewElo },
+      { invalidateCache: true }
+    );
   };
 
   private statusAfterNadeUpdate = (

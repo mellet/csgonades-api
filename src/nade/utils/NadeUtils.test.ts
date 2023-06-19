@@ -133,6 +133,7 @@ describe("Nade Utils", () => {
       type: mockNade.type,
       upVoteCount: mockNade.upVoteCount,
       teamSide: mockNade.teamSide,
+      eloScore: mockNade.eloScore,
     };
 
     const result = convertToNadeMiniDto(mockNade);

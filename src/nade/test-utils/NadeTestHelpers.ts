@@ -46,4 +46,5 @@ export const createMockedNade = (
   startPosition: "startPosition",
   type: "smoke",
   technique: "left",
+  eloScore: 1400,
 });

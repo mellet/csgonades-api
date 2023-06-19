@@ -27,6 +27,7 @@ export type NadeMiniDto = {
   images?: NadeImages;
   isNew?: boolean;
   isPro?: boolean;
+  eloScore: number;
   mapEndCoord?: MapCoordinates;
   movement?: Movement;
   oneWay?: boolean;

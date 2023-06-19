@@ -29,3 +29,9 @@ export type NadeCreateDto = {
   type: NadeType;
   youTubeId: string;
 };
+
+export type NadeEloGame = {
+  nadeOneId: string;
+  nadeTwoId: string;
+  winnerId: string;
+};

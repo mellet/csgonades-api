@@ -312,6 +312,7 @@ export class NadeFireRepo implements NadeRepo {
       updatedAt: value("serverDate"),
       lastGfycatUpdate: value("serverDate"),
       status: "pending",
+      eloScore: 1800,
     };
 
     const cleanNadeModel = removeUndefines(nadeModel);
@@ -473,6 +474,7 @@ export class NadeFireRepo implements NadeRepo {
       id: doc.ref.id,
       score: this.newCalcScore(doc.data),
       favoriteCount: doc.data.favoriteCount || 0,
+      eloScore: doc.data.eloScore || 1400,
     };
   };
 

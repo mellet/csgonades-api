@@ -1,6 +1,6 @@
 import Joi from "@hapi/joi";
 import { Request } from "express-serve-static-core";
-import { NadeCreateDto } from "../dto/NadeCreateDto";
+import { NadeCreateDto, NadeEloGame } from "../dto/NadeCreateDto";
 import { NadeUpdateDto } from "../dto/NadeUpdateDto";
 import { nadeValidMaps } from "../nadeSubTypes/CsgoMap";
 import { nadeValidGameModes } from "../nadeSubTypes/GameMode";
@@ -10,6 +10,19 @@ import { nadeValidTypes } from "../nadeSubTypes/NadeType";
 import { nadeValidTeamSide } from "../nadeSubTypes/TeamSide";
 import { nadeValidTechniques } from "../nadeSubTypes/Technique";
 import { nadeValidTickrate } from "../nadeSubTypes/Tickrate";
+
+export const validateEloGameBody = (req: Request): NadeEloGame => {
+  const body = req.body as NadeEloGame;
+  const schema = Joi.object<NadeEloGame>({
+    nadeOneId: Joi.string(),
+    nadeTwoId: Joi.string(),
+    winnerId: Joi.string(),
+  });
+
+  const value = Joi.attempt(body, schema) as NadeEloGame;
+
+  return value;
+};
 
 export const validateNadeCreateBody = (req: Request): NadeCreateDto => {
   const body = req.body as NadeCreateDto;
