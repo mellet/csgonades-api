@@ -312,7 +312,7 @@ export class NadeFireRepo implements NadeRepo {
       updatedAt: value("serverDate"),
       lastGfycatUpdate: value("serverDate"),
       status: "pending",
-      eloScore: 1600,
+      eloScore: 1500,
     };
 
     const cleanNadeModel = removeUndefines(nadeModel);
