@@ -11,7 +11,7 @@ export function eloRating(
   nadeOne: NadeDto,
   nadeTwo: NadeDto,
   winnerId: string,
-  K = 30
+  K = 40
 ) {
   let nadeOneNewElo;
   let nadeTwoNewElo;
@@ -29,7 +29,7 @@ export function eloRating(
   }
 
   return {
-    nadeOneNewElo: Math.round(nadeOneNewElo * 1000000.0) / 1000000.0,
-    nadeTwoNewElo: Math.round(nadeTwoNewElo * 1000000.0) / 1000000.0,
+    nadeOneNewElo: Math.round(nadeOneNewElo),
+    nadeTwoNewElo: Math.round(nadeTwoNewElo),
   };
 }
