@@ -222,7 +222,9 @@ export class NadeRouter {
   private scoreGame: RequestHandler = async (req, res) => {
     const eloGame = validateEloGameBody(req);
 
-    return this.nadeService.performNadeComparison(eloGame);
+    this.nadeService.performNadeComparison(eloGame);
+
+    return res.status(201).send();
   };
 
   private updateNade: RequestHandler = async (req, res) => {
