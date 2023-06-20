@@ -473,12 +473,12 @@ export class NadeFireRepo implements NadeRepo {
       id: doc.ref.id,
       score: this.newCalcScore(doc.data),
       favoriteCount: doc.data.favoriteCount || 0,
-      eloScore: doc.data.eloScore || 1450,
+      eloScore: doc.data.eloScore || 1400,
     };
   };
 
   private newCalcScore = (nade: NadeFireModel): number => {
-    const elo = nade.eloScore || 1450;
+    const elo = nade.eloScore || 1400;
     const interactionCount = nade.favoriteCount + nade.commentCount;
     const interactionScore = Math.log(interactionCount || 1) * 10;
 
