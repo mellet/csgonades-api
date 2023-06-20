@@ -121,6 +121,7 @@ describe("Nade Utils", () => {
       endPosition: mockNade.endPosition,
       imageLineupThumbUrl: mockNade.imageLineupThumb?.url,
       imageMain: mockNade.imageMain,
+      imageMainThumb: mockNade.imageMainThumb || mockNade.imageMain,
       isPro: mockNade.isPro,
       mapEndCoord: mockNade.mapEndCoord,
       movement: mockNade.movement,

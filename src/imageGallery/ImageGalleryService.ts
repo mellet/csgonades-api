@@ -14,6 +14,7 @@ export type ImageCollection = "nades" | "lineup";
 
 export class ImageRepo {
   private IMAGE_LARGE_SIZE = 1600;
+  private IMAGE_MEDIUM_SIZE = 1000;
   private IMAGE_THUMB_SIZE = 500;
   private imageStorageRepo: ImageStorageRepo;
   private config: CSGNConfig;
@@ -45,6 +46,14 @@ export class ImageRepo {
   ): Promise<ImageData> => {
     return this.saveImage(imageBase64, collection, this.IMAGE_LARGE_SIZE);
   };
+
+  createMedium = async (
+    imageBase64: string,
+    collection: ImageCollection
+  ): Promise<ImageData> => {
+    return this.saveImage(imageBase64, collection, this.IMAGE_MEDIUM_SIZE);
+  };
+
 
   private saveImage = async (
     imageBase64: string,

@@ -25,6 +25,7 @@ export interface NadeFireModel {
   imageLineup?: ImageData;
   imageLineupThumb?: ImageData;
   imageMain: ImageData;
+  imageMainThumb?: ImageData;
   images?: NadeImages;
   isPro?: boolean;
   lastGfycatUpdate: Date;

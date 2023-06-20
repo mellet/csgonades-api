@@ -20,6 +20,7 @@ export type NadeCreateModel = {
   imageLineup: ImageData;
   imageLineupThumb: ImageData;
   imageMain: ImageData;
+  imageMainThumb: ImageData;
   map: CsgoMap;
   mapEndCoord: MapCoordinates;
   mapStartCoord?: MapCoordinates;

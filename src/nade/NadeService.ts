@@ -289,7 +289,7 @@ export class NadeService {
       }
     }
 
-    const { imageLineupThumb, lineupImage, resultImage } =
+    const { imageLineupThumb, lineupImage, resultImage, resultImageThumb } =
       await this.saveImages(body.imageBase64, body.lineUpImageBase64);
 
     const nadeModel: NadeCreateModel = {
@@ -302,6 +302,7 @@ export class NadeService {
       imageLineup: lineupImage,
       imageLineupThumb: imageLineupThumb,
       imageMain: resultImage,
+      imageMainThumb: resultImageThumb,
       map: body.map,
       mapEndCoord: body.mapEndCoord,
       mapStartCoord: body.mapStartCoord,
@@ -661,7 +662,12 @@ export class NadeService {
     mainImageBase64: string,
     lineUpImageBase64: string
   ) => {
-    const resultImagePromise = this.imageRepo.createThumbnail(
+    const resultImageMediumPromise = this.imageRepo.createMedium(
+      mainImageBase64,
+      "nades"
+    );
+
+    const resultImageThumbPromise = this.imageRepo.createThumbnail(
       mainImageBase64,
       "nades"
     );
@@ -676,14 +682,17 @@ export class NadeService {
       "lineup"
     );
 
-    const [resultImage, lineupImage, imageLineupThumb] = await Promise.all([
-      resultImagePromise,
-      lineupImagePromise,
-      imageLineupThumbPromise,
-    ]);
+    const [resultImage, resultImageThumb, lineupImage, imageLineupThumb] =
+      await Promise.all([
+        resultImageMediumPromise,
+        resultImageThumbPromise,
+        lineupImagePromise,
+        imageLineupThumbPromise,
+      ]);
 
     return {
       resultImage,
+      resultImageThumb,
       lineupImage,
       imageLineupThumb,
     };

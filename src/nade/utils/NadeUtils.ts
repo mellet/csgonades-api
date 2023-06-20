@@ -60,6 +60,7 @@ export function convertToNadeMiniDto(nadeDto: NadeDto): NadeMiniDto {
     imageLineupThumb: nadeDto.imageLineupThumb,
     imageLineupThumbUrl: nadeDto.imageLineupThumb?.url,
     imageMain: nadeDto.imageMain,
+    imageMainThumb: nadeDto.imageMainThumb || nadeDto.imageMain,
     images: nadeDto.images,
     isNew: isNewNade(nadeDto.createdAt),
     isPro: nadeDto.isPro,

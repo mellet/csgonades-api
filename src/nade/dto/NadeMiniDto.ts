@@ -24,6 +24,7 @@ export type NadeMiniDto = {
   imageLineupThumb?: ImageData;
   imageLineupThumbUrl?: string;
   imageMain: ImageData;
+  imageMainThumb: ImageData;
   images?: NadeImages;
   isNew?: boolean;
   isPro?: boolean;
