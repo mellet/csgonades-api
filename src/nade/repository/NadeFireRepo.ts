@@ -1,4 +1,3 @@
-import moment from "moment";
 import {
   add,
   batch,
@@ -474,21 +473,16 @@ export class NadeFireRepo implements NadeRepo {
       id: doc.ref.id,
       score: this.newCalcScore(doc.data),
       favoriteCount: doc.data.favoriteCount || 0,
-      eloScore: doc.data.eloScore || 1400,
+      eloScore: doc.data.eloScore || 1450,
     };
   };
 
   private newCalcScore = (nade: NadeFireModel): number => {
-    const gravity = 0.9; // Lower gravity makes new nades drop faster
-    const votes = nade.commentCount + nade.favoriteCount || 1;
-    const addedHoursAgo =
-      moment().diff(moment(nade.createdAt), "hours", false) + 2;
+    const elo = nade.eloScore || 1450;
+    const interactionCount = nade.favoriteCount + nade.commentCount;
+    const interactionScore = Math.log(interactionCount || 1) * 10;
 
-    const score = Math.round(
-      (votes / Math.pow(addedHoursAgo, gravity)) * 10000
-    );
-
-    return score;
+    return Math.round(elo + interactionScore);
   };
 
   private getFromCache = (partialNade: { id?: string; slug?: string }) => {
