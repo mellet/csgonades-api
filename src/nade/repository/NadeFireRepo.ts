@@ -59,10 +59,10 @@ export class NadeFireRepo implements NadeRepo {
   };
 
   getAll = async (
-    nadeLimit?: number,
+    nadeLimit: number = 20,
     gameMode?: GameMode
   ): Promise<NadeDto[]> => {
-    const cacheKey = ["getAll", gameMode || "csgo"].join("");
+    const cacheKey = ["getAll", gameMode || "csgo", String(nadeLimit)].join("");
     const nades = this.mapNadeCache.get<NadeDto[]>(cacheKey);
 
     if (nades) {
