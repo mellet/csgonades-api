@@ -376,7 +376,7 @@ export class NadeService {
     verifyAllowEdit(originalNade, user);
     verifyAdminFields(user, updates);
 
-    const mainImage = await this.replaceMainImageIfPresent(
+    const mainImages = await this.replaceMainImageIfPresent(
       originalNade,
       updates.imageBase64
     );
@@ -404,7 +404,8 @@ export class NadeService {
       gfycat: updates.youTubeId ? null : updates.gfycat,
       imageLineup: lineupImages?.lineupImage,
       imageLineupThumb: lineupImages?.lineupImageThumb,
-      imageMain: mainImage,
+      imageMain: mainImages?.mainImage,
+      imageMainThumb: mainImages?.mainImageSmall,
       isPro: updates.isPro,
       map: updates.map,
       mapEndCoord: updates.mapEndCoord,
@@ -601,13 +602,21 @@ export class NadeService {
     }
 
     await this.imageRepo.deleteImageResult(originalNade.imageMain);
+    if (originalNade.imageMainThumb) {
+      await this.imageRepo.deleteImageResult(originalNade.imageMainThumb);
+    }
 
-    const mainImage = await this.imageRepo.createThumbnail(
+    const mainImageSmall = await this.imageRepo.createThumbnail(
       mainImageBase64,
       "nades"
     );
 
-    return mainImage;
+    const mainImage = await this.imageRepo.createMedium(
+      mainImageBase64,
+      "nades"
+    );
+
+    return { mainImageSmall, mainImage };
   };
 
   private tryUpdateViewCounter = async (nade: NadeDto): Promise<NadeDto> => {

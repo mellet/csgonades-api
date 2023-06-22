@@ -51,9 +51,13 @@ export class ImageRepo {
     imageBase64: string,
     collection: ImageCollection
   ): Promise<ImageData> => {
-    return this.saveImage(imageBase64, collection, this.IMAGE_MEDIUM_SIZE);
+    return this.saveImage(
+      imageBase64,
+      collection,
+      this.IMAGE_MEDIUM_SIZE,
+      "_medium"
+    );
   };
-
 
   private saveImage = async (
     imageBase64: string,
@@ -73,15 +77,6 @@ export class ImageRepo {
         collection
       );
       return image;
-    } catch (error) {
-      throw ErrorFactory.ExternalError("Failed to save image");
-    }
-  };
-
-  deleteImage = async (internalPath: string): Promise<void> => {
-    try {
-      await this.imageStorageRepo.deleteImage(internalPath);
-      return;
     } catch (error) {
       throw ErrorFactory.ExternalError("Failed to save image");
     }
