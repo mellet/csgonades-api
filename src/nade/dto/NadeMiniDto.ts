@@ -9,15 +9,15 @@ import { Technique } from "../nadeSubTypes/Technique";
 import { Tickrate } from "../nadeSubTypes/Tickrate";
 import { GfycatData } from "./GfycatData";
 import { MapCoordinates } from "./MapCoordinates";
-import { NadeImages } from "./NadeImages";
+import { NadeImages } from "./NadeDto";
 
 export type NadeMiniDto = {
   commentCount: number;
   createdAt: Date;
-  downVoteCount?: number;
+  eloScore: number;
   endPosition?: string;
   favoriteCount: number;
-  gameMode?: GameMode;
+  gameMode: GameMode;
   gfycat?: GfycatData | null;
   id: string;
   imageLineup?: ImageData;
@@ -25,10 +25,9 @@ export type NadeMiniDto = {
   imageLineupThumbUrl?: string;
   imageMain: ImageData;
   imageMainThumb: ImageData;
-  images?: NadeImages;
+  images: NadeImages;
   isNew?: boolean;
   isPro?: boolean;
-  eloScore: number;
   mapEndCoord?: MapCoordinates;
   movement?: Movement;
   oneWay?: boolean;
@@ -41,10 +40,8 @@ export type NadeMiniDto = {
   teamSide?: TeamSide;
   technique?: Technique;
   tickrate?: Tickrate;
-  title?: string;
   type?: NadeType;
   updatedAt: Date;
-  upVoteCount?: number;
   user: UserLightModel;
   viewCount: number;
   youTubeId?: string;

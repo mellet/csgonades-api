@@ -474,6 +474,21 @@ export class NadeFireRepo implements NadeRepo {
       score: this.newCalcScore(doc.data),
       favoriteCount: doc.data.favoriteCount || 0,
       eloScore: doc.data.eloScore || 1400,
+      gameMode: doc.data.gameMode || "csgo",
+      images: {
+        lineup: {
+          small: doc.data.imageLineupThumb?.url || "",
+          medium:
+            doc.data.imageLineupThumb?.url || doc.data.imageLineup?.url || "",
+          large:
+            doc.data.imageLineup?.url || doc.data.imageLineupThumb?.url || "",
+        },
+        result: {
+          small: doc.data.imageMainThumb?.url || doc.data.imageMain.url || "",
+          medium: doc.data.imageMain.url || doc.data.imageMainThumb?.url || "",
+          large: doc.data.imageMain.url || doc.data.imageMainThumb?.url || "",
+        },
+      },
     };
   };
 

@@ -7,6 +7,7 @@ export const createMockedNade = (
   id: nadeId,
   commentCount: 0,
   createdAt: new Date(),
+  gameMode: "csgo",
   favoriteCount: 0,
   gfycat: {
     gfyId: "gfyId",
@@ -14,8 +15,16 @@ export const createMockedNade = (
     smallVideoUrl: "smallVideoUrl",
   },
   images: {
-    thumbnailId: "thumbnailId",
-    thumbnailUrl: "thumbnailUrl",
+    lineup: {
+      large: "",
+      medium: "",
+      small: "",
+    },
+    result: {
+      large: "",
+      medium: "",
+      small: "",
+    },
   },
   lastGfycatUpdate: new Date(),
   score: 0,

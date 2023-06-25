@@ -50,7 +50,6 @@ export function convertToNadeMiniDto(nadeDto: NadeDto): NadeMiniDto {
   return {
     commentCount: nadeDto.commentCount,
     createdAt: nadeDto.createdAt,
-    downVoteCount: nadeDto.downVoteCount,
     endPosition: nadeDto.endPosition,
     favoriteCount: nadeDto.favoriteCount || 0,
     gameMode: nadeDto.gameMode,
@@ -76,10 +75,8 @@ export function convertToNadeMiniDto(nadeDto: NadeDto): NadeMiniDto {
     teamSide: nadeDto.teamSide,
     technique: nadeDto.technique,
     tickrate: nadeDto.tickrate,
-    title: nadeDto.title,
     type: nadeDto.type,
     updatedAt: nadeDto.updatedAt,
-    upVoteCount: nadeDto.upVoteCount,
     user: nadeDto.user,
     viewCount: nadeDto.viewCount,
     youTubeId: nadeDto.youTubeId || undefined,
