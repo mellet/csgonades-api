@@ -58,16 +58,13 @@ export class NadeFireRepo implements NadeRepo {
     }
   };
 
-  getAll = async (
-    nadeLimit: number = 20,
-    gameMode?: GameMode
-  ): Promise<NadeDto[]> => {
-    const cacheKey = ["getAll", gameMode || "csgo", String(nadeLimit)].join("");
+  getRecent = async (gameMode: GameMode = "csgo"): Promise<NadeDto[]> => {
+    const cacheKey = this.recentCacheKey();
     const nades = this.mapNadeCache.get<NadeDto[]>(cacheKey);
 
     if (nades) {
       Logger.verbose(
-        `NadeRepo.getAll(${nadeLimit}, ${gameMode}) -> ${nades.length} | CACHE`
+        `NadeRepo.getRecent(${gameMode}) -> ${nades.length} | CACHE`
       );
       return nades;
     }
@@ -75,11 +72,8 @@ export class NadeFireRepo implements NadeRepo {
     try {
       const queryBuilder: Query<NadeFireModel, keyof NadeFireModel>[] = [
         where("status", "==", "accepted"),
+        limit(12),
       ];
-
-      if (nadeLimit) {
-        queryBuilder.push(limit(nadeLimit * 2));
-      }
 
       if (gameMode) {
         queryBuilder.push(where("gameMode", "==", gameMode));
@@ -91,21 +85,13 @@ export class NadeFireRepo implements NadeRepo {
 
       const nades = nadesDocs.map(this.toNadeDTO);
 
-      Logger.verbose(
-        `NadeRepo.getAll(${nadeLimit}, ${gameMode}) -> ${nades.length} | DB`
-      );
-
-      if (nadeLimit) {
-        const actualNades = nades.slice(0, nadeLimit);
-        this.mapNadeCache.set<NadeDto[]>(cacheKey, actualNades);
-        return actualNades;
-      }
+      Logger.verbose(`NadeRepo.getRecent(${gameMode}) -> ${nades.length} | DB`);
 
       this.mapNadeCache.set<NadeDto[]>(cacheKey, nades);
       return nades;
     } catch (error) {
-      Logger.error("NadeFireRepo.isSlugAvailable", error);
-      throw ErrorFactory.InternalServerError("Failed get all nades");
+      Logger.error("NadeFireRepo.NadeRepo", error);
+      throw ErrorFactory.InternalServerError("Failed get recent nades");
     }
   };
 
@@ -179,7 +165,7 @@ export class NadeFireRepo implements NadeRepo {
   };
 
   getById = async (nadeId: string): Promise<NadeDto | null> => {
-    const cachedNade = this.getFromCache({ id: nadeId });
+    const cachedNade = this.tryGetNadeFromCache({ id: nadeId });
     if (cachedNade) {
       Logger.verbose(`NadeRepo.getById(${nadeId}) | CACHE`);
       return cachedNade;
@@ -190,7 +176,7 @@ export class NadeFireRepo implements NadeRepo {
       Logger.verbose(`NadeRepo.getById(${nadeId}) | DB`);
       const nade = nadeDoc ? this.toNadeDTO(nadeDoc) : null;
 
-      this.addNadeToCache(nade);
+      this.setNadeInCache(nade);
 
       return nade;
     } catch (error) {
@@ -200,7 +186,7 @@ export class NadeFireRepo implements NadeRepo {
   };
 
   getBySlug = async (slug: string): Promise<NadeDto | null> => {
-    const cachedNade = this.getFromCache({ slug: slug });
+    const cachedNade = this.tryGetNadeFromCache({ slug: slug });
 
     if (cachedNade) {
       Logger.verbose(`NadeRepo.getBySlug(${slug}) | CACHE`);
@@ -221,7 +207,7 @@ export class NadeFireRepo implements NadeRepo {
       const nade = this.toNadeDTO(nadeDoc);
 
       Logger.verbose(`NadeRepo.getBySlug(${slug}) | DB`);
-      this.addNadeToCache(nade);
+      this.setNadeInCache(nade);
 
       return nade;
     } catch (error) {
@@ -351,30 +337,25 @@ export class NadeFireRepo implements NadeRepo {
 
     this.removeNadeFromCache(nade);
     if (updateConfig.invalidateCache) {
-      const cacheKey = this.createMapCacheKey(
-        nade.map,
-        nade.type,
-        nade.gameMode
-      );
-      this.mapNadeCache.del(cacheKey);
+      this.clearRecentAndMapCache(nade);
     }
     Logger.verbose(`NadeRepo.update(${nadeId})`);
 
     // Clear cache for map nades when slug is created
     if (updates.slug && !nade.slug && nade.status === "accepted") {
-      const cacheKey = this.createMapCacheKey(
-        nade.map,
-        nade.type,
-        nade.gameMode
-      );
-      this.mapNadeCache.del(cacheKey);
+      this.clearRecentAndMapCache(nade, { invalidateRecent: true });
     }
 
     return this.byIdAfterSave(nadeId);
   };
 
   delete = async (nadeId: string) => {
+    const nade = await this.byIdAfterSave(nadeId);
+
+    this.clearRecentAndMapCache(nade);
+
     await remove(this.collection, nadeId);
+
     Logger.verbose(`NadeRepo.delete(${nadeId})`);
   };
 
@@ -500,7 +481,10 @@ export class NadeFireRepo implements NadeRepo {
     return Math.round(elo + interactionScore);
   };
 
-  private getFromCache = (partialNade: { id?: string; slug?: string }) => {
+  private tryGetNadeFromCache = (partialNade: {
+    id?: string;
+    slug?: string;
+  }) => {
     const cacheKeySlug = `nade/${partialNade.slug}`;
     const cacheKeyId = `nade/${partialNade.id}`;
     if (partialNade.slug) {
@@ -510,7 +494,7 @@ export class NadeFireRepo implements NadeRepo {
     }
   };
 
-  private addNadeToCache = (nade?: NadeDto | null) => {
+  private setNadeInCache = (nade?: NadeDto | null) => {
     if (!nade) {
       return;
     }
@@ -544,4 +528,25 @@ export class NadeFireRepo implements NadeRepo {
     );
     return cacheKey;
   };
+
+  private recentCacheKey = (gameMode?: GameMode) => {
+    return ["getRecent", gameMode].join("");
+  };
+
+  private clearRecentAndMapCache(
+    nade: NadeDto,
+    config?: { invalidateRecent: boolean }
+  ) {
+    if (config?.invalidateRecent) {
+      const recentCacheKey = ["getRecent", nade?.gameMode || "csgo"].join("");
+      this.mapNadeCache.del(recentCacheKey);
+    }
+
+    const mapCacheKey = this.createMapCacheKey(
+      nade.map,
+      nade.type,
+      nade.gameMode
+    );
+    this.mapNadeCache.del(mapCacheKey);
+  }
 }

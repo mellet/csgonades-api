@@ -140,19 +140,9 @@ export class NadeRouter {
   };
 
   private getNades: RequestHandler = async (req, res) => {
-    const limitParam = sanitizeIt(req?.query?.limit);
     const gameMode = (sanitizeIt(req?.query?.gameMode) || "csgo") as GameMode;
-    let limit: number | undefined = undefined;
 
-    if (!limitParam) {
-      limit = 8;
-    } else if (limitParam === "all") {
-      limit = undefined;
-    } else {
-      limit = Number(limit);
-    }
-
-    const nades = await this.nadeService.getRecent(limit, gameMode);
+    const nades = await this.nadeService.getRecent(gameMode);
 
     return res.status(200).send(nades);
   };

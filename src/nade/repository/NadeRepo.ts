@@ -14,7 +14,7 @@ export type NadeUpdateConfig = {
 
 export interface NadeRepo {
   isSlugAvailable(slug: string): Promise<boolean>;
-  getAll(nadeLimit?: number, gameMode?: GameMode): Promise<NadeDto[]>;
+  getRecent(gameMode?: GameMode): Promise<NadeDto[]>;
   getPending(): Promise<NadeDto[]>;
   getDeclined(): Promise<NadeDto[]>;
   getDeleted(): Promise<NadeDto[]>;

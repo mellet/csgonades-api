@@ -64,12 +64,12 @@ describe("Nade service", () => {
   it("getRecent", async () => {
     const fakeResult = [];
 
-    when(mockedDeps.nadeRepo.getAll(0)).thenResolve(fakeResult);
+    when(mockedDeps.nadeRepo.getRecent()).thenResolve(fakeResult);
 
-    const nades = await nadeService.getRecent(0);
+    const nades = await nadeService.getRecent();
 
     expect(nades).toEqual(fakeResult);
-    verify(mockedDeps.nadeRepo.getAll(0)).once();
+    verify(mockedDeps.nadeRepo.getRecent()).once();
   });
 
   it("getPending", async () => {

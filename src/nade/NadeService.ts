@@ -121,7 +121,7 @@ export class NadeService {
   };
 
   getFlagged = async () => {
-    const nades = await this.nadeRepo.getAll();
+    const nades = await this.nadeRepo.getRecent();
 
     const missingTeam = nades.filter((n) => !n.teamSide);
     const missingLineup = nades.filter((n) => {
@@ -177,11 +177,8 @@ export class NadeService {
     }
   };
 
-  getRecent = async (
-    limit?: number,
-    gameMode?: GameMode
-  ): Promise<NadeMiniDto[]> => {
-    const nades = await this.nadeRepo.getAll(limit, gameMode);
+  getRecent = async (gameMode?: GameMode): Promise<NadeMiniDto[]> => {
+    const nades = await this.nadeRepo.getRecent(gameMode);
 
     return convertNadesToLightDto(nades);
   };
