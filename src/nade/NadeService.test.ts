@@ -66,7 +66,7 @@ describe("Nade service", () => {
 
     when(mockedDeps.nadeRepo.getRecent()).thenResolve(fakeResult);
 
-    const nades = await nadeService.getRecent();
+    const nades = await nadeService.getRecent("csgo");
 
     expect(nades).toEqual(fakeResult);
     verify(mockedDeps.nadeRepo.getRecent()).once();

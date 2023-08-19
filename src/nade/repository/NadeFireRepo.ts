@@ -58,8 +58,8 @@ export class NadeFireRepo implements NadeRepo {
     }
   };
 
-  getRecent = async (gameMode: GameMode = "csgo"): Promise<NadeDto[]> => {
-    const cacheKey = this.recentCacheKey();
+  getRecent = async (gameMode: GameMode): Promise<NadeDto[]> => {
+    const cacheKey = this.recentCacheKey(gameMode);
     const nades = this.mapNadeCache.get<NadeDto[]>(cacheKey);
 
     if (nades) {
@@ -72,14 +72,10 @@ export class NadeFireRepo implements NadeRepo {
     try {
       const queryBuilder: Query<NadeFireModel, keyof NadeFireModel>[] = [
         where("status", "==", "accepted"),
+        where("gameMode", "==", gameMode),
+        order("createdAt", "desc"),
         limit(12),
       ];
-
-      if (gameMode) {
-        queryBuilder.push(where("gameMode", "==", gameMode));
-      }
-
-      queryBuilder.push(order("createdAt", "desc"));
 
       const nadesDocs = await query(this.collection, queryBuilder);
 

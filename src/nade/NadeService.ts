@@ -177,7 +177,7 @@ export class NadeService {
     }
   };
 
-  getRecent = async (gameMode?: GameMode): Promise<NadeMiniDto[]> => {
+  getRecent = async (gameMode: GameMode): Promise<NadeMiniDto[]> => {
     const nades = await this.nadeRepo.getRecent(gameMode);
 
     return convertNadesToLightDto(nades);
