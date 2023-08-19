@@ -623,6 +623,8 @@ export class NadeService {
         nade.youTubeId
       );
 
+      Logger.info(`NadeService.tryUpdateViewCounter | YouTube - ${nade.id}`);
+
       this.nadeRepo.updateNade(nade.id, {
         viewCount,
         lastGfycatUpdate: new Date(),

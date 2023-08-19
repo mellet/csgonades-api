@@ -17,7 +17,7 @@ export class GoogleApi {
       const stats = response.data.items[0].statistics.viewCount;
       return stats;
     } catch (error) {
-      Logger.error("GoogleApi failed", error);
+      Logger.error("GoogleApi.getYouTubeVideoViewCount failed", error);
       throw error;
     }
   }
