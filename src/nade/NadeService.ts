@@ -28,6 +28,7 @@ import {
   convertNadesToLightDto,
   newStatsFromGfycat,
   shouldUpdateNadeStats,
+  shouldUpdateYouTubeViewCount,
   titleCase,
   verifyAdminFields,
   verifyAllowEdit,
@@ -617,7 +618,7 @@ export class NadeService {
   };
 
   private tryUpdateViewCounter = async (nade: NadeDto): Promise<NadeDto> => {
-    if (nade.youTubeId && shouldUpdateNadeStats(nade)) {
+    if (nade.youTubeId && shouldUpdateYouTubeViewCount(nade)) {
       const viewCount = await this.googleApi.getYouTubeVideoViewCount(
         nade.youTubeId
       );

@@ -31,6 +31,17 @@ export function verifyAdminFields(
   }
 }
 
+export function shouldUpdateYouTubeViewCount(nade: NadeDto) {
+  const hoursBetweenUpdate = 8;
+  const hoursSinceLastUpdate = moment().diff(
+    moment(nade.lastGfycatUpdate),
+    "hours",
+    false
+  );
+
+  return hoursSinceLastUpdate > hoursBetweenUpdate;
+}
+
 export function shouldUpdateNadeStats(nade: NadeDto) {
   const daysSinceCreated = moment().diff(moment(nade.createdAt), "days", false);
   const updateFrequency = daysSinceCreated <= 7 ? 12 : 48;
