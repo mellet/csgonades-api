@@ -1,6 +1,6 @@
 import { ImageData } from "../../imageGallery/ImageStorageRepo";
 import { UserLightModel } from "../../user/UserModel";
-import { CsgoMap } from "../nadeSubTypes/CsgoMap";
+import { CsMap } from "../nadeSubTypes/CsgoMap";
 import { GameMode } from "../nadeSubTypes/GameMode";
 import { Movement } from "../nadeSubTypes/Movements";
 import { NadeStatus } from "../nadeSubTypes/NadeStatus";
@@ -42,9 +42,11 @@ export type NadeDto = {
   images: NadeImages;
   isPro?: boolean;
   lastGfycatUpdate: Date;
-  map: CsgoMap;
+  map: CsMap;
   mapEndCoord: MapCoordinates;
   mapStartCoord?: MapCoordinates;
+  mapEndLocationId?: string;
+  mapStartLocationId?: string;
   movement: Movement;
   oneWay?: boolean;
   proUrl?: string;

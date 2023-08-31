@@ -43,6 +43,8 @@ export const validateNadeCreateBody = (req: Request): NadeCreateDto => {
     lineUpImageBase64: Joi.string().required(),
     startPosition: Joi.string().required(),
     endPosition: Joi.string().required(),
+    mapStartLocationId: Joi.string().optional(),
+    mapEndLocationId: Joi.string().optional(),
     gameMode: Joi.string()
       .valid(...nadeValidGameModes())
       .optional(),
@@ -131,6 +133,8 @@ export const validateNadeEditBody = (req: Request): NadeUpdateDto => {
     mapStartCoord: Joi.object()
       .keys({ x: Joi.number(), y: Joi.number() })
       .optional(),
+    mapStartLocationId: Joi.string().optional(),
+    mapEndLocationId: Joi.string().optional(),
     status: Joi.string()
       .valid(...nadeValidStatus())
       .optional(),

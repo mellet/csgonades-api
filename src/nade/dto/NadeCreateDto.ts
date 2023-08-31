@@ -1,4 +1,4 @@
-import { CsgoMap } from "../nadeSubTypes/CsgoMap";
+import { CsMap } from "../nadeSubTypes/CsgoMap";
 import { GameMode } from "../nadeSubTypes/GameMode";
 import { Movement } from "../nadeSubTypes/Movements";
 import { NadeType } from "../nadeSubTypes/NadeType";
@@ -15,9 +15,11 @@ export type NadeCreateDto = {
   gfycat: GfycatData;
   imageBase64: string;
   lineUpImageBase64: string;
-  map: CsgoMap;
+  map: CsMap;
   mapEndCoord: MapCoordinates;
   mapStartCoord?: MapCoordinates;
+  mapStartLocationId?: string;
+  mapEndLocationId?: string;
   movement: Movement;
   oneWay?: boolean;
   proUrl?: string;

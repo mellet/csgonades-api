@@ -8,6 +8,10 @@ import { ContactRepo } from "./contact/repository/ContactRepo";
 import { FavoriteFireRepo } from "./favorite/repository/FavoriteFireRepo";
 import { FavoriteRepo } from "./favorite/repository/FavoriteRepo";
 import { ImageStorageRepo } from "./imageGallery/ImageStorageRepo";
+import { FirebaseMapEndLocationRepo } from "./maplocation/repository/FirebaseMapEndLocationRepo";
+import { FirebaseMapStartLocationRepo } from "./maplocation/repository/FirebaseMapStartLocationRepo";
+import { MapEndLocationRepo } from "./maplocation/types/MapEndLocationRepo";
+import { MapStartLocationRepo } from "./maplocation/types/MapStartLocationRepo";
 import { NadeFireRepo } from "./nade/repository/NadeFireRepo";
 import { NadeRepo } from "./nade/repository/NadeRepo";
 import { NotificationFireRepo } from "./notifications/repository/NotificationFireRepo";
@@ -30,6 +34,8 @@ export interface AppRepositories {
   imageStorageRepo: ImageStorageRepo;
   commentRepo: CommentRepo;
   auditRepo: AuditRepo;
+  mapStartLocationRepo: MapStartLocationRepo;
+  mapEndLocationRepo: MapEndLocationRepo;
 }
 
 export function repoInit(
@@ -46,6 +52,8 @@ export function repoInit(
   const imageStorageRepo = new ImageStorageRepo(persist.bucket);
   const commentRepo = new CommentFireRepo();
   const auditRepo = new AuditFireRepo();
+  const mapStartLocationRepo = new FirebaseMapStartLocationRepo();
+  const mapEndLocationRepo = new FirebaseMapEndLocationRepo();
 
   return {
     notificationRepo,
@@ -58,5 +66,7 @@ export function repoInit(
     imageStorageRepo,
     commentRepo,
     auditRepo,
+    mapStartLocationRepo,
+    mapEndLocationRepo,
   };
 }

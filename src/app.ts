@@ -15,6 +15,7 @@ import { GoogleApi } from "./external-api/GoogleApi";
 import { SteamApi } from "./external-api/SteamApi";
 import { FavoriteRouter } from "./favorite/FavoriteRouter";
 import { Logger } from "./logger/Logger";
+import { MapLocationRouter } from "./maplocation/MapLocationRouter";
 import { NadeRouter } from "./nade/NadeRouter";
 import { NotificationRouter } from "./notifications/NotificationRouter";
 import { persistInit } from "./persistInit";
@@ -105,29 +106,32 @@ export const AppServer = (config: CSGNConfig) => {
     commentService,
   });
 
-  const steamRouter = new SteamRouter(passport, config, userService).router;
+  const steamRouter = new SteamRouter(passport, config, userService);
   const userRouter = makeUserRouter(userService);
   const favoriteRouter = new FavoriteRouter({ favoriteService });
   const statsRouter = makeStatsRouter(repositories.statsRepo);
-  const contactRouter = new ContactRouter(contactService).getRouter();
-  const reportRouter = new ReportRouter(reporService).getRouter();
-  const notificationRouter = new NotificationRouter(
-    notificationService
-  ).getRouter();
+  const contactRouter = new ContactRouter(contactService);
+  const reportRouter = new ReportRouter(reporService);
+  const notificationRouter = new NotificationRouter(notificationService);
   const nadeCommentRouter = new CommentRouter({ commentService });
   const auditRouter = new AuditRouter(auditService);
+  const mapLocationRouter = new MapLocationRouter({
+    mapStartLocationRepo: repositories.mapStartLocationRepo,
+    mapEndLocationRepo: repositories.mapEndLocationRepo,
+  });
 
   app.use(nadeRouter.getRouter());
-  app.use(steamRouter);
+  app.use(steamRouter.router);
   app.use(userRouter);
   app.use(statusRouter.getRouter());
   app.use(favoriteRouter.getRouter());
   app.use(statsRouter);
-  app.use(contactRouter);
-  app.use(reportRouter);
-  app.use(notificationRouter);
+  app.use(contactRouter.getRouter());
+  app.use(reportRouter.getRouter());
+  app.use(notificationRouter.getRouter());
   app.use(nadeCommentRouter.getRouter());
   app.use(auditRouter.getRouter());
+  app.use(mapLocationRouter.getRouter());
 
   app.get("/", (_req, res) => {
     res.send("");

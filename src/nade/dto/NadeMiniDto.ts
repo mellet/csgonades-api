@@ -29,6 +29,8 @@ export type NadeMiniDto = {
   isNew?: boolean;
   isPro?: boolean;
   mapEndCoord?: MapCoordinates;
+  mapEndLocationId?: string;
+  mapStartLocationId?: string;
   movement?: Movement;
   oneWay?: boolean;
   proUrl?: string;

@@ -92,6 +92,8 @@ export function convertToNadeMiniDto(nadeDto: NadeDto): NadeMiniDto {
     viewCount: nadeDto.viewCount,
     youTubeId: nadeDto.youTubeId || undefined,
     eloScore: nadeDto.eloScore,
+    mapEndLocationId: nadeDto.mapEndLocationId,
+    mapStartLocationId: nadeDto.mapStartLocationId,
   };
 }
 

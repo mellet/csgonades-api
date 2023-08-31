@@ -1,6 +1,6 @@
 import { ImageData } from "../../imageGallery/ImageStorageRepo";
 import { UserLightModel } from "../../user/UserModel";
-import { CsgoMap } from "../nadeSubTypes/CsgoMap";
+import { CsMap } from "../nadeSubTypes/CsgoMap";
 import { GameMode } from "../nadeSubTypes/GameMode";
 import { Movement } from "../nadeSubTypes/Movements";
 import { NadeType } from "../nadeSubTypes/NadeType";
@@ -21,9 +21,11 @@ export type NadeCreateModel = {
   imageLineupThumb: ImageData;
   imageMain: ImageData;
   imageMainThumb: ImageData;
-  map: CsgoMap;
+  map: CsMap;
   mapEndCoord: MapCoordinates;
   mapStartCoord?: MapCoordinates;
+  mapStartLocationId?: string;
+  mapEndLocationId?: string;
   movement: Movement;
   oneWay?: boolean;
   proUrl?: string;

@@ -6,6 +6,9 @@ import { GoogleApi } from "../external-api/GoogleApi";
 import { FavoriteRepo } from "../favorite/repository/FavoriteRepo";
 import { ImageRepo } from "../imageGallery/ImageGalleryService";
 import { Logger } from "../logger/Logger";
+import { MapEndLocationRepo } from "../maplocation/types/MapEndLocationRepo";
+import { MapLocation, StartLocation } from "../maplocation/types/MapLocations";
+import { MapStartLocationRepo } from "../maplocation/types/MapStartLocationRepo";
 import { NotificationRepo } from "../notifications/repository/NotificationRepo";
 import { StatsRepo } from "../stats/repository/StatsRepo";
 import { UserLightModel } from "../user/UserModel";
@@ -18,7 +21,7 @@ import { NadeDto } from "./dto/NadeDto";
 import { NadeFireModel } from "./dto/NadeFireModel";
 import { NadeMiniDto } from "./dto/NadeMiniDto";
 import { NadeUpdateDto } from "./dto/NadeUpdateDto";
-import { CsgoMap } from "./nadeSubTypes/CsgoMap";
+import { CsMap } from "./nadeSubTypes/CsgoMap";
 import { GameMode } from "./nadeSubTypes/GameMode";
 import { NadeStatus } from "./nadeSubTypes/NadeStatus";
 import { NadeType } from "./nadeSubTypes/NadeType";
@@ -44,6 +47,8 @@ export type NadeServiceDeps = {
   notificationRepo: NotificationRepo;
   statsRepo: StatsRepo;
   userRepo: UserRepo;
+  mapStartLocationRepo: MapStartLocationRepo;
+  mapEndLocationRepo: MapEndLocationRepo;
 };
 
 export class NadeService {
@@ -56,6 +61,8 @@ export class NadeService {
   private notificationRepo: NotificationRepo;
   private statsRepo: StatsRepo;
   private userRepo: UserRepo;
+  private mapEndLocationRepo: MapEndLocationRepo;
+  private mapStartLocationRepo: MapStartLocationRepo;
 
   constructor(deps: NadeServiceDeps) {
     const {
@@ -68,6 +75,8 @@ export class NadeService {
       favoriteRepo,
       userRepo,
       googleApi,
+      mapEndLocationRepo,
+      mapStartLocationRepo,
     } = deps;
 
     this.nadeRepo = nadeRepo;
@@ -79,6 +88,8 @@ export class NadeService {
     this.favoriteRepo = favoriteRepo;
     this.userRepo = userRepo;
     this.googleApi = googleApi;
+    this.mapEndLocationRepo = mapEndLocationRepo;
+    this.mapStartLocationRepo = mapStartLocationRepo;
 
     // this.recountNades();
     this.getDeletedToRemove();
@@ -118,6 +129,16 @@ export class NadeService {
       numFlashes,
       numMolotovs,
       numGrenades
+    );
+  };
+
+  getByStartAndEndLocation = async (
+    startLocationId: string,
+    endLocationId: string
+  ): Promise<NadeDto[]> => {
+    return this.nadeRepo.getByStartAndEndLocation(
+      startLocationId,
+      endLocationId
     );
   };
 
@@ -243,7 +264,7 @@ export class NadeService {
   };
 
   getByMap = async (
-    map: CsgoMap,
+    map: CsMap,
     nadeType?: NadeType,
     gameMode?: GameMode
   ): Promise<NadeMiniDto[]> => {
@@ -252,9 +273,73 @@ export class NadeService {
     return convertNadesToLightDto(nades);
   };
 
+  getLocationsByMap = async (
+    csMap: CsMap,
+    nadeType: NadeType,
+    gameMode: GameMode
+  ): Promise<MapLocation[]> => {
+    const startLocations =
+      await this.mapStartLocationRepo.getNadeStartLocations(csMap);
+    const endLocations = await this.mapEndLocationRepo.getMapEndLocations(
+      csMap,
+      nadeType
+    );
+    const nadeResult = await this.nadeRepo.getByMap(csMap, nadeType, gameMode);
+    const nades = nadeResult.filter(
+      (n) => n.mapEndLocationId && n.mapStartLocationId
+    );
+
+    const mapLocations: MapLocation[] = [];
+
+    // Iterate through endLocations and construct MapLocation objects
+    for (const endLocation of endLocations) {
+      const relatedStartLocations: StartLocation[] = [];
+
+      // Find all nades that are thrown to this position
+      const nadesThrownToEndLocation = nades.filter(
+        (nade) => nade.mapEndLocationId === endLocation.id
+      );
+
+      const nadeEndLocationCount = nadesThrownToEndLocation.length;
+
+      if (!nadeEndLocationCount) {
+        continue;
+      }
+
+      for (const startNade of nadesThrownToEndLocation) {
+        const nadeStartLocation = relatedStartLocations.find(
+          (n) => n.id === startNade.mapStartLocationId
+        );
+        if (nadeStartLocation) {
+          nadeStartLocation.count = nadeStartLocation.count + 1;
+        } else {
+          const startPos = startLocations.find(
+            (sL) => sL.id === startNade.mapStartLocationId
+          );
+          if (!startPos) continue;
+          relatedStartLocations.push({
+            ...startPos,
+            count: 1,
+          });
+        }
+      }
+
+      const mapLocation: MapLocation = {
+        endLocation: {
+          ...endLocation,
+          count: nadeEndLocationCount,
+        },
+        startPositions: relatedStartLocations,
+      };
+      mapLocations.push(mapLocation);
+    }
+
+    return mapLocations;
+  };
+
   getByUser = async (
     steamId: string,
-    map?: CsgoMap,
+    map?: CsMap,
     gameMode?: GameMode
   ): Promise<NadeMiniDto[]> => {
     const nadesByUser = await this.nadeRepo.getByUser(steamId, map, gameMode);
@@ -304,6 +389,8 @@ export class NadeService {
       map: body.map,
       mapEndCoord: body.mapEndCoord,
       mapStartCoord: body.mapStartCoord,
+      mapEndLocationId: body.mapEndLocationId,
+      mapStartLocationId: body.mapStartLocationId,
       movement: body.movement,
       oneWay: body.oneWay,
       proUrl: body.proUrl,
@@ -406,8 +493,8 @@ export class NadeService {
       imageMainThumb: mainImages?.mainImageSmall,
       isPro: updates.isPro,
       map: updates.map,
-      mapEndCoord: updates.mapEndCoord,
-      mapStartCoord: updates.mapStartCoord,
+      mapEndLocationId: updates.mapEndLocationId,
+      mapStartLocationId: updates.mapStartLocationId,
       movement: updates.movement,
       oneWay: updates.oneWay,
       proUrl: updates.proUrl,
