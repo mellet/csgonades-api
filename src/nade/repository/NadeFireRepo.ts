@@ -48,6 +48,7 @@ export class NadeFireRepo implements NadeRepo {
     const result = await query(this.collection, [
       where("mapStartLocationId", "==", startLocationId),
       where("mapEndLocationId", "==", endLocationId),
+      where("status", "==", "accepted"),
     ]);
 
     return result.map(this.toNadeDTO);
@@ -464,9 +465,9 @@ export class NadeFireRepo implements NadeRepo {
       favoriteCount: doc.data.favoriteCount || 0,
       eloScore: doc.data.eloScore || 1400,
       gameMode: doc.data.gameMode || "csgo",
+      commentCount: doc.data.commentCount,
       mapEndLocationId: doc.data.mapEndLocationId,
       mapStartLocationId: doc.data.mapStartLocationId,
-      commentCount: doc.data.commentCount,
       images: {
         lineup: {
           small: doc.data.imageLineupThumb?.url || "",

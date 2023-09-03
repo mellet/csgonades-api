@@ -10,6 +10,7 @@ import {
 } from "typesaurus";
 import update, { UpdateModel } from "typesaurus/update";
 import { CsMap } from "../../nade/nadeSubTypes/CsgoMap";
+import { GameMode } from "../../nade/nadeSubTypes/GameMode";
 import { NadeType } from "../../nade/nadeSubTypes/NadeType";
 import { removeUndefines } from "../../utils/Common";
 import {
@@ -29,11 +30,13 @@ export class FirebaseMapEndLocationRepo implements MapEndLocationRepo {
 
   getMapEndLocations = async (
     csMap: CsMap,
-    nadeType: NadeType
+    nadeType: NadeType,
+    gameMode: GameMode
   ): Promise<MapEndLocation[]> => {
     const result = await query(this.collection, [
       where("map", "==", csMap),
       where("type", "==", nadeType),
+      where("gameMode", "==", gameMode),
     ]);
     return result.map(this.toDto);
   };
@@ -46,6 +49,7 @@ export class FirebaseMapEndLocationRepo implements MapEndLocationRepo {
       map: endLocation.map,
       position: endLocation.position,
       type: endLocation.type,
+      gameMode: endLocation.gameMode,
     });
 
     const doc = await this.getById(result.id);
@@ -54,7 +58,7 @@ export class FirebaseMapEndLocationRepo implements MapEndLocationRepo {
       return null;
     }
 
-    return this.toDto(doc);
+    return doc;
   };
 
   edit = async (
@@ -65,13 +69,14 @@ export class FirebaseMapEndLocationRepo implements MapEndLocationRepo {
       map: endLocation.map,
       position: endLocation.position,
       type: endLocation.type,
+      gameMode: endLocation.gameMode || "csgo", // TODO: Remove once all updates
     });
 
     try {
       await update(this.collection, endLocation.id, edit);
       const result = await this.getById(endLocation.id);
 
-      return result ? this.toDto(result) : null;
+      return result;
     } catch (error) {
       console.error(error);
       return null;
@@ -87,9 +92,18 @@ export class FirebaseMapEndLocationRepo implements MapEndLocationRepo {
     }
   };
 
-  private getById = async (id: string) => {
-    const result = await get(this.collection, id);
-    return result;
+  getById = async (id: string) => {
+    try {
+      const result = await get(this.collection, id);
+
+      if (!result) {
+        return null;
+      }
+      return this.toDto(result);
+    } catch (error) {
+      console.error("MapEndLocation.getById", error);
+      return null;
+    }
   };
 
   private toDto = (doc: Doc<MapEndLocationDocData>): MapEndLocation => {
@@ -99,6 +113,7 @@ export class FirebaseMapEndLocationRepo implements MapEndLocationRepo {
       map: doc.data.map,
       position: doc.data.position,
       type: doc.data.type,
+      gameMode: doc.data.gameMode,
     };
   };
 }

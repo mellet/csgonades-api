@@ -1,4 +1,5 @@
 import { CsMap } from "../../nade/nadeSubTypes/CsgoMap";
+import { GameMode } from "../../nade/nadeSubTypes/GameMode";
 import {
   AddMapStartLocation,
   EditMapStartLocation,
@@ -6,7 +7,11 @@ import {
 } from "./MapStartLocation";
 
 export type MapStartLocationRepo = {
-  getNadeStartLocations: (map: CsMap) => Promise<MapStartLocation[]>;
+  getById: (id: string) => Promise<MapStartLocation | null>;
+  getNadeStartLocations: (
+    map: CsMap,
+    gameMode: GameMode
+  ) => Promise<MapStartLocation[]>;
   addNadeStartLocation: (
     startLocation: AddMapStartLocation
   ) => Promise<MapStartLocation | null>;

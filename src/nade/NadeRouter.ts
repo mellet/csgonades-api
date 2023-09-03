@@ -19,6 +19,8 @@ import { NadeGfycatValidateDto } from "./dto/NadeGfycatValidateDto";
 import { CsMap } from "./nadeSubTypes/CsgoMap";
 import { GameMode } from "./nadeSubTypes/GameMode";
 import { NadeType } from "./nadeSubTypes/NadeType";
+import { TeamSide } from "./nadeSubTypes/TeamSide";
+import { Tickrate } from "./nadeSubTypes/Tickrate";
 import {
   validateEloGameBody,
   validateNadeCreateBody,
@@ -107,8 +109,10 @@ export class NadeRouter {
 
   private getLocationsByMap: RequestHandler = async (req, res) => {
     const map = sanitizeIt(req.params.map) as CsMap;
-    const gameMode = sanitizeIt(req?.query?.gameMode) as GameMode;
     const nadeType = sanitizeIt(req?.query?.nadeType) as NadeType;
+    const gameMode = sanitizeIt(req?.query?.gameMode) as GameMode;
+    const tickRate = sanitizeIt(req?.query?.tickRate) as Tickrate;
+    const teamSide = sanitizeIt(req?.query?.teamSide) as TeamSide;
 
     if (!gameMode || !map || !nadeType) {
       return res.status(400).send();
@@ -117,7 +121,9 @@ export class NadeRouter {
     const result = await this.nadeService.getLocationsByMap(
       map,
       nadeType,
-      gameMode
+      gameMode,
+      tickRate,
+      teamSide
     );
 
     res.status(200).send(result);
@@ -364,11 +370,6 @@ export class NadeRouter {
     }
     if (preUpdateNade.map !== updatedNade.map) {
       updatedField.push("map");
-    }
-    if (preUpdateNade.mapEndCoord?.x !== updatedNade.mapEndCoord?.x) {
-      updatedField.push("mapEndCoord");
-    } else if (preUpdateNade.mapEndCoord?.y !== updatedNade.mapEndCoord?.y) {
-      updatedField.push("mapEndCoord");
     }
     if (preUpdateNade.movement !== updatedNade.movement) {
       updatedField.push("movement");

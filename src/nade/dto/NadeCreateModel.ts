@@ -7,25 +7,20 @@ import { NadeType } from "../nadeSubTypes/NadeType";
 import { TeamSide } from "../nadeSubTypes/TeamSide";
 import { Technique } from "../nadeSubTypes/Technique";
 import { Tickrate } from "../nadeSubTypes/Tickrate";
-import { GfycatData } from "./GfycatData";
-import { MapCoordinates } from "./MapCoordinates";
 
 export type NadeCreateModel = {
   commentCount: number;
   description: string;
   endPosition: string;
   favoriteCount: number;
-  gfycat: GfycatData;
-  youTubeId?: string;
+  youTubeId: string;
   imageLineup: ImageData;
   imageLineupThumb: ImageData;
   imageMain: ImageData;
   imageMainThumb: ImageData;
   map: CsMap;
-  mapEndCoord: MapCoordinates;
-  mapStartCoord?: MapCoordinates;
-  mapStartLocationId?: string;
-  mapEndLocationId?: string;
+  mapStartLocationId: string;
+  mapEndLocationId: string;
   movement: Movement;
   oneWay?: boolean;
   proUrl?: string;

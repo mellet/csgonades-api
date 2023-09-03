@@ -9,7 +9,6 @@ import { TeamSide } from "../nadeSubTypes/TeamSide";
 import { Technique } from "../nadeSubTypes/Technique";
 import { Tickrate } from "../nadeSubTypes/Tickrate";
 import { GfycatData } from "./GfycatData";
-import { MapCoordinates } from "./MapCoordinates";
 import { StatusInfo } from "./StatusInfo";
 
 export type NadeImages = {
@@ -43,10 +42,8 @@ export type NadeDto = {
   isPro?: boolean;
   lastGfycatUpdate: Date;
   map: CsMap;
-  mapEndCoord: MapCoordinates;
-  mapStartCoord?: MapCoordinates;
-  mapEndLocationId?: string;
-  mapStartLocationId?: string;
+  mapEndLocationId: string;
+  mapStartLocationId: string;
   movement: Movement;
   oneWay?: boolean;
   proUrl?: string;
@@ -64,5 +61,5 @@ export type NadeDto = {
   updatedAt: Date;
   user: UserLightModel;
   viewCount: number;
-  youTubeId?: string | null;
+  youTubeId: string;
 };

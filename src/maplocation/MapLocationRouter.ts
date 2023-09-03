@@ -1,8 +1,10 @@
 import { RequestHandler, Router } from "express";
 import { Logger } from "../logger/Logger";
 import { CsMap } from "../nade/nadeSubTypes/CsgoMap";
+import { GameMode } from "../nade/nadeSubTypes/GameMode";
 import { NadeType } from "../nade/nadeSubTypes/NadeType";
 import { adminOnlyHandler } from "../utils/AuthHandlers";
+import { sanitizeIt } from "../utils/Sanitize";
 import { AddMapEndLocation, EditMapEndLocation } from "./types/MapEndLocation";
 import { MapEndLocationRepo } from "./types/MapEndLocationRepo";
 import {
@@ -34,7 +36,7 @@ export class MapLocationRouter {
 
   private setUpRoutes = () => {
     this.router.get("/mapstartlocation/:csMap", this.getStartLocation);
-    this.router.get("/mapendlocation/:csMap/:nadeType", this.getEndLocation);
+    this.router.get("/mapendlocation/:csMap", this.getEndLocation);
 
     this.router.post(
       "/mapstartlocation/:csMap",
@@ -71,8 +73,9 @@ export class MapLocationRouter {
   };
 
   private getStartLocation: RequestHandler = async (req, res) => {
-    const csMap = req.params.csMap as CsMap;
-    if (!csMap) {
+    const csMap = sanitizeIt(req.params.csMap) as CsMap;
+    const gameMode = sanitizeIt(req?.query?.gameMode) as GameMode;
+    if (!csMap || !gameMode) {
       Logger.error(
         "MapLocationRouter.getStartLocati ->",
         "missing csMap param"
@@ -80,7 +83,7 @@ export class MapLocationRouter {
       return res.status(400).send();
     }
     const startLocations =
-      await this.mapStartLocationRepo.getNadeStartLocations(csMap);
+      await this.mapStartLocationRepo.getNadeStartLocations(csMap, gameMode);
 
     Logger.verbose(
       `MapLocationRouter.getStartLocati success, count: ${startLocations.length}`
@@ -90,10 +93,11 @@ export class MapLocationRouter {
   };
 
   private getEndLocation: RequestHandler = async (req, res) => {
-    const csMap = req.params.csMap as CsMap;
-    const nadeType = req.params.nadeType as NadeType;
+    const csMap = sanitizeIt(req.params.csMap) as CsMap;
+    const nadeType = sanitizeIt(req.query.nadeType) as NadeType;
+    const gameMode = sanitizeIt(req?.query?.gameMode) as GameMode;
 
-    if (!csMap || !nadeType) {
+    if (!csMap || !nadeType || !gameMode) {
       Logger.error(
         `MapLocationRouter.getEndLocation | Missing csMap or nadeType`
       );
@@ -102,7 +106,8 @@ export class MapLocationRouter {
 
     const result = await this.mapEndLocationRepo.getMapEndLocations(
       csMap,
-      nadeType
+      nadeType,
+      gameMode
     );
 
     Logger.verbose(`MapLocationRouter.getEndLocation | Count ${result.length}`);
