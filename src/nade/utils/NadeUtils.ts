@@ -1,5 +1,4 @@
 import moment from "moment";
-import { GfycatApi } from "../../external-api/GfycatApi";
 import { RequestUser } from "../../utils/AuthUtils";
 import { ErrorFactory } from "../../utils/ErrorUtil";
 import { NadeDto } from "../dto/NadeDto";
@@ -103,40 +102,6 @@ export function isNewNade(createdAt: Date | string): boolean {
 
 export function convertNadesToLightDto(nades: NadeDto[]): NadeMiniDto[] {
   return nades.map(convertToNadeMiniDto);
-}
-
-// TODO: Probably belongs to GfycatApi
-export async function newStatsFromGfycat(gfyId: string, gfycatApi: GfycatApi) {
-  const gfycat = await gfycatApi.getGfycatData(gfyId);
-
-  // Gfycat API down
-  if (!gfycat) {
-    return;
-  }
-
-  return {
-    viewCount: gfycat.gfyItem.views,
-    gfycat: {
-      gfyId: gfycat.gfyItem.gfyId,
-      smallVideoUrl: gfycat.gfyItem.mobileUrl,
-      largeVideoUrl: gfycat.gfyItem.mp4Url,
-      largeVideoWebm: gfycat.gfyItem.webmUrl,
-      avgColor: gfycat.gfyItem.avgColor,
-      duration: videoDuration(
-        gfycat.gfyItem.frameRate,
-        gfycat.gfyItem.numFrames
-      ),
-    },
-    lastGfycatUpdate: new Date(),
-  };
-}
-
-function videoDuration(framerate?: number, numFrames?: number) {
-  if (!framerate || !numFrames) {
-    return undefined;
-  }
-  const seconds = Math.floor(numFrames / framerate);
-  return `PT0M${seconds}S`;
 }
 
 export function titleCase(value: string) {

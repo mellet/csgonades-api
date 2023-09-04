@@ -156,7 +156,7 @@ export class NadeFireRepo implements NadeRepo {
       const declinedDocs = await query(this.collection, [
         where("status", "==", "deleted"),
         order("createdAt", "desc"),
-        limit(10),
+        limit(50),
       ]);
 
       Logger.verbose(`NadeRepo.getDeleted() -> ${declinedDocs.length} | DB`);
@@ -300,8 +300,7 @@ export class NadeFireRepo implements NadeRepo {
 
     const nadeDocs = await query(this.collection, queryBuilder);
 
-    const allNades = nadeDocs.map(this.toNadeDTO);
-    const nades = allNades.filter((n) => n.status !== "deleted");
+    const nades = nadeDocs.map(this.toNadeDTO);
 
     Logger.verbose(
       `NadeRepo.getByUser(${steamId}, ${csgoMap}, ${gameMode}) -> ${nades.length} | DB`

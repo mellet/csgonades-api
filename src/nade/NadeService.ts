@@ -1,7 +1,5 @@
-import { GfycatDetailsResponse } from "gfycat-sdk";
 import moment from "moment";
 import { CommentRepo } from "../comment/repository/CommentRepo";
-import { GfycatApi } from "../external-api/GfycatApi";
 import { GoogleApi } from "../external-api/GoogleApi";
 import { FavoriteRepo } from "../favorite/repository/FavoriteRepo";
 import { ImageRepo } from "../imageGallery/ImageGalleryService";
@@ -32,8 +30,6 @@ import { eloRating } from "./utils/EloUtils";
 import {
   convertNadesToLightDto,
   convertToNadeMiniDto,
-  newStatsFromGfycat,
-  shouldUpdateNadeStats,
   shouldUpdateYouTubeViewCount,
   titleCase,
   verifyAdminFields,
@@ -43,7 +39,6 @@ import {
 export type NadeServiceDeps = {
   commentRepo: CommentRepo;
   favoriteRepo: FavoriteRepo;
-  gfycatApi: GfycatApi;
   googleApi: GoogleApi;
   imageRepo: ImageRepo;
   nadeRepo: NadeRepo;
@@ -57,7 +52,6 @@ export type NadeServiceDeps = {
 export class NadeService {
   private commentRepo: CommentRepo;
   private favoriteRepo: FavoriteRepo;
-  private gfycatApi: GfycatApi;
   private googleApi: GoogleApi;
   private imageRepo: ImageRepo;
   private nadeRepo: NadeRepo;
@@ -69,7 +63,6 @@ export class NadeService {
 
   constructor(deps: NadeServiceDeps) {
     const {
-      gfycatApi,
       imageRepo,
       nadeRepo,
       statsRepo,
@@ -84,7 +77,6 @@ export class NadeService {
 
     this.nadeRepo = nadeRepo;
     this.imageRepo = imageRepo;
-    this.gfycatApi = gfycatApi;
     this.statsRepo = statsRepo;
     this.commentRepo = commentRepo;
     this.notificationRepo = notificationRepo;
@@ -95,21 +87,24 @@ export class NadeService {
     this.mapStartLocationRepo = mapStartLocationRepo;
 
     // this.recountNades();
+    // this.recountNadesCs2Nades();
     this.getDeletedToRemove();
     this.markOldDeclinedNadesAsRemoved();
   }
 
-  recountNades = async () => {
+  private recountNades = async () => {
     const allNades = await Promise.all([
-      this.getByMap("ancient"),
-      this.getByMap("cache"),
-      this.getByMap("dust2"),
-      this.getByMap("inferno"),
-      this.getByMap("mirage"),
-      this.getByMap("nuke"),
-      this.getByMap("overpass"),
-      this.getByMap("train"),
-      this.getByMap("vertigo"),
+      this.getByMap("ancient", undefined, "csgo"),
+      this.getByMap("anubis", undefined, "csgo"),
+      this.getByMap("cache", undefined, "csgo"),
+      this.getByMap("dust2", undefined, "csgo"),
+      this.getByMap("inferno", undefined, "csgo"),
+      this.getByMap("mirage", undefined, "csgo"),
+      this.getByMap("nuke", undefined, "csgo"),
+      this.getByMap("overpass", undefined, "csgo"),
+      this.getByMap("train", undefined, "csgo"),
+      this.getByMap("tuscan", undefined, "csgo"),
+      this.getByMap("vertigo", undefined, "csgo"),
     ]);
 
     const flatNades: NadeMiniDto[] = [].concat.apply([], allNades);
@@ -128,6 +123,44 @@ export class NadeService {
     );
 
     this.statsRepo.setNadeCount(
+      numSmokes,
+      numFlashes,
+      numMolotovs,
+      numGrenades
+    );
+  };
+
+  private recountNadesCs2Nades = async () => {
+    const allNades = await Promise.all([
+      this.getByMap("ancient", undefined, "cs2"),
+      this.getByMap("anubis", undefined, "cs2"),
+      this.getByMap("cache", undefined, "cs2"),
+      this.getByMap("dust2", undefined, "cs2"),
+      this.getByMap("inferno", undefined, "cs2"),
+      this.getByMap("mirage", undefined, "cs2"),
+      this.getByMap("nuke", undefined, "cs2"),
+      this.getByMap("overpass", undefined, "cs2"),
+      this.getByMap("train", undefined, "cs2"),
+      this.getByMap("tuscan", undefined, "cs2"),
+      this.getByMap("vertigo", undefined, "cs2"),
+    ]);
+
+    const flatNades: NadeMiniDto[] = [].concat.apply([], allNades);
+
+    const numSmokes = flatNades.filter((n) => n.type === "smoke").length;
+    const numFlashes = flatNades.filter((n) => n.type === "flash").length;
+    const numMolotovs = flatNades.filter((n) => n.type === "molotov").length;
+    const numGrenades = flatNades.filter((n) => n.type === "hegrenade").length;
+
+    Logger.verbose(
+      "Recounting cs2 nades",
+      numSmokes,
+      numFlashes,
+      numMolotovs,
+      numGrenades
+    );
+
+    this.statsRepo.setCs2NadeCount(
       numSmokes,
       numFlashes,
       numMolotovs,
@@ -396,8 +429,6 @@ export class NadeService {
       steamId: user.steamId,
     };
 
-    let gfycatData: GfycatDetailsResponse | undefined = undefined;
-
     const { imageLineupThumb, lineupImage, resultImage, resultImageThumb } =
       await this.saveImages(body.imageBase64, body.lineUpImageBase64);
 
@@ -431,6 +462,8 @@ export class NadeService {
 
     const nade = await this.nadeRepo.save(nadeModel);
 
+    await this.statsRepo.incrementNadeCounter(nade.type);
+
     return nade;
   };
 
@@ -445,6 +478,9 @@ export class NadeService {
       throw ErrorFactory.Forbidden("Not allowed to delete this nade");
     }
 
+    await this.statsRepo.decrementNadeCounter(nade.type);
+    await this.userRepo.decrementNadeCount(nade.user.steamId);
+
     const deleteParts = [
       ...this.getDeleteImagePromises(nade),
       this.commentRepo.deleteForNadeId(nadeId),
@@ -453,9 +489,6 @@ export class NadeService {
     ];
 
     await Promise.all(deleteParts);
-
-    await this.statsRepo.decrementNadeCounter(nade.type);
-    await this.userRepo.decrementNadeCount(nade.user.steamId);
   };
 
   private markAsDeleted = async (nadeId: string) => {
@@ -547,39 +580,9 @@ export class NadeService {
     if (didJustGetAccepted) {
       await this.setNadeSlug(updatedNade);
       await this.userRepo.incrementNadeCount(user.steamId);
-      if (updatedNade.type) {
-        await this.statsRepo.incrementNadeCounter(updatedNade.type);
-      }
     }
-
-    // TODO: Remove once stuff are accepted
-    await this.updateCallouts(updatedNade.id);
 
     return updatedNade;
-  };
-
-  private updateCallouts = async (nadeId: string) => {
-    const nade = await this.getById(nadeId);
-    if (!nade) {
-      console.log("No nade found");
-      return;
-    }
-    const endLocation = await this.mapEndLocationRepo.getById(
-      nade.mapEndLocationId
-    );
-    const startLocation = await this.mapStartLocationRepo.getById(
-      nade.mapStartLocationId
-    );
-    if (!endLocation || !startLocation) {
-      console.log("No pos found");
-      return;
-    }
-
-    await this.nadeRepo.updateNade(nadeId, {
-      startPosition: startLocation.calloutName,
-      endPosition: endLocation.calloutName,
-    });
-    console.log("Updates nade callouts");
   };
 
   performNadeComparison = async (eloGame: NadeEloGame) => {
@@ -753,42 +756,21 @@ export class NadeService {
     return { mainImageSmall, mainImage };
   };
 
-  private tryUpdateViewCounter = async (nade: NadeDto): Promise<NadeDto> => {
-    if (nade.youTubeId && shouldUpdateYouTubeViewCount(nade)) {
-      const viewCount = await this.googleApi.getYouTubeVideoViewCount(
-        nade.youTubeId
-      );
-
-      Logger.info(`NadeService.tryUpdateViewCounter | YouTube - ${nade.id}`);
-
-      this.nadeRepo.updateNade(nade.id, {
-        viewCount,
-        lastGfycatUpdate: new Date(),
-      });
-      return nade;
+  private tryUpdateViewCounter = async (nade: NadeDto) => {
+    const { youTubeId } = nade;
+    const shouldUpdate = shouldUpdateYouTubeViewCount(nade);
+    if (!youTubeId || !shouldUpdate) {
+      return;
     }
 
-    if (!shouldUpdateNadeStats(nade) || !nade.gfycat) {
-      return nade;
-    }
+    const viewCount = await this.googleApi.getYouTubeVideoViewCount(youTubeId);
 
-    const newNadeStats = await newStatsFromGfycat(
-      nade.gfycat.gfyId,
-      this.gfycatApi
-    );
+    Logger.info(`NadeService.tryUpdateViewCounter | YouTube - ${nade.id}`);
 
-    if (!newNadeStats) {
-      return nade;
-    }
-
-    const gameMode = nade.gameMode || "csgo"; // Update nades with no game mode to csgo
-
-    const updatedNade = await this.nadeRepo.updateNade(nade.id, {
-      ...newNadeStats,
-      gameMode,
+    this.nadeRepo.updateNade(nade.id, {
+      viewCount,
+      lastGfycatUpdate: new Date(),
     });
-
-    return updatedNade;
   };
 
   private setGameModeIfNotSet(nade: NadeDto) {

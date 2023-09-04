@@ -1,11 +1,8 @@
-import { makeConfig } from "../../config/enironment";
-import { GfycatApi } from "../../external-api/GfycatApi";
 import { RequestUser } from "../../utils/AuthUtils";
 import { NadeMiniDto } from "../dto/NadeMiniDto";
 import { createMockedNade } from "../test-utils/NadeTestHelpers";
 import {
   convertToNadeMiniDto,
-  newStatsFromGfycat,
   shouldUpdateNadeStats,
   verifyAdminFields,
   verifyAllowEdit,
@@ -140,14 +137,5 @@ describe("Nade Utils", () => {
 
     expect(result).toBeDefined();
     expect(result).toMatchObject(expected);
-  });
-
-  it("newStatsFromGfycat, works", async () => {
-    const config = makeConfig();
-    const gfycatApi = new GfycatApi(config);
-
-    const stats = await newStatsFromGfycat("123", gfycatApi);
-
-    expect(stats).toBeDefined();
   });
 });

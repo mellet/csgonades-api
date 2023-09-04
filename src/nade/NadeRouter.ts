@@ -3,7 +3,6 @@ import { AuditService } from "../audit/AuditService";
 import { CreateAuditDto } from "../audit/dto/CreateAuditDto";
 import { UserAudit } from "../audit/dto/UserAudit";
 import { CommentService } from "../comment/CommentService";
-import { GfycatApi } from "../external-api/GfycatApi";
 import { Logger } from "../logger/Logger";
 import { UserService } from "../user/UserService";
 import { createAppContext } from "../utils/AppContext";
@@ -13,9 +12,7 @@ import { userFromRequest } from "../utils/RouterUtils";
 import { sanitizeIt } from "../utils/Sanitize";
 import { getSessionId } from "../utils/SessionRoute";
 import { NadeService } from "./NadeService";
-import { GfycatData } from "./dto/GfycatData";
 import { NadeDto } from "./dto/NadeDto";
-import { NadeGfycatValidateDto } from "./dto/NadeGfycatValidateDto";
 import { CsMap } from "./nadeSubTypes/CsgoMap";
 import { GameMode } from "./nadeSubTypes/GameMode";
 import { NadeType } from "./nadeSubTypes/NadeType";
@@ -29,7 +26,6 @@ import {
 
 type NadeRouterServices = {
   nadeService: NadeService;
-  gfycatApi: GfycatApi;
   auditService: AuditService;
   userService: UserService;
   commentService: CommentService;
@@ -38,13 +34,11 @@ type NadeRouterServices = {
 export class NadeRouter {
   private router: Router;
   private nadeService: NadeService;
-  private gfycatApi: GfycatApi;
   private auditService: AuditService;
   private userService: UserService;
 
   constructor(services: NadeRouterServices) {
     this.nadeService = services.nadeService;
-    this.gfycatApi = services.gfycatApi;
     this.auditService = services.auditService;
     this.userService = services.userService;
     this.router = Router();
@@ -76,7 +70,6 @@ export class NadeRouter {
     this.router.post("/nades", authOnlyHandler, this.addNade);
     this.router.put("/nades/:id", authOnlyHandler, this.updateNade);
     this.router.post("/nades/:id/countView", this.incrementViewCount);
-    this.router.post("/nades/validateGfycat", this.validateGfy);
     this.router.delete("/nades/:id", authOnlyHandler, this.deleteNade);
     this.router.get("/nades/:id/checkslug", this.checkSlug);
 
@@ -299,25 +292,6 @@ export class NadeRouter {
     } else {
       return res.status(406).send();
     }
-  };
-
-  private validateGfy: RequestHandler = async (req, res) => {
-    const validateGfycat = req.body as NadeGfycatValidateDto;
-
-    const { gfyItem } = await this.gfycatApi.getGfycatData(
-      validateGfycat.gfycatIdOrUrl
-    );
-
-    const gfyData: GfycatData = {
-      gfyId: gfyItem.gfyId,
-      smallVideoUrl: gfyItem.mobileUrl,
-      largeVideoUrl: gfyItem.mp4Url,
-      largeVideoWebm: gfyItem.webmUrl,
-      avgColor: gfyItem.avgColor,
-      size: gfyItem.mp4Size,
-    };
-
-    return res.status(200).send(gfyData);
   };
 
   private deleteNade: RequestHandler = async (req, res) => {

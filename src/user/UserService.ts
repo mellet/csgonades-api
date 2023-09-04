@@ -4,10 +4,10 @@ import { SteamApi } from "../external-api/SteamApi";
 import { NadeRepo } from "../nade/repository/NadeRepo";
 import { StatsRepo } from "../stats/repository/StatsRepo";
 import { AppContext } from "../utils/AppContext";
-import { UserFilter } from "./repository/UserFireRepo";
-import { UserRepo } from "./repository/UserRepo";
 import { UserCreateDto, UserUpdateDto } from "./UserDTOs";
 import { UserModel, UserModelAnon } from "./UserModel";
+import { UserFilter } from "./repository/UserFireRepo";
+import { UserRepo } from "./repository/UserRepo";
 
 type UserServiceDeps = {
   nadeRepo: NadeRepo;
@@ -69,6 +69,12 @@ export class UserService {
       return user;
     }
 
+    const createdUser = await this.createUser(steamId);
+
+    return createdUser;
+  };
+
+  private createUser = async (steamId: string): Promise<UserModel> => {
     const player = await this.steamApi.getPlayerBySteamID(steamId);
 
     const createUserDto: UserCreateDto = {

@@ -1,6 +1,5 @@
 import { anything, instance, mock, resetCalls, verify, when } from "ts-mockito";
 import { CommentRepo } from "../comment/repository/CommentRepo";
-import { GfycatApi } from "../external-api/GfycatApi";
 import { GoogleApi } from "../external-api/GoogleApi";
 import { FavoriteRepo } from "../favorite/repository/FavoriteRepo";
 import { ImageRepo } from "../imageGallery/ImageGalleryService";
@@ -22,7 +21,6 @@ describe("Nade service", () => {
     mockedDeps = {
       commentRepo: mock<CommentRepo>(),
       favoriteRepo: mock<FavoriteRepo>(),
-      gfycatApi: mock(GfycatApi),
       imageRepo: mock(ImageRepo),
       nadeRepo: mock<NadeRepo>(),
       notificationRepo: mock<NotificationRepo>(),
@@ -36,7 +34,6 @@ describe("Nade service", () => {
     deps = {
       commentRepo: instance(mockedDeps.commentRepo),
       favoriteRepo: instance(mockedDeps.favoriteRepo),
-      gfycatApi: instance(mockedDeps.gfycatApi),
       imageRepo: instance(mockedDeps.imageRepo),
       nadeRepo: instance(mockedDeps.nadeRepo),
       notificationRepo: instance(mockedDeps.notificationRepo),
@@ -51,7 +48,6 @@ describe("Nade service", () => {
   beforeEach(() => {
     resetCalls(mockedDeps.commentRepo);
     resetCalls(mockedDeps.favoriteRepo);
-    resetCalls(mockedDeps.gfycatApi);
     resetCalls(mockedDeps.imageRepo);
     resetCalls(mockedDeps.nadeRepo);
     resetCalls(mockedDeps.notificationRepo);

@@ -10,7 +10,6 @@ import { initCache } from "./cache/initCache";
 import { CommentRouter } from "./comment/CommentRouter";
 import { CSGNConfig } from "./config/enironment";
 import { ContactRouter } from "./contact/ContactRouter";
-import { GfycatApi } from "./external-api/GfycatApi";
 import { GoogleApi } from "./external-api/GoogleApi";
 import { SteamApi } from "./external-api/SteamApi";
 import { FavoriteRouter } from "./favorite/FavoriteRouter";
@@ -77,7 +76,6 @@ export const AppServer = (config: CSGNConfig) => {
   app.disable("x-powered-by");
   app.use(extractTokenMiddleware(config));
 
-  const gfycatApi = new GfycatApi(config);
   const googleApi = new GoogleApi(config);
   const steamApi = new SteamApi(config);
 
@@ -94,12 +92,11 @@ export const AppServer = (config: CSGNConfig) => {
     notificationService,
     reporService,
     userService,
-  } = serviceInit(config, repositories, gfycatApi, steamApi, googleApi);
+  } = serviceInit(config, repositories, steamApi, googleApi);
 
   // Routers
   const statusRouter = new StatusRouter(caches);
   const nadeRouter = new NadeRouter({
-    gfycatApi,
     nadeService,
     auditService,
     userService,

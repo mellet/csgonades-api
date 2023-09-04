@@ -6,4 +6,9 @@ export type SiteStats = {
   numFlashes: number;
   numMolotovs: number;
   numGrenades: number;
+  numCs2Nades: number;
+  numCs2Smokes: number;
+  numCs2Flashes: number;
+  numCs2Molotovs: number;
+  numCs2Grenades: number;
 };

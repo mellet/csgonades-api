@@ -2,7 +2,6 @@ import { AuditService } from "./audit/AuditService";
 import { CommentService } from "./comment/CommentService";
 import { CSGNConfig } from "./config/enironment";
 import { ContactService } from "./contact/ContactService";
-import { GfycatApi } from "./external-api/GfycatApi";
 import { GoogleApi } from "./external-api/GoogleApi";
 import { SteamApi } from "./external-api/SteamApi";
 import { FavoriteService } from "./favorite/FavoriteService";
@@ -16,7 +15,6 @@ import { UserService } from "./user/UserService";
 export function serviceInit(
   config: CSGNConfig,
   repositories: AppRepositories,
-  gfycatApi: GfycatApi,
   steamApi: SteamApi,
   googleApi: GoogleApi
 ) {
@@ -57,7 +55,6 @@ export function serviceInit(
   });
 
   const nadeService = new NadeService({
-    gfycatApi,
     imageRepo,
     nadeRepo,
     statsRepo,

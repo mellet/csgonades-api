@@ -132,4 +132,23 @@ export class StatsFireRepo implements StatsRepo {
       numSmokes,
     });
   };
+
+  setCs2NadeCount = (
+    numSmokes: number,
+    numFlashes: number,
+    numMolotovs: number,
+    numGrenades: number
+  ) => {
+    Logger.verbose(
+      `StatsRepo.setCs2NadeCount(${numSmokes}, ${numFlashes}, ${numMolotovs}, ${numGrenades})`
+    );
+    const numNades = numSmokes + numFlashes + numMolotovs + numGrenades;
+    return update(this.collection, this.siteDocId, {
+      numCs2Nades: numNades,
+      numCs2Flashes: numFlashes,
+      numCs2Grenades: numGrenades,
+      numCs2Molotovs: numMolotovs,
+      numCs2Smokes: numSmokes,
+    });
+  };
 }

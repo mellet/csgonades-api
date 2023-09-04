@@ -13,4 +13,10 @@ export interface StatsRepo {
     numMolotovs: number,
     numGrenades: number
   ) => Promise<void>;
+  setCs2NadeCount: (
+    numSmokes: number,
+    numFlashes: number,
+    numMolotovs: number,
+    numGrenades: number
+  ) => Promise<void>;
 }
