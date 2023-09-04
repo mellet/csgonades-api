@@ -49,6 +49,15 @@ export type NadeServiceDeps = {
   mapEndLocationRepo: MapEndLocationRepo;
 };
 
+type LocationByMapFilters = {
+  csMap: CsMap;
+  nadeType: NadeType;
+  gameMode: GameMode;
+  tickRate: Tickrate;
+  teamSide: TeamSide;
+  showFavorites?: boolean;
+};
+
 export class NadeService {
   private commentRepo: CommentRepo;
   private favoriteRepo: FavoriteRepo;
@@ -317,36 +326,32 @@ export class NadeService {
   };
 
   getLocationsByMap = async (
-    csMap: CsMap,
-    nadeType: NadeType,
-    gameMode: GameMode,
-    tickRate: Tickrate = "any",
-    teamSide: TeamSide = "both"
+    filters: LocationByMapFilters,
+    steamId?: string
   ): Promise<MapLocation[]> => {
     const startLocations =
-      await this.mapStartLocationRepo.getNadeStartLocations(csMap, gameMode);
+      await this.mapStartLocationRepo.getNadeStartLocations(
+        filters.csMap,
+        filters.gameMode
+      );
     const endLocations = await this.mapEndLocationRepo.getMapEndLocations(
-      csMap,
-      nadeType,
-      gameMode
+      filters.csMap,
+      filters.nadeType,
+      filters.gameMode
     );
-    let nadeResult = await this.nadeRepo.getByMap(csMap, nadeType, gameMode);
+    let nades: NadeDto[] = [];
 
-    if (tickRate === "tick128") {
-      nadeResult = nadeResult.filter((n) => n.tickrate !== "tick64");
-    } else if (tickRate === "tick64") {
-      nadeResult = nadeResult.filter((n) => n.tickrate !== "tick128");
+    if (filters.showFavorites && steamId) {
+      nades = await this.getFavoritedNades(steamId, filters);
+    } else {
+      nades = await this.getNormalNades(
+        filters.csMap,
+        filters.nadeType,
+        filters.gameMode,
+        filters.tickRate,
+        filters.teamSide
+      );
     }
-
-    if (teamSide === "counterTerrorist") {
-      nadeResult = nadeResult.filter((n) => n.teamSide !== "terrorist");
-    } else if (teamSide === "terrorist") {
-      nadeResult = nadeResult.filter((n) => n.teamSide !== "counterTerrorist");
-    }
-
-    const nades = nadeResult.filter(
-      (n) => n.mapEndLocationId && n.mapStartLocationId
-    );
 
     const mapLocations: MapLocation[] = [];
 
@@ -394,6 +399,60 @@ export class NadeService {
     }
 
     return mapLocations;
+  };
+
+  private getNormalNades = async (
+    csMap: CsMap,
+    nadeType: NadeType,
+    gameMode: GameMode,
+    tickRate: Tickrate,
+    teamSide: TeamSide
+  ) => {
+    let nadeResult = await this.nadeRepo.getByMap(csMap, nadeType, gameMode);
+
+    if (tickRate === "tick128") {
+      nadeResult = nadeResult.filter((n) => n.tickrate !== "tick64");
+    } else if (tickRate === "tick64") {
+      nadeResult = nadeResult.filter((n) => n.tickrate !== "tick128");
+    }
+
+    if (teamSide === "counterTerrorist") {
+      nadeResult = nadeResult.filter((n) => n.teamSide !== "terrorist");
+    } else if (teamSide === "terrorist") {
+      nadeResult = nadeResult.filter((n) => n.teamSide !== "counterTerrorist");
+    }
+
+    const nades = nadeResult.filter(
+      (n) => n.mapEndLocationId && n.mapStartLocationId
+    );
+    return nades;
+  };
+
+  private getFavoritedNades = async (
+    steamId: string,
+    filters: LocationByMapFilters
+  ) => {
+    const favorites = await this.favoriteRepo.byUser(steamId);
+    const nadesToFetch = favorites.map((f) => f.nadeId);
+    let result = await this.nadeRepo.getListOfNades(nadesToFetch);
+    result = result
+      .filter((n) => n.map === filters.csMap)
+      .filter((n) => n.type === filters.nadeType)
+      .filter((n) => n.mapEndLocationId && n.mapStartLocationId);
+
+    if (filters.tickRate === "tick128") {
+      result = result.filter((n) => n.tickrate !== "tick64");
+    } else if (filters.tickRate === "tick64") {
+      result = result.filter((n) => n.tickrate !== "tick128");
+    }
+
+    if (filters.teamSide === "counterTerrorist") {
+      result = result.filter((n) => n.teamSide !== "terrorist");
+    } else if (filters.teamSide === "terrorist") {
+      result = result.filter((n) => n.teamSide !== "counterTerrorist");
+    }
+
+    return result;
   };
 
   getByUser = async (

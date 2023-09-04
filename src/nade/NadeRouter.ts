@@ -8,7 +8,7 @@ import { UserService } from "../user/UserService";
 import { createAppContext } from "../utils/AppContext";
 import { adminOrModHandler, authOnlyHandler } from "../utils/AuthHandlers";
 import { ErrorFactory } from "../utils/ErrorUtil";
-import { userFromRequest } from "../utils/RouterUtils";
+import { maybeUserFromRequest, userFromRequest } from "../utils/RouterUtils";
 import { sanitizeIt } from "../utils/Sanitize";
 import { getSessionId } from "../utils/SessionRoute";
 import { NadeService } from "./NadeService";
@@ -101,22 +101,32 @@ export class NadeRouter {
   };
 
   private getLocationsByMap: RequestHandler = async (req, res) => {
-    const map = sanitizeIt(req.params.map) as CsMap;
+    const csMap = sanitizeIt(req.params.map) as CsMap;
     const nadeType = sanitizeIt(req?.query?.nadeType) as NadeType;
     const gameMode = sanitizeIt(req?.query?.gameMode) as GameMode;
     const tickRate = sanitizeIt(req?.query?.tickRate) as Tickrate;
     const teamSide = sanitizeIt(req?.query?.teamSide) as TeamSide;
+    const showFavorites = sanitizeIt(req?.query?.favorites);
+    const user = maybeUserFromRequest(req);
 
-    if (!gameMode || !map || !nadeType) {
+    if (!gameMode || !csMap || !nadeType) {
       return res.status(400).send();
     }
 
-    const result = await this.nadeService.getLocationsByMap(
-      map,
-      nadeType,
+    const filter = {
+      csMap,
       gameMode,
+      nadeType,
+      teamSide,
       tickRate,
-      teamSide
+      showFavorites: showFavorites === "1" ? true : false,
+    };
+
+    console.log("-> getLocationsByMap", req.query, filter, user);
+
+    const result = await this.nadeService.getLocationsByMap(
+      filter,
+      user?.steamId
     );
 
     res.status(200).send(result);
