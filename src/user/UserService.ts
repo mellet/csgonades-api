@@ -131,7 +131,7 @@ export class UserService {
   }
 
   private async updateUserNadeCount(user: UserModel) {
-    if (typeof user.numNades === "undefined") {
+    if (typeof user.numNades === "undefined" || user.numNades < 0) {
       const nades = await this.nadeRepo.getByUser(user.steamId);
       this.userRepo.update(user.steamId, { numNades: nades.length });
     } else {
