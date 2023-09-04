@@ -31,6 +31,8 @@ export function serviceInit(
     reportRepo,
     statsRepo,
     userRepo,
+    mapEndLocationRepo,
+    mapStartLocationRepo,
   } = repositories;
 
   const auditService = new AuditService({ auditRepo });
@@ -64,6 +66,8 @@ export function serviceInit(
     favoriteRepo,
     userRepo,
     googleApi,
+    mapEndLocationRepo,
+    mapStartLocationRepo,
   });
 
   const favoriteService = new FavoriteService({

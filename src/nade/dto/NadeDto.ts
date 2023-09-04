@@ -1,6 +1,6 @@
 import { ImageData } from "../../imageGallery/ImageStorageRepo";
 import { UserLightModel } from "../../user/UserModel";
-import { CsgoMap } from "../nadeSubTypes/CsgoMap";
+import { CsMap } from "../nadeSubTypes/CsgoMap";
 import { GameMode } from "../nadeSubTypes/GameMode";
 import { Movement } from "../nadeSubTypes/Movements";
 import { NadeStatus } from "../nadeSubTypes/NadeStatus";
@@ -9,7 +9,6 @@ import { TeamSide } from "../nadeSubTypes/TeamSide";
 import { Technique } from "../nadeSubTypes/Technique";
 import { Tickrate } from "../nadeSubTypes/Tickrate";
 import { GfycatData } from "./GfycatData";
-import { MapCoordinates } from "./MapCoordinates";
 import { StatusInfo } from "./StatusInfo";
 
 export type NadeImages = {
@@ -42,9 +41,9 @@ export type NadeDto = {
   images: NadeImages;
   isPro?: boolean;
   lastGfycatUpdate: Date;
-  map: CsgoMap;
-  mapEndCoord: MapCoordinates;
-  mapStartCoord?: MapCoordinates;
+  map: CsMap;
+  mapEndLocationId: string;
+  mapStartLocationId: string;
   movement: Movement;
   oneWay?: boolean;
   proUrl?: string;
@@ -62,5 +61,5 @@ export type NadeDto = {
   updatedAt: Date;
   user: UserLightModel;
   viewCount: number;
-  youTubeId?: string | null;
+  youTubeId: string;
 };

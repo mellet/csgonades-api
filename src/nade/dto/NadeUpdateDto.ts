@@ -1,4 +1,4 @@
-import { CsgoMap } from "../nadeSubTypes/CsgoMap";
+import { CsMap } from "../nadeSubTypes/CsgoMap";
 import { GameMode } from "../nadeSubTypes/GameMode";
 import { Movement } from "../nadeSubTypes/Movements";
 import { NadeStatus } from "../nadeSubTypes/NadeStatus";
@@ -17,9 +17,11 @@ export type NadeUpdateDto = {
   imageBase64?: string;
   isPro?: boolean;
   lineUpImageBase64?: string;
-  map?: CsgoMap;
+  map?: CsMap;
   mapEndCoord?: MapCoordinates;
   mapStartCoord?: MapCoordinates;
+  mapStartLocationId?: string;
+  mapEndLocationId?: string;
   movement?: Movement;
   oneWay?: boolean;
   proUrl?: string;

@@ -1,4 +1,4 @@
-const CsGoMaps = {
+const CsMaps = {
   ancient: "Ancient",
   anubis: "Anubis",
   cache: "Cache",
@@ -15,10 +15,10 @@ const CsGoMaps = {
 
 export function nadeValidMaps() {
   const maps: string[] = [];
-  for (const key in CsGoMaps) {
+  for (const key in CsMaps) {
     maps.push(key);
   }
   return maps;
 }
 
-export type CsgoMap = keyof typeof CsGoMaps;
+export type CsMap = keyof typeof CsMaps;

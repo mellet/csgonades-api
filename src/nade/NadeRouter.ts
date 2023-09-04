@@ -16,9 +16,11 @@ import { NadeService } from "./NadeService";
 import { GfycatData } from "./dto/GfycatData";
 import { NadeDto } from "./dto/NadeDto";
 import { NadeGfycatValidateDto } from "./dto/NadeGfycatValidateDto";
-import { CsgoMap } from "./nadeSubTypes/CsgoMap";
+import { CsMap } from "./nadeSubTypes/CsgoMap";
 import { GameMode } from "./nadeSubTypes/GameMode";
 import { NadeType } from "./nadeSubTypes/NadeType";
+import { TeamSide } from "./nadeSubTypes/TeamSide";
+import { Tickrate } from "./nadeSubTypes/Tickrate";
 import {
   validateEloGameBody,
   validateNadeCreateBody,
@@ -54,6 +56,11 @@ export class NadeRouter {
   };
 
   private setUpRoutes = () => {
+    this.router.get("/nademap/:map", this.getLocationsByMap);
+    this.router.get(
+      "/nades/start/:start/end/:end",
+      this.getNadesByStartAndEndLocation
+    );
     this.router.get("/nades", this.getNades);
     this.router.get("/nades/pending", adminOrModHandler, this.getPendingNades);
     this.router.get(
@@ -86,6 +93,40 @@ export class NadeRouter {
       adminOrModHandler,
       this.getFlaggedNades
     );
+  };
+
+  private getNadesByStartAndEndLocation: RequestHandler = async (req, res) => {
+    const start = sanitizeIt<string>(req.params.start);
+    const end = sanitizeIt<string>(req.params.end);
+    if (!start || !end) {
+      return res.status(400).send();
+    }
+
+    const result = await this.nadeService.getByStartAndEndLocation(start, end);
+
+    return res.status(200).send(result);
+  };
+
+  private getLocationsByMap: RequestHandler = async (req, res) => {
+    const map = sanitizeIt(req.params.map) as CsMap;
+    const nadeType = sanitizeIt(req?.query?.nadeType) as NadeType;
+    const gameMode = sanitizeIt(req?.query?.gameMode) as GameMode;
+    const tickRate = sanitizeIt(req?.query?.tickRate) as Tickrate;
+    const teamSide = sanitizeIt(req?.query?.teamSide) as TeamSide;
+
+    if (!gameMode || !map || !nadeType) {
+      return res.status(400).send();
+    }
+
+    const result = await this.nadeService.getLocationsByMap(
+      map,
+      nadeType,
+      gameMode,
+      tickRate,
+      teamSide
+    );
+
+    res.status(200).send(result);
   };
 
   private getFlaggedNades: RequestHandler = async (_, res) => {
@@ -186,14 +227,14 @@ export class NadeRouter {
   private getByMap: RequestHandler = async (req, res) => {
     const type = sanitizeIt(req.query.type) as NadeType | undefined;
     const gameMode = (sanitizeIt(req?.query?.gameMode) || "csgo") as GameMode;
-    const mapName = sanitizeIt(req.params.mapname) as CsgoMap;
+    const mapName = sanitizeIt(req.params.mapname) as CsMap;
     const nades = await this.nadeService.getByMap(mapName, type, gameMode);
 
     return res.status(200).send(nades);
   };
 
   private getByUser: RequestHandler = async (req, res) => {
-    const csgoMap = sanitizeIt(req.query.map) as CsgoMap | undefined;
+    const csgoMap = sanitizeIt(req.query.map) as CsMap | undefined;
     const steamId = sanitizeIt(req.params.steamId);
     const gameMode = (sanitizeIt(req?.query?.gameMode) || "csgo") as GameMode;
     const nades = await this.nadeService.getByUser(steamId, csgoMap, gameMode);
@@ -329,11 +370,6 @@ export class NadeRouter {
     }
     if (preUpdateNade.map !== updatedNade.map) {
       updatedField.push("map");
-    }
-    if (preUpdateNade.mapEndCoord?.x !== updatedNade.mapEndCoord?.x) {
-      updatedField.push("mapEndCoord");
-    } else if (preUpdateNade.mapEndCoord?.y !== updatedNade.mapEndCoord?.y) {
-      updatedField.push("mapEndCoord");
     }
     if (preUpdateNade.movement !== updatedNade.movement) {
       updatedField.push("movement");

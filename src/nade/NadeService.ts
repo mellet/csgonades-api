@@ -6,6 +6,9 @@ import { GoogleApi } from "../external-api/GoogleApi";
 import { FavoriteRepo } from "../favorite/repository/FavoriteRepo";
 import { ImageRepo } from "../imageGallery/ImageGalleryService";
 import { Logger } from "../logger/Logger";
+import { MapEndLocationRepo } from "../maplocation/types/MapEndLocationRepo";
+import { MapLocation, StartLocation } from "../maplocation/types/MapLocations";
+import { MapStartLocationRepo } from "../maplocation/types/MapStartLocationRepo";
 import { NotificationRepo } from "../notifications/repository/NotificationRepo";
 import { StatsRepo } from "../stats/repository/StatsRepo";
 import { UserLightModel } from "../user/UserModel";
@@ -18,14 +21,17 @@ import { NadeDto } from "./dto/NadeDto";
 import { NadeFireModel } from "./dto/NadeFireModel";
 import { NadeMiniDto } from "./dto/NadeMiniDto";
 import { NadeUpdateDto } from "./dto/NadeUpdateDto";
-import { CsgoMap } from "./nadeSubTypes/CsgoMap";
+import { CsMap } from "./nadeSubTypes/CsgoMap";
 import { GameMode } from "./nadeSubTypes/GameMode";
 import { NadeStatus } from "./nadeSubTypes/NadeStatus";
 import { NadeType } from "./nadeSubTypes/NadeType";
+import { TeamSide } from "./nadeSubTypes/TeamSide";
+import { Tickrate } from "./nadeSubTypes/Tickrate";
 import { NadeRepo } from "./repository/NadeRepo";
 import { eloRating } from "./utils/EloUtils";
 import {
   convertNadesToLightDto,
+  convertToNadeMiniDto,
   newStatsFromGfycat,
   shouldUpdateNadeStats,
   shouldUpdateYouTubeViewCount,
@@ -44,6 +50,8 @@ export type NadeServiceDeps = {
   notificationRepo: NotificationRepo;
   statsRepo: StatsRepo;
   userRepo: UserRepo;
+  mapStartLocationRepo: MapStartLocationRepo;
+  mapEndLocationRepo: MapEndLocationRepo;
 };
 
 export class NadeService {
@@ -56,6 +64,8 @@ export class NadeService {
   private notificationRepo: NotificationRepo;
   private statsRepo: StatsRepo;
   private userRepo: UserRepo;
+  private mapEndLocationRepo: MapEndLocationRepo;
+  private mapStartLocationRepo: MapStartLocationRepo;
 
   constructor(deps: NadeServiceDeps) {
     const {
@@ -68,6 +78,8 @@ export class NadeService {
       favoriteRepo,
       userRepo,
       googleApi,
+      mapEndLocationRepo,
+      mapStartLocationRepo,
     } = deps;
 
     this.nadeRepo = nadeRepo;
@@ -79,6 +91,8 @@ export class NadeService {
     this.favoriteRepo = favoriteRepo;
     this.userRepo = userRepo;
     this.googleApi = googleApi;
+    this.mapEndLocationRepo = mapEndLocationRepo;
+    this.mapStartLocationRepo = mapStartLocationRepo;
 
     // this.recountNades();
     this.getDeletedToRemove();
@@ -119,6 +133,18 @@ export class NadeService {
       numMolotovs,
       numGrenades
     );
+  };
+
+  getByStartAndEndLocation = async (
+    startLocationId: string,
+    endLocationId: string
+  ): Promise<NadeMiniDto[]> => {
+    const result = await this.nadeRepo.getByStartAndEndLocation(
+      startLocationId,
+      endLocationId
+    );
+
+    return result.map((n) => convertToNadeMiniDto(n));
   };
 
   getFlagged = async () => {
@@ -185,7 +211,12 @@ export class NadeService {
   };
 
   getPending = async (): Promise<NadeDto[]> => {
-    return this.nadeRepo.getPending();
+    const pendingNades = await this.nadeRepo.getPending();
+    const sortedArray = pendingNades.sort(
+      (a, b) => a.createdAt.valueOf() - b.createdAt.valueOf()
+    );
+
+    return sortedArray;
   };
 
   getDeclined = async (): Promise<NadeMiniDto[]> => {
@@ -243,7 +274,7 @@ export class NadeService {
   };
 
   getByMap = async (
-    map: CsgoMap,
+    map: CsMap,
     nadeType?: NadeType,
     gameMode?: GameMode
   ): Promise<NadeMiniDto[]> => {
@@ -252,9 +283,89 @@ export class NadeService {
     return convertNadesToLightDto(nades);
   };
 
+  getLocationsByMap = async (
+    csMap: CsMap,
+    nadeType: NadeType,
+    gameMode: GameMode,
+    tickRate: Tickrate = "any",
+    teamSide: TeamSide = "both"
+  ): Promise<MapLocation[]> => {
+    const startLocations =
+      await this.mapStartLocationRepo.getNadeStartLocations(csMap, gameMode);
+    const endLocations = await this.mapEndLocationRepo.getMapEndLocations(
+      csMap,
+      nadeType,
+      gameMode
+    );
+    let nadeResult = await this.nadeRepo.getByMap(csMap, nadeType, gameMode);
+
+    if (tickRate === "tick128") {
+      nadeResult = nadeResult.filter((n) => n.tickrate !== "tick64");
+    } else if (tickRate === "tick64") {
+      nadeResult = nadeResult.filter((n) => n.tickrate !== "tick128");
+    }
+
+    if (teamSide === "counterTerrorist") {
+      nadeResult = nadeResult.filter((n) => n.teamSide !== "terrorist");
+    } else if (teamSide === "terrorist") {
+      nadeResult = nadeResult.filter((n) => n.teamSide !== "counterTerrorist");
+    }
+
+    const nades = nadeResult.filter(
+      (n) => n.mapEndLocationId && n.mapStartLocationId
+    );
+
+    const mapLocations: MapLocation[] = [];
+
+    // Iterate through endLocations and construct MapLocation objects
+    for (const endLocation of endLocations) {
+      const relatedStartLocations: StartLocation[] = [];
+
+      // Find all nades that are thrown to this position
+      const nadesThrownToEndLocation = nades.filter(
+        (nade) => nade.mapEndLocationId === endLocation.id
+      );
+
+      const nadeEndLocationCount = nadesThrownToEndLocation.length;
+
+      if (!nadeEndLocationCount) {
+        continue;
+      }
+
+      for (const startNade of nadesThrownToEndLocation) {
+        const nadeStartLocation = relatedStartLocations.find(
+          (n) => n.id === startNade.mapStartLocationId
+        );
+        if (nadeStartLocation) {
+          nadeStartLocation.count = nadeStartLocation.count + 1;
+        } else {
+          const startPos = startLocations.find(
+            (sL) => sL.id === startNade.mapStartLocationId
+          );
+          if (!startPos) continue;
+          relatedStartLocations.push({
+            ...startPos,
+            count: 1,
+          });
+        }
+      }
+
+      const mapLocation: MapLocation = {
+        endLocation: {
+          ...endLocation,
+          count: nadeEndLocationCount,
+        },
+        startPositions: relatedStartLocations,
+      };
+      mapLocations.push(mapLocation);
+    }
+
+    return mapLocations;
+  };
+
   getByUser = async (
     steamId: string,
-    map?: CsgoMap,
+    map?: CsMap,
     gameMode?: GameMode
   ): Promise<NadeMiniDto[]> => {
     const nadesByUser = await this.nadeRepo.getByUser(steamId, map, gameMode);
@@ -264,9 +375,19 @@ export class NadeService {
 
   save = async (body: NadeCreateDto, steamID: string): Promise<NadeDto> => {
     const user = await this.userRepo.byId(steamID);
+    const mapEndLocation = await this.mapEndLocationRepo.getById(
+      body.mapEndLocationId
+    );
+    const mapStartLocation = await this.mapStartLocationRepo.getById(
+      body.mapStartLocationId
+    );
 
     if (!user) {
       throw ErrorFactory.BadRequest("User not found when creating nade");
+    }
+
+    if (!mapEndLocation || !mapStartLocation) {
+      throw ErrorFactory.InternalServerError("Start or end location not found");
     }
 
     const userLight: UserLightModel = {
@@ -277,45 +398,34 @@ export class NadeService {
 
     let gfycatData: GfycatDetailsResponse | undefined = undefined;
 
-    if (body.gfycat) {
-      gfycatData = await this.gfycatApi.getGfycatData(body.gfycat.gfyId);
-
-      if (!gfycatData) {
-        throw ErrorFactory.ExternalError(
-          "Gfycat seems to be down. Try again later."
-        );
-      }
-    }
-
     const { imageLineupThumb, lineupImage, resultImage, resultImageThumb } =
       await this.saveImages(body.imageBase64, body.lineUpImageBase64);
 
     const nadeModel: NadeCreateModel = {
       commentCount: 0,
       description: body.description,
-      endPosition: titleCase(body.endPosition),
+      endPosition: mapEndLocation.calloutName,
       favoriteCount: 0,
       gameMode: body.gameMode || "csgo",
-      gfycat: body.gfycat,
       imageLineup: lineupImage,
       imageLineupThumb: imageLineupThumb,
       imageMain: resultImage,
       imageMainThumb: resultImageThumb,
       map: body.map,
-      mapEndCoord: body.mapEndCoord,
-      mapStartCoord: body.mapStartCoord,
+      mapEndLocationId: body.mapEndLocationId,
+      mapStartLocationId: body.mapStartLocationId,
       movement: body.movement,
       oneWay: body.oneWay,
       proUrl: body.proUrl,
       setPos: body.setPos,
-      startPosition: titleCase(body.startPosition),
+      startPosition: mapStartLocation.calloutName,
       steamId: userLight.steamId,
       teamSide: body.teamSide,
       technique: body.technique,
       tickrate: body.tickrate,
       type: body.type,
       user: userLight,
-      viewCount: gfycatData?.gfyItem.views || 0,
+      viewCount: 0,
       youTubeId: body.youTubeId,
     };
 
@@ -399,15 +509,14 @@ export class NadeService {
         ? titleCase(updates.endPosition)
         : undefined,
       gameMode: updates.gameMode,
-      gfycat: updates.youTubeId ? null : updates.gfycat,
       imageLineup: lineupImages?.lineupImage,
       imageLineupThumb: lineupImages?.lineupImageThumb,
       imageMain: mainImages?.mainImage,
       imageMainThumb: mainImages?.mainImageSmall,
       isPro: updates.isPro,
       map: updates.map,
-      mapEndCoord: updates.mapEndCoord,
-      mapStartCoord: updates.mapStartCoord,
+      mapEndLocationId: updates.mapEndLocationId,
+      mapStartLocationId: updates.mapStartLocationId,
       movement: updates.movement,
       oneWay: updates.oneWay,
       proUrl: updates.proUrl,
@@ -420,7 +529,7 @@ export class NadeService {
       technique: updates.technique,
       tickrate: updates.tickrate,
       type: updates.type,
-      youTubeId: updates.gfycat ? null : updates.youTubeId,
+      youTubeId: updates.youTubeId,
     };
 
     const updatedNade = await this.nadeRepo.updateNade(nadeId, newNadeData, {
@@ -443,7 +552,34 @@ export class NadeService {
       }
     }
 
+    // TODO: Remove once stuff are accepted
+    await this.updateCallouts(updatedNade.id);
+
     return updatedNade;
+  };
+
+  private updateCallouts = async (nadeId: string) => {
+    const nade = await this.getById(nadeId);
+    if (!nade) {
+      console.log("No nade found");
+      return;
+    }
+    const endLocation = await this.mapEndLocationRepo.getById(
+      nade.mapEndLocationId
+    );
+    const startLocation = await this.mapStartLocationRepo.getById(
+      nade.mapStartLocationId
+    );
+    if (!endLocation || !startLocation) {
+      console.log("No pos found");
+      return;
+    }
+
+    await this.nadeRepo.updateNade(nadeId, {
+      startPosition: startLocation.calloutName,
+      endPosition: endLocation.calloutName,
+    });
+    console.log("Updates nade callouts");
   };
 
   performNadeComparison = async (eloGame: NadeEloGame) => {

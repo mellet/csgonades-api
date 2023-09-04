@@ -7,8 +7,6 @@ import { NadeType } from "../nadeSubTypes/NadeType";
 import { TeamSide } from "../nadeSubTypes/TeamSide";
 import { Technique } from "../nadeSubTypes/Technique";
 import { Tickrate } from "../nadeSubTypes/Tickrate";
-import { GfycatData } from "./GfycatData";
-import { MapCoordinates } from "./MapCoordinates";
 import { NadeImages } from "./NadeDto";
 
 export type NadeMiniDto = {
@@ -18,7 +16,6 @@ export type NadeMiniDto = {
   endPosition?: string;
   favoriteCount: number;
   gameMode: GameMode;
-  gfycat?: GfycatData | null;
   id: string;
   imageLineup?: ImageData;
   imageLineupThumb?: ImageData;
@@ -28,7 +25,8 @@ export type NadeMiniDto = {
   images: NadeImages;
   isNew?: boolean;
   isPro?: boolean;
-  mapEndCoord?: MapCoordinates;
+  mapEndLocationId: string;
+  mapStartLocationId: string;
   movement?: Movement;
   oneWay?: boolean;
   proUrl?: string;
@@ -44,5 +42,5 @@ export type NadeMiniDto = {
   updatedAt: Date;
   user: UserLightModel;
   viewCount: number;
-  youTubeId?: string;
+  youTubeId: string;
 };

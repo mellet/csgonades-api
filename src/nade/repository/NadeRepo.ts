@@ -2,7 +2,7 @@ import { UserLightModel } from "../../user/UserModel";
 import { NadeCreateModel } from "../dto/NadeCreateModel";
 import { NadeDto } from "../dto/NadeDto";
 import { NadeFireModel } from "../dto/NadeFireModel";
-import { CsgoMap } from "../nadeSubTypes/CsgoMap";
+import { CsMap } from "../nadeSubTypes/CsgoMap";
 import { GameMode } from "../nadeSubTypes/GameMode";
 import { NadeType } from "../nadeSubTypes/NadeType";
 
@@ -21,14 +21,19 @@ export interface NadeRepo {
   getDeletedToRemove(): Promise<NadeDto[]>;
   getById(nadeId: string): Promise<NadeDto | null>;
   getBySlug(slug: string): Promise<NadeDto | null>;
+  getListOfNades(nadeIds: string[]): Promise<NadeDto[]>;
+  getByStartAndEndLocation(
+    startLocationId: string,
+    endLocationId: string
+  ): Promise<NadeDto[]>;
   getByMap(
-    csgoMap: CsgoMap,
+    csgoMap: CsMap,
     nadeType?: NadeType,
     gameMode?: GameMode
   ): Promise<NadeDto[]>;
   getByUser(
     steamId: string,
-    csgoMap?: CsgoMap,
+    csgoMap?: CsMap,
     gameMode?: GameMode
   ): Promise<NadeDto[]>;
   save(nadeCreate: NadeCreateModel): Promise<NadeDto>;

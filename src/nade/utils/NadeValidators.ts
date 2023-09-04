@@ -27,25 +27,14 @@ export const validateEloGameBody = (req: Request): NadeEloGame => {
 export const validateNadeCreateBody = (req: Request): NadeCreateDto => {
   const body = req.body as NadeCreateDto;
   const schema = Joi.object<NadeCreateDto>({
-    gfycat: Joi.object()
-      .keys({
-        gfyId: Joi.string(),
-        smallVideoUrl: Joi.string().uri(),
-        largeVideoUrl: Joi.string().uri(),
-        largeVideoWebm: Joi.string().uri(),
-        avgColor: Joi.string().optional(),
-        duration: Joi.string().optional(),
-        size: Joi.number().optional(),
-      })
-      .optional(),
-    youTubeId: Joi.string().optional(),
+    youTubeId: Joi.string().required(),
     imageBase64: Joi.string().required(),
     lineUpImageBase64: Joi.string().required(),
-    startPosition: Joi.string().required(),
-    endPosition: Joi.string().required(),
+    mapStartLocationId: Joi.string().required(),
+    mapEndLocationId: Joi.string().required(),
     gameMode: Joi.string()
       .valid(...nadeValidGameModes())
-      .optional(),
+      .required(),
     description: Joi.string().required(),
     map: Joi.string()
       .valid(...nadeValidMaps())
@@ -62,15 +51,6 @@ export const validateNadeCreateBody = (req: Request): NadeCreateDto => {
     type: Joi.string()
       .valid(...nadeValidTypes())
       .required(),
-    mapEndCoord: Joi.object()
-      .keys({
-        x: Joi.number(),
-        y: Joi.number(),
-      })
-      .required(),
-    mapStartCoord: Joi.object()
-      .keys({ x: Joi.number(), y: Joi.number() })
-      .optional(),
     oneWay: Joi.boolean().optional(),
     teamSide: Joi.string()
       .valid(...nadeValidTeamSide())
@@ -131,6 +111,8 @@ export const validateNadeEditBody = (req: Request): NadeUpdateDto => {
     mapStartCoord: Joi.object()
       .keys({ x: Joi.number(), y: Joi.number() })
       .optional(),
+    mapStartLocationId: Joi.string().optional(),
+    mapEndLocationId: Joi.string().optional(),
     status: Joi.string()
       .valid(...nadeValidStatus())
       .optional(),

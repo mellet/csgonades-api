@@ -5,6 +5,7 @@ import {
   Collection,
   Doc,
   get,
+  getMany,
   limit,
   order,
   query,
@@ -25,7 +26,7 @@ import { ErrorFactory } from "../../utils/ErrorUtil";
 import { NadeCreateModel } from "../dto/NadeCreateModel";
 import { NadeDto } from "../dto/NadeDto";
 import { NadeFireModel } from "../dto/NadeFireModel";
-import { CsgoMap } from "../nadeSubTypes/CsgoMap";
+import { CsMap } from "../nadeSubTypes/CsgoMap";
 import { GameMode } from "../nadeSubTypes/GameMode";
 import { NadeType } from "../nadeSubTypes/NadeType";
 import { NadeRepo, NadeUpdateConfig } from "./NadeRepo";
@@ -40,6 +41,29 @@ export class NadeFireRepo implements NadeRepo {
     this.cache = caches.longtermCache;
     this.mapNadeCache = caches.shorttermCache;
   }
+
+  getByStartAndEndLocation = async (
+    startLocationId: string,
+    endLocationId: string
+  ): Promise<NadeDto[]> => {
+    // TODO: Add caching and cache invalidation
+
+    const result = await query(this.collection, [
+      where("mapStartLocationId", "==", startLocationId),
+      where("mapEndLocationId", "==", endLocationId),
+      where("status", "==", "accepted"),
+    ]);
+
+    return result.map(this.toNadeDTO);
+  };
+
+  getListOfNades = async (nadeIds: string[]): Promise<NadeDto[]> => {
+    const result = await getMany(this.collection, nadeIds);
+
+    const nades = result.map(this.toNadeDTO);
+
+    return nades;
+  };
 
   isSlugAvailable = async (slug: string): Promise<boolean> => {
     try {
@@ -213,7 +237,7 @@ export class NadeFireRepo implements NadeRepo {
   };
 
   getByMap = async (
-    csgoMap: CsgoMap,
+    csgoMap: CsMap,
     nadeType?: NadeType,
     gameMode?: GameMode
   ): Promise<NadeDto[]> => {
@@ -257,7 +281,7 @@ export class NadeFireRepo implements NadeRepo {
 
   getByUser = async (
     steamId: string,
-    csgoMap?: CsgoMap,
+    csgoMap?: CsMap,
     gameMode?: GameMode
   ): Promise<NadeDto[]> => {
     const queryBuilder: Query<NadeFireModel, keyof NadeFireModel>[] = [
@@ -287,14 +311,14 @@ export class NadeFireRepo implements NadeRepo {
   };
 
   save = async (nadeCreate: NadeCreateModel): Promise<NadeDto> => {
-    const nadeModel: AddModel<NadeFireModel> = {
+    const nadeModel: AddModel<NadeFireModel> = removeUndefines({
       ...nadeCreate,
       createdAt: value("serverDate"),
       updatedAt: value("serverDate"),
       lastGfycatUpdate: value("serverDate"),
       status: "pending",
       eloScore: 1450,
-    };
+    });
 
     const cleanNadeModel = removeUndefines(nadeModel);
 
@@ -452,6 +476,9 @@ export class NadeFireRepo implements NadeRepo {
       favoriteCount: doc.data.favoriteCount || 0,
       eloScore: doc.data.eloScore || 1400,
       gameMode: doc.data.gameMode || "csgo",
+      commentCount: doc.data.commentCount,
+      mapEndLocationId: doc.data.mapEndLocationId,
+      mapStartLocationId: doc.data.mapStartLocationId,
       images: {
         lineup: {
           small: doc.data.imageLineupThumb?.url || "",
@@ -515,7 +542,7 @@ export class NadeFireRepo implements NadeRepo {
   };
 
   private createMapCacheKey = (
-    csgoMap: CsgoMap,
+    csgoMap: CsMap,
     nadeType?: NadeType,
     gameMode?: GameMode
   ) => {

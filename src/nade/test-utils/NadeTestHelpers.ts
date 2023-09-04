@@ -50,10 +50,12 @@ export const createMockedNade = (
     url: "nadeUrl",
   },
   map: "dust2",
-  mapEndCoord: { x: 0, y: 0 },
   movement: "stationary",
   startPosition: "startPosition",
   type: "smoke",
   technique: "left",
   eloScore: 1400,
+  mapEndLocationId: "endLocationId",
+  mapStartLocationId: "startLocationId",
+  youTubeId: "youTubeId",
 });

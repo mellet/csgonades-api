@@ -4,6 +4,8 @@ import { GfycatApi } from "../external-api/GfycatApi";
 import { GoogleApi } from "../external-api/GoogleApi";
 import { FavoriteRepo } from "../favorite/repository/FavoriteRepo";
 import { ImageRepo } from "../imageGallery/ImageGalleryService";
+import { MapEndLocationRepo } from "../maplocation/types/MapEndLocationRepo";
+import { MapStartLocationRepo } from "../maplocation/types/MapStartLocationRepo";
 import { NotificationRepo } from "../notifications/repository/NotificationRepo";
 import { StatsRepo } from "../stats/repository/StatsRepo";
 import { UserRepo } from "../user/repository/UserRepo";
@@ -27,6 +29,8 @@ describe("Nade service", () => {
       statsRepo: mock<StatsRepo>(),
       userRepo: mock<UserRepo>(),
       googleApi: mock<GoogleApi>(),
+      mapEndLocationRepo: mock<MapEndLocationRepo>(),
+      mapStartLocationRepo: mock<MapStartLocationRepo>(),
     };
 
     deps = {
@@ -39,6 +43,8 @@ describe("Nade service", () => {
       statsRepo: instance(mockedDeps.statsRepo),
       userRepo: instance(mockedDeps.userRepo),
       googleApi: instance(mockedDeps.googleApi),
+      mapEndLocationRepo: instance(mockedDeps.mapEndLocationRepo),
+      mapStartLocationRepo: instance(mockedDeps.mapStartLocationRepo),
     };
   });
 

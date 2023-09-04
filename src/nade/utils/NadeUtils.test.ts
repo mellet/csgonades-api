@@ -112,14 +112,12 @@ describe("Nade Utils", () => {
       endPosition: mockNade.endPosition,
       favoriteCount: mockNade.favoriteCount,
       gameMode: mockNade.gameMode,
-      gfycat: mockNade.gfycat,
       id: mockNade.id,
       imageLineupThumbUrl: mockNade.imageLineupThumb?.url,
       imageMain: mockNade.imageMain,
       imageMainThumb: mockNade.imageMainThumb || mockNade.imageMain,
       images: mockNade.images,
       isPro: mockNade.isPro,
-      mapEndCoord: mockNade.mapEndCoord,
       movement: mockNade.movement,
       oneWay: mockNade.oneWay,
       score: mockNade.score,
@@ -133,6 +131,9 @@ describe("Nade Utils", () => {
       updatedAt: mockNade.updatedAt,
       user: mockNade.user,
       viewCount: mockNade.viewCount,
+      mapEndLocationId: mockNade.mapEndLocationId,
+      mapStartLocationId: mockNade.mapEndLocationId,
+      youTubeId: mockNade.youTubeId,
     };
 
     const result = convertToNadeMiniDto(mockNade);
