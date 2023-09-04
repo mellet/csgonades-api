@@ -122,8 +122,6 @@ export class NadeRouter {
       showFavorites: showFavorites === "1" ? true : false,
     };
 
-    console.log("-> getLocationsByMap", req.query, filter, user);
-
     const result = await this.nadeService.getLocationsByMap(
       filter,
       user?.steamId
