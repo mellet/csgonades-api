@@ -365,6 +365,7 @@ export class NadeService {
       );
 
       const nadeEndLocationCount = nadesThrownToEndLocation.length;
+      let endLocationHasNew = false; // Track if any nades in endLocation are new
 
       if (!nadeEndLocationCount) {
         continue;
@@ -376,15 +377,24 @@ export class NadeService {
         );
         if (nadeStartLocation) {
           nadeStartLocation.count = nadeStartLocation.count + 1;
+          if (startNade.isNew) {
+            nadeStartLocation.hasNew = true;
+            endLocationHasNew = true;
+          }
         } else {
           const startPos = startLocations.find(
             (sL) => sL.id === startNade.mapStartLocationId
           );
           if (!startPos) continue;
+          const isNew = startNade.isNew ? true : false;
           relatedStartLocations.push({
             ...startPos,
             count: 1,
+            hasNew: isNew,
           });
+          if (isNew) {
+            endLocationHasNew = true;
+          }
         }
       }
 
@@ -392,6 +402,7 @@ export class NadeService {
         endLocation: {
           ...endLocation,
           count: nadeEndLocationCount,
+          hasNew: endLocationHasNew,
         },
         startPositions: relatedStartLocations,
       };

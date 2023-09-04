@@ -29,6 +29,7 @@ import { NadeFireModel } from "../dto/NadeFireModel";
 import { CsMap } from "../nadeSubTypes/CsgoMap";
 import { GameMode } from "../nadeSubTypes/GameMode";
 import { NadeType } from "../nadeSubTypes/NadeType";
+import { isNewNade } from "../utils/NadeUtils";
 import { NadeRepo, NadeUpdateConfig } from "./NadeRepo";
 
 export class NadeFireRepo implements NadeRepo {
@@ -478,6 +479,10 @@ export class NadeFireRepo implements NadeRepo {
       commentCount: doc.data.commentCount,
       mapEndLocationId: doc.data.mapEndLocationId,
       mapStartLocationId: doc.data.mapStartLocationId,
+      isNew: isNewNade(
+        doc.data.createdAt,
+        doc.data.gameMode === "csgo" ? 7 : 2
+      ),
       images: {
         lineup: {
           small: doc.data.imageLineupThumb?.url || "",

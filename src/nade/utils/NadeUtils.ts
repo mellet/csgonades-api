@@ -70,7 +70,7 @@ export function convertToNadeMiniDto(nadeDto: NadeDto): NadeMiniDto {
     imageMain: nadeDto.imageMain,
     imageMainThumb: nadeDto.imageMainThumb || nadeDto.imageMain,
     images: nadeDto.images,
-    isNew: isNewNade(nadeDto.createdAt),
+    isNew: nadeDto.isNew,
     isPro: nadeDto.isPro,
     movement: nadeDto.movement,
     oneWay: nadeDto.oneWay,
@@ -94,10 +94,13 @@ export function convertToNadeMiniDto(nadeDto: NadeDto): NadeMiniDto {
   };
 }
 
-export function isNewNade(createdAt: Date | string): boolean {
+export function isNewNade(
+  createdAt: Date | string,
+  thresholdDays = 7
+): boolean {
   const daysSinceAdded = moment().diff(moment(createdAt), "days", false);
 
-  return daysSinceAdded < 7;
+  return daysSinceAdded < thresholdDays;
 }
 
 export function convertNadesToLightDto(nades: NadeDto[]): NadeMiniDto[] {

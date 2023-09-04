@@ -62,4 +62,5 @@ export type NadeDto = {
   user: UserLightModel;
   viewCount: number;
   youTubeId: string;
+  isNew: boolean;
 };
