@@ -552,6 +552,7 @@ export class NadeService {
       }
     }
 
+    // TODO: Remove once stuff are accepted
     await this.updateCallouts(updatedNade.id);
 
     return updatedNade;
