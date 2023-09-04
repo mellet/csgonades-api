@@ -21,6 +21,7 @@ export interface NadeRepo {
   getDeletedToRemove(): Promise<NadeDto[]>;
   getById(nadeId: string): Promise<NadeDto | null>;
   getBySlug(slug: string): Promise<NadeDto | null>;
+  getListOfNades(nadeIds: string[]): Promise<NadeDto[]>;
   getByStartAndEndLocation(
     startLocationId: string,
     endLocationId: string

@@ -5,6 +5,7 @@ import {
   Collection,
   Doc,
   get,
+  getMany,
   limit,
   order,
   query,
@@ -45,6 +46,8 @@ export class NadeFireRepo implements NadeRepo {
     startLocationId: string,
     endLocationId: string
   ): Promise<NadeDto[]> => {
+    // TODO: Add caching and cache invalidation
+
     const result = await query(this.collection, [
       where("mapStartLocationId", "==", startLocationId),
       where("mapEndLocationId", "==", endLocationId),
@@ -52,6 +55,14 @@ export class NadeFireRepo implements NadeRepo {
     ]);
 
     return result.map(this.toNadeDTO);
+  };
+
+  getListOfNades = async (nadeIds: string[]): Promise<NadeDto[]> => {
+    const result = await getMany(this.collection, nadeIds);
+
+    const nades = result.map(this.toNadeDTO);
+
+    return nades;
   };
 
   isSlugAvailable = async (slug: string): Promise<boolean> => {

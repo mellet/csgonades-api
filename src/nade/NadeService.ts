@@ -211,7 +211,12 @@ export class NadeService {
   };
 
   getPending = async (): Promise<NadeDto[]> => {
-    return this.nadeRepo.getPending();
+    const pendingNades = await this.nadeRepo.getPending();
+    const sortedArray = pendingNades.sort(
+      (a, b) => a.createdAt.valueOf() - b.createdAt.valueOf()
+    );
+
+    return sortedArray;
   };
 
   getDeclined = async (): Promise<NadeMiniDto[]> => {

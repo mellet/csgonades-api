@@ -85,10 +85,6 @@ export class MapLocationRouter {
     const startLocations =
       await this.mapStartLocationRepo.getNadeStartLocations(csMap, gameMode);
 
-    Logger.verbose(
-      `MapLocationRouter.getStartLocati success, count: ${startLocations.length}`
-    );
-
     return res.status(200).send(startLocations);
   };
 
@@ -110,8 +106,6 @@ export class MapLocationRouter {
       gameMode
     );
 
-    Logger.verbose(`MapLocationRouter.getEndLocation | Count ${result.length}`);
-
     return res.status(200).send(result);
   };
 
@@ -126,8 +120,6 @@ export class MapLocationRouter {
       return res.status(500).send();
     }
 
-    Logger.verbose(`MapLocationRouter.addStartLocation | Ok`);
-
     return res.status(201).send(result);
   };
 
@@ -139,7 +131,6 @@ export class MapLocationRouter {
       return res.status(500).send();
     }
 
-    Logger.verbose(`MapLocationRouter.addEndLocation | Ok`);
     return res.status(201).send(result);
   };
 
@@ -155,7 +146,6 @@ export class MapLocationRouter {
 
       return res.status(500).send();
     }
-    Logger.verbose(`MapLocationRouter.editStartLocation | Ok`);
     return res.status(200).send(result);
   };
 
@@ -168,8 +158,6 @@ export class MapLocationRouter {
       Logger.error(`MapLocationRouter.editEndLocation | Error`);
       return res.status(500).send();
     }
-
-    Logger.verbose(`MapLocationRouter.editEndLocation | Ok`);
 
     return res.status(200).send(result);
   };
@@ -184,7 +172,6 @@ export class MapLocationRouter {
       return res.status(500).send();
     }
 
-    Logger.verbose(`MapLocationRouter.deleteStartLocation | Ok`);
     return res.status(200).send();
   };
 
@@ -199,7 +186,6 @@ export class MapLocationRouter {
       return res.status(500).send();
     }
 
-    Logger.verbose(`MapLocationRouter.deleteEndLocation | Ok`);
     return res.status(200);
   };
 }

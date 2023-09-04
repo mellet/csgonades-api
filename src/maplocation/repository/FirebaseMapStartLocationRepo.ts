@@ -10,6 +10,8 @@ import {
   where,
 } from "typesaurus";
 import { UpdateModel } from "typesaurus/update";
+import { AppCache } from "../../cache/AppCache";
+import { Logger } from "../../logger/Logger";
 import { CsMap } from "../../nade/nadeSubTypes/CsgoMap";
 import { GameMode } from "../../nade/nadeSubTypes/GameMode";
 import { removeUndefines } from "../../utils/Common";
@@ -23,17 +25,41 @@ import { MapStartLocationRepo } from "../types/MapStartLocationRepo";
 
 export class FirebaseMapStartLocationRepo implements MapStartLocationRepo {
   private collection: Collection<MapStartLocationDocData>;
+  private cache: AppCache;
 
   constructor() {
     this.collection = collection("startlocation");
+    this.cache = new AppCache({ cacheHours: 24 });
   }
 
-  getNadeStartLocations = async (csMap: CsMap, gameMode: GameMode) => {
+  getNadeStartLocations = async (
+    csMap: CsMap,
+    gameMode: GameMode
+  ): Promise<MapStartLocation[]> => {
+    const cacheKey = ["mapEndLocations", csMap, gameMode].join("");
+    const cachedResult = this.cache.get<MapStartLocation[]>(cacheKey);
+
+    if (cachedResult) {
+      Logger.verbose(
+        `MapStartLocationRepo.getNadeStartLocations -> ${cachedResult.length} | CACHE`
+      );
+      return cachedResult;
+    }
+
     const result = await query(this.collection, [
       where("map", "==", csMap),
       where("gameMode", "==", gameMode),
     ]);
-    return result.map(this.toDto);
+
+    const locations = result.map(this.toDto);
+
+    this.cache.set(cacheKey, locations);
+
+    Logger.verbose(
+      `MapStartLocationRepo.getNadeStartLocations -> ${locations.length} | DB`
+    );
+
+    return locations;
   };
 
   addNadeStartLocation = async (startLocation: AddMapStartLocation) => {
@@ -51,6 +77,8 @@ export class FirebaseMapStartLocationRepo implements MapStartLocationRepo {
       return null;
     }
 
+    this.cache.flush();
+
     return doc;
   };
 
@@ -64,6 +92,8 @@ export class FirebaseMapStartLocationRepo implements MapStartLocationRepo {
       await update(this.collection, startLocationUpdate.id, edit);
       const result = await this.getById(startLocationUpdate.id);
 
+      this.cache.flush();
+
       return result ? result : null;
     } catch (error) {
       console.error(error);
@@ -74,6 +104,8 @@ export class FirebaseMapStartLocationRepo implements MapStartLocationRepo {
   deleteNadeStartLocation = async (id: string) => {
     try {
       await remove(this.collection, id);
+      this.cache.flush();
+
       return "success";
     } catch (error) {
       return "failure";

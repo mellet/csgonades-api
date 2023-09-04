@@ -9,6 +9,8 @@ import {
   where,
 } from "typesaurus";
 import update, { UpdateModel } from "typesaurus/update";
+import { AppCache } from "../../cache/AppCache";
+import { Logger } from "../../logger/Logger";
 import { CsMap } from "../../nade/nadeSubTypes/CsgoMap";
 import { GameMode } from "../../nade/nadeSubTypes/GameMode";
 import { NadeType } from "../../nade/nadeSubTypes/NadeType";
@@ -23,9 +25,11 @@ import { MapEndLocationRepo } from "../types/MapEndLocationRepo";
 
 export class FirebaseMapEndLocationRepo implements MapEndLocationRepo {
   private collection: Collection<MapEndLocationDocData>;
+  private cache: AppCache;
 
   constructor() {
     this.collection = collection("endlocation");
+    this.cache = new AppCache({ cacheHours: 24 });
   }
 
   getMapEndLocations = async (
@@ -33,12 +37,31 @@ export class FirebaseMapEndLocationRepo implements MapEndLocationRepo {
     nadeType: NadeType,
     gameMode: GameMode
   ): Promise<MapEndLocation[]> => {
+    const cacheKey = ["mapEndLocations", csMap, nadeType, gameMode].join("");
+    const cachedResult = this.cache.get<MapEndLocation[]>(cacheKey);
+
+    if (cachedResult) {
+      Logger.verbose(
+        `MapEndLocationRepo.getMapEndLocations -> ${cachedResult.length} | CACHE`
+      );
+      return cachedResult;
+    }
+
     const result = await query(this.collection, [
       where("map", "==", csMap),
       where("type", "==", nadeType),
       where("gameMode", "==", gameMode),
     ]);
-    return result.map(this.toDto);
+
+    const locations = result.map(this.toDto);
+
+    this.cache.set(cacheKey, locations);
+
+    Logger.verbose(
+      `MapEndLocationRepo.getMapEndLocations -> ${locations.length} | DB`
+    );
+
+    return locations;
   };
 
   save = async (
@@ -58,6 +81,8 @@ export class FirebaseMapEndLocationRepo implements MapEndLocationRepo {
       return null;
     }
 
+    this.cache.flush();
+
     return doc;
   };
 
@@ -76,6 +101,8 @@ export class FirebaseMapEndLocationRepo implements MapEndLocationRepo {
       await update(this.collection, endLocation.id, edit);
       const result = await this.getById(endLocation.id);
 
+      this.cache.flush();
+
       return result;
     } catch (error) {
       console.error(error);
@@ -86,6 +113,7 @@ export class FirebaseMapEndLocationRepo implements MapEndLocationRepo {
   removeById = async (id: string): Promise<"success" | "failure"> => {
     try {
       await remove(this.collection, id);
+      this.cache.flush();
       return "success";
     } catch (error) {
       return "failure";
