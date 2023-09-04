@@ -56,7 +56,7 @@ export const validateNadeCreateBody = (req: Request): NadeCreateDto => {
       .valid(...nadeValidTeamSide())
       .required(),
     setPos: Joi.string().optional(),
-    proUrl: Joi.string().optional(),
+    proUrl: Joi.string().optional().allow(""),
   }).unknown(false);
 
   const value = Joi.attempt(body, schema) as NadeCreateDto;
@@ -123,7 +123,7 @@ export const validateNadeEditBody = (req: Request): NadeUpdateDto => {
       .valid(...nadeValidTeamSide())
       .optional(),
     setPos: Joi.string().optional(),
-    proUrl: Joi.string().optional(),
+    proUrl: Joi.string().optional().allow(""),
   }).unknown(false);
 
   const value = Joi.attempt(body, schema) as NadeUpdateDto;
