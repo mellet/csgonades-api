@@ -29,11 +29,6 @@ function createContributorsList(nades: NadeMiniDto[]) {
     const steamId = nade.user.steamId;
     const currentUser = contCount[steamId];
 
-    // Skip new nades
-    if (nade.isNew) {
-      return;
-    }
-
     if (currentUser) {
       contCount[steamId] = {
         ...currentUser,
