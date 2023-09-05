@@ -80,12 +80,31 @@ export class NadeRouter {
     // Elo game routes
     this.router.post("/nades/elogame", this.scoreGame);
 
+    // Contributors
+    this.router.get("/nades/contributors/:csMap", this.getMapContributors);
+
     // Moderator routes
     this.router.get(
       "/admin/uncompleteNades",
       adminOrModHandler,
       this.getFlaggedNades
     );
+  };
+
+  private getMapContributors: RequestHandler = async (req, res) => {
+    const csMap = sanitizeIt(req.params.csMap) as CsMap;
+    const gameMode = sanitizeIt(req?.query?.gameMode) as GameMode;
+
+    if (!csMap || !gameMode) {
+      return res.status(400).send();
+    }
+
+    const constributors = await this.nadeService.getNadeContributors(
+      csMap,
+      gameMode
+    );
+
+    return res.status(200).send(constributors);
   };
 
   private getNadesByStartAndEndLocation: RequestHandler = async (req, res) => {

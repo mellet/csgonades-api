@@ -9,10 +9,12 @@ import { MapLocation, StartLocation } from "../maplocation/types/MapLocations";
 import { MapStartLocationRepo } from "../maplocation/types/MapStartLocationRepo";
 import { NotificationRepo } from "../notifications/repository/NotificationRepo";
 import { StatsRepo } from "../stats/repository/StatsRepo";
+import { UserMiniDto } from "../user/UserDTOs";
 import { UserLightModel } from "../user/UserModel";
 import { UserRepo } from "../user/repository/UserRepo";
 import { RequestUser } from "../utils/AuthUtils";
 import { ErrorFactory } from "../utils/ErrorUtil";
+import { getContributors } from "./dto/MapContributors";
 import { NadeCreateDto, NadeEloGame } from "./dto/NadeCreateDto";
 import { NadeCreateModel } from "./dto/NadeCreateModel";
 import { NadeDto } from "./dto/NadeDto";
@@ -410,6 +412,17 @@ export class NadeService {
     }
 
     return mapLocations;
+  };
+
+  getNadeContributors = async (
+    csMap: CsMap,
+    gameMode: GameMode
+  ): Promise<UserMiniDto[]> => {
+    const nades = await this.nadeRepo.getByMap(csMap, undefined, gameMode);
+
+    const contributors = getContributors(convertNadesToLightDto(nades));
+
+    return contributors;
   };
 
   private getNormalNades = async (
