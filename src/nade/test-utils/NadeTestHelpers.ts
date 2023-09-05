@@ -58,4 +58,5 @@ export const createMockedNade = (
   mapEndLocationId: "endLocationId",
   mapStartLocationId: "startLocationId",
   youTubeId: "youTubeId",
+  isNew: true,
 });
