@@ -131,6 +131,7 @@ describe("Nade Utils", () => {
       mapEndLocationId: mockNade.mapEndLocationId,
       mapStartLocationId: mockNade.mapEndLocationId,
       youTubeId: mockNade.youTubeId,
+      isNew: mockNade.isNew,
     };
 
     const result = convertToNadeMiniDto(mockNade);
