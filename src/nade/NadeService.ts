@@ -197,7 +197,11 @@ export class NadeService {
 
     const [topNade, ...restNades] = otherNades;
 
-    return [topNade, ...newNades, ...restNades];
+    if (topNade) {
+      return [topNade, ...newNades, ...restNades];
+    } else {
+      return [...newNades, ...restNades];
+    }
   };
 
   getFlagged = async () => {
