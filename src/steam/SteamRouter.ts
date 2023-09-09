@@ -80,7 +80,7 @@ export class SteamRouter {
 
       const context = createAppContext(req);
 
-      const user = await userService.byId(context, payload.steamId);
+      const user = await userService.byId(context, payload.steamId, true);
 
       if (!user) {
         Logger.error("Expected to find user to refresh token");

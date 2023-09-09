@@ -25,9 +25,7 @@ export type UserMiniDto = {
 export type UserCreateDto = {
   nickname: string;
   steamId: string;
-  role: Role;
   avatar: string;
-  numNades: number;
 };
 
 export type UserUpdateDto = {

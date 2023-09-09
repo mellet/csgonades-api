@@ -560,6 +560,12 @@ export class NadeService {
 
     await this.statsRepo.incrementNadeCounter(nade.type);
 
+    if (!user.numNades) {
+      this.userRepo.update(user.steamId, { numNades: 1 });
+    } else {
+      await this.userRepo.incrementNadeCount(user.steamId);
+    }
+
     return nade;
   };
 
@@ -675,7 +681,6 @@ export class NadeService {
 
     if (didJustGetAccepted) {
       await this.setNadeSlug(updatedNade);
-      await this.userRepo.incrementNadeCount(user.steamId);
     }
 
     return updatedNade;

@@ -121,7 +121,11 @@ export class UserFireRepo implements UserRepo {
   create = async (userCreate: UserCreateDto): Promise<UserModel> => {
     try {
       const userModel: AddModel<UserModel> = {
-        ...userCreate,
+        avatar: userCreate.avatar,
+        nickname: userCreate.nickname,
+        role: "user",
+        steamId: userCreate.steamId,
+        numNades: 0,
         createdAt: value("serverDate"),
         updatedAt: value("serverDate"),
         lastActive: value("serverDate"),

@@ -38,10 +38,11 @@ export class UserService {
 
   byId = async (
     context: AppContext,
-    steamId: string
+    steamId: string,
+    skipCache = false
   ): Promise<UserModel | UserModelAnon | null> => {
     const { authUser } = context;
-    const user = await this.userRepo.byId(steamId);
+    const user = await this.userRepo.byId(steamId, { skipCache });
 
     if (!user) {
       return null;
@@ -62,7 +63,7 @@ export class UserService {
   };
 
   getOrCreate = async (steamId: string): Promise<UserModel | null> => {
-    const user = await this.userRepo.byId(steamId);
+    const user = await this.userRepo.byId(steamId, { skipCache: true });
 
     if (user) {
       this.tryAvatarRefresh(user);
@@ -81,8 +82,6 @@ export class UserService {
       steamId: player.steamID,
       nickname: player.nickname,
       avatar: player.avatar.medium,
-      role: "user",
-      numNades: 0,
     };
 
     const newUser = await this.userRepo.create(createUserDto);

@@ -8,9 +8,9 @@ import {
 } from "../utils/AppContext";
 import { adminOrModHandler, authOnlyHandler } from "../utils/AuthHandlers";
 import { ErrorFactory } from "../utils/ErrorUtil";
-import { UserFilter } from "./repository/UserFireRepo";
 import { UserService } from "./UserService";
 import { validateSteamId, validateUserUpdateDTO } from "./UserValidators";
+import { UserFilter } from "./repository/UserFireRepo";
 
 export const makeUserRouter = (userService: UserService): Router => {
   const UserRouter = Router();
@@ -26,7 +26,11 @@ export const makeUserRouter = (userService: UserService): Router => {
   UserRouter.get("/users/self", authOnlyHandler, limiter, async (req, res) => {
     const context = createAppContextAuth(req);
 
-    const user = await userService.byId(context, context.authUser.steamId);
+    const user = await userService.byId(
+      context,
+      context.authUser.steamId,
+      true
+    );
 
     if (!user) {
       return res.status(404).send();
