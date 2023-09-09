@@ -292,8 +292,8 @@ export class NadeService {
     const toDelete = await this.nadeRepo.getDeletedToRemove();
 
     const olderThanTwoMonths = toDelete.filter((nade) => {
-      const addedDaysAgo = moment().diff(moment(nade.updatedAt), "days", false);
-      return addedDaysAgo > 30;
+      const addedDaysAgo = moment().diff(moment(nade.createdAt), "days", false);
+      return addedDaysAgo > 60;
     });
 
     const deletePromises = olderThanTwoMonths.map((nade) =>

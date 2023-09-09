@@ -174,7 +174,7 @@ export class NadeFireRepo implements NadeRepo {
       const deletedToRemove = await query(this.collection, [
         where("status", "==", "deleted"),
         order("createdAt", "asc"),
-        limit(10),
+        limit(100),
       ]);
       return deletedToRemove.map(this.toNadeDTO);
     } catch (error) {
