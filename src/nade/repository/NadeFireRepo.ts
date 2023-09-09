@@ -470,10 +470,7 @@ export class NadeFireRepo implements NadeRepo {
 
   private toNadeDTO = (doc: Doc<NadeFireModel>): NadeDto => {
     const nadeData = doc.data;
-    const isNew = isNewNade(
-      doc.data.createdAt,
-      doc.data.gameMode === "csgo" ? 7 : 2
-    );
+    const isNew = isNewNade(doc.data.createdAt, 7);
     const score = calculateScore({
       commentCount: nadeData.commentCount,
       eloScore: nadeData.eloScore,
