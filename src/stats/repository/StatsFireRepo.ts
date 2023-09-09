@@ -1,5 +1,6 @@
 import { collection, Collection, get, update, value } from "typesaurus";
 import { Logger } from "../../logger/Logger";
+import { GameMode } from "../../nade/nadeSubTypes/GameMode";
 import { NadeType } from "../../nade/nadeSubTypes/NadeType";
 import { SiteStats } from "../SiteStats";
 import { StatsRepo } from "./StatsRepo";
@@ -46,29 +47,54 @@ export class StatsFireRepo implements StatsRepo {
     });
   };
 
-  incrementNadeCounter = (nadeType: NadeType) => {
+  incrementNadeCounter = (nadeType: NadeType, gameMode: GameMode) => {
     Logger.verbose(`StatsRepo.incrementNadeCounter(${nadeType})`);
 
     switch (nadeType) {
       case "smoke":
-        update(this.collection, this.siteDocId, {
-          numSmokes: value("increment", 1),
-        });
+        if (gameMode === "csgo") {
+          update(this.collection, this.siteDocId, {
+            numSmokes: value("increment", 1),
+          });
+        } else {
+          update(this.collection, this.siteDocId, {
+            numCs2Smokes: value("increment", 1),
+          });
+        }
         break;
       case "flash":
-        update(this.collection, this.siteDocId, {
-          numFlashes: value("increment", 1),
-        });
+        if (gameMode === "csgo") {
+          update(this.collection, this.siteDocId, {
+            numFlashes: value("increment", 1),
+          });
+        } else {
+          update(this.collection, this.siteDocId, {
+            numCs2Flashes: value("increment", 1),
+          });
+        }
         break;
       case "molotov":
-        update(this.collection, this.siteDocId, {
-          numMolotovs: value("increment", 1),
-        });
+        if (gameMode === "csgo") {
+          update(this.collection, this.siteDocId, {
+            numMolotovs: value("increment", 1),
+          });
+        } else {
+          update(this.collection, this.siteDocId, {
+            numCs2Molotovs: value("increment", 1),
+          });
+        }
+
         break;
       case "hegrenade":
-        update(this.collection, this.siteDocId, {
-          numGrenades: value("increment", 1),
-        });
+        if (gameMode === "csgo") {
+          update(this.collection, this.siteDocId, {
+            numGrenades: value("increment", 1),
+          });
+        } else {
+          update(this.collection, this.siteDocId, {
+            numCs2Grenades: value("increment", 1),
+          });
+        }
         break;
       default:
         break;

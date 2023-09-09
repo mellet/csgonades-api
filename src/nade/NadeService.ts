@@ -558,7 +558,7 @@ export class NadeService {
 
     const nade = await this.nadeRepo.save(nadeModel);
 
-    await this.statsRepo.incrementNadeCounter(nade.type);
+    await this.statsRepo.incrementNadeCounter(nade.type, nade.gameMode);
 
     if (!user.numNades) {
       this.userRepo.update(user.steamId, { numNades: 1 });
@@ -580,7 +580,7 @@ export class NadeService {
       throw ErrorFactory.Forbidden("Not allowed to delete this nade");
     }
 
-    await this.statsRepo.decrementNadeCounter(nade.type);
+    await this.statsRepo.decrementNadeCounter(nade.type, nade.gameMode);
     await this.userRepo.decrementNadeCount(nade.user.steamId);
 
     const deleteParts = [
