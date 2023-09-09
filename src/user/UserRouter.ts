@@ -36,6 +36,9 @@ export const makeUserRouter = (userService: UserService): Router => {
       return res.status(404).send();
     }
 
+    userService.attemptToUpdateUserNadeCount(context.authUser.steamId);
+    userService.attemptAvatarRefresh(context.authUser.steamId);
+
     return res.status(200).send(user);
   });
 

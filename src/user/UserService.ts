@@ -56,9 +56,6 @@ export class UserService {
       delete user["email"];
     }
 
-    this.tryAvatarRefresh(user);
-    this.updateUserNadeCount(user);
-
     return user;
   };
 
@@ -66,7 +63,6 @@ export class UserService {
     const user = await this.userRepo.byId(steamId, { skipCache: true });
 
     if (user) {
-      this.tryAvatarRefresh(user);
       return user;
     }
 
@@ -111,8 +107,13 @@ export class UserService {
     return this.userRepo.updateActivity(steamId);
   };
 
-  private async tryAvatarRefresh(user: UserModel) {
-    const { steamId } = user;
+  async attemptAvatarRefresh(steamId: string) {
+    const user = await this.userRepo.byId(steamId, { skipCache: true });
+
+    if (!user) {
+      return;
+    }
+
     const player = await this.steamApi.getPlayerBySteamID(user.steamId);
 
     const hasNewAvatar = player.avatar.medium !== user.avatar;
@@ -129,7 +130,13 @@ export class UserService {
     await this.commentRepo.updateUserDetailsForComments(updatedUser);
   }
 
-  private async updateUserNadeCount(user: UserModel) {
+  async attemptToUpdateUserNadeCount(steamId: string) {
+    const user = await this.userRepo.byId(steamId, { skipCache: true });
+
+    if (!user) {
+      return;
+    }
+
     if (typeof user.numNades === "undefined" || user.numNades < 0) {
       const nades = await this.nadeRepo.getByUser(user.steamId);
       this.userRepo.update(user.steamId, { numNades: nades.length });
