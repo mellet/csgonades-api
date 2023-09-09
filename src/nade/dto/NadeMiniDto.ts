@@ -37,7 +37,7 @@ export type NadeMiniDto = {
   status: NadeStatus;
   teamSide?: TeamSide;
   technique?: Technique;
-  tickrate?: Tickrate;
+  tickrate?: Tickrate | null;
   type?: NadeType;
   updatedAt: Date;
   user: UserLightModel;
