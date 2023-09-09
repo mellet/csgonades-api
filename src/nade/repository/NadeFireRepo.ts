@@ -29,7 +29,7 @@ import { NadeFireModel } from "../dto/NadeFireModel";
 import { CsMap } from "../nadeSubTypes/CsgoMap";
 import { GameMode } from "../nadeSubTypes/GameMode";
 import { NadeType } from "../nadeSubTypes/NadeType";
-import { isNewNade } from "../utils/NadeUtils";
+import { calculateScore, isNewNade } from "../utils/NadeUtils";
 import { NadeRepo, NadeUpdateConfig } from "./NadeRepo";
 
 export class NadeFireRepo implements NadeRepo {
@@ -469,43 +469,44 @@ export class NadeFireRepo implements NadeRepo {
   };
 
   private toNadeDTO = (doc: Doc<NadeFireModel>): NadeDto => {
+    const nadeData = doc.data;
+    const isNew = isNewNade(
+      doc.data.createdAt,
+      doc.data.gameMode === "csgo" ? 7 : 2
+    );
+    const score = calculateScore({
+      commentCount: nadeData.commentCount,
+      eloScore: nadeData.eloScore,
+      favoriteCount: nadeData.favoriteCount,
+      isPro: nadeData.isPro,
+    });
+
     return {
-      ...doc.data,
+      ...nadeData,
       id: doc.ref.id,
-      score: this.newCalcScore(doc.data),
-      favoriteCount: doc.data.favoriteCount || 0,
-      eloScore: doc.data.eloScore || 1400,
-      gameMode: doc.data.gameMode || "csgo",
-      commentCount: doc.data.commentCount,
-      mapEndLocationId: doc.data.mapEndLocationId,
-      mapStartLocationId: doc.data.mapStartLocationId,
-      isNew: isNewNade(
-        doc.data.createdAt,
-        doc.data.gameMode === "csgo" ? 7 : 2
-      ),
+      score,
+      favoriteCount: nadeData.favoriteCount || 0,
+      eloScore: nadeData.eloScore || 1400,
+      gameMode: nadeData.gameMode || "csgo",
+      commentCount: nadeData.commentCount,
+      mapEndLocationId: nadeData.mapEndLocationId,
+      mapStartLocationId: nadeData.mapStartLocationId,
+      isNew,
       images: {
         lineup: {
-          small: doc.data.imageLineupThumb?.url || "",
+          small: nadeData.imageLineupThumb?.url || "",
           medium:
-            doc.data.imageLineupThumb?.url || doc.data.imageLineup?.url || "",
+            nadeData.imageLineupThumb?.url || nadeData.imageLineup?.url || "",
           large:
-            doc.data.imageLineup?.url || doc.data.imageLineupThumb?.url || "",
+            nadeData.imageLineup?.url || nadeData.imageLineupThumb?.url || "",
         },
         result: {
-          small: doc.data.imageMainThumb?.url || doc.data.imageMain.url || "",
-          medium: doc.data.imageMain.url || doc.data.imageMainThumb?.url || "",
-          large: doc.data.imageMain.url || doc.data.imageMainThumb?.url || "",
+          small: nadeData.imageMainThumb?.url || nadeData.imageMain.url || "",
+          medium: nadeData.imageMain.url || nadeData.imageMainThumb?.url || "",
+          large: nadeData.imageMain.url || nadeData.imageMainThumb?.url || "",
         },
       },
     };
-  };
-
-  private newCalcScore = (nade: NadeFireModel): number => {
-    const elo = nade.eloScore || 1400;
-    const interactionCount = nade.favoriteCount + nade.commentCount;
-    const interactionScore = Math.log(interactionCount || 1) * 20;
-
-    return Math.round(elo + interactionScore);
   };
 
   private tryGetNadeFromCache = (partialNade: {

@@ -188,7 +188,16 @@ export class NadeService {
       endLocationId
     );
 
-    return result.map((n) => convertToNadeMiniDto(n));
+    const nades = result.map((n) => convertToNadeMiniDto(n));
+
+    const newNades = nades.filter((n) => n.isNew);
+    newNades.sort((a, b) => b.score - a.score);
+    const otherNades = nades.filter((n) => !n.isNew);
+    otherNades.sort((a, b) => b.score - a.score);
+
+    const [topNade, ...restNades] = otherNades;
+
+    return [topNade, ...newNades, ...restNades];
   };
 
   getFlagged = async () => {

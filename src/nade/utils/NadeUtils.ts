@@ -70,7 +70,7 @@ export function convertToNadeMiniDto(nadeDto: NadeDto): NadeMiniDto {
     imageMain: nadeDto.imageMain,
     imageMainThumb: nadeDto.imageMainThumb || nadeDto.imageMain,
     images: nadeDto.images,
-    isNew: nadeDto.isNew,
+    isNew: nadeDto.isNew || false,
     isPro: nadeDto.isPro,
     movement: nadeDto.movement,
     oneWay: nadeDto.oneWay,
@@ -121,4 +121,27 @@ export function titleCase(value: string) {
       return word.charAt(0).toUpperCase() + word.slice(1);
     })
     .join(" ");
+}
+
+type CaculateScoreOpts = {
+  eloScore: number;
+  favoriteCount: number;
+  commentCount: number;
+  isPro?: boolean;
+};
+
+export function calculateScore(opts: CaculateScoreOpts): number {
+  const { commentCount, eloScore, favoriteCount, isPro } = opts;
+  let score = eloScore;
+
+  const interactionCount = favoriteCount + commentCount;
+  const interactionScore = Math.log(interactionCount || 1) * 20;
+
+  score += interactionScore;
+
+  if (isPro) {
+    score += 50;
+  }
+
+  return Math.round(score);
 }

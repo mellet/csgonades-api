@@ -23,7 +23,7 @@ export type NadeMiniDto = {
   imageMain: ImageData;
   imageMainThumb: ImageData;
   images: NadeImages;
-  isNew?: boolean;
+  isNew: boolean;
   isPro?: boolean;
   mapEndLocationId: string;
   mapStartLocationId: string;
