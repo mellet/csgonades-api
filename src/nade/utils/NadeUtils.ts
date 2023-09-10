@@ -132,7 +132,7 @@ type CaculateScoreOpts = {
 
 export function calculateScore(opts: CaculateScoreOpts): number {
   const { commentCount, eloScore, favoriteCount, isPro } = opts;
-  let score = eloScore || 1450;
+  let score = eloScore;
 
   const interactionCount = favoriteCount + commentCount;
   const interactionScore = Math.log(interactionCount || 1) * 20;

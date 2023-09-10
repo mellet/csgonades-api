@@ -48,5 +48,5 @@ export interface NadeFireModel {
   user: UserLightModel;
   viewCount: number;
   youTubeId: string;
-  eloScore: number;
+  eloScore?: number;
 }

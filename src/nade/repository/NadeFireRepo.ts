@@ -197,6 +197,11 @@ export class NadeFireRepo implements NadeRepo {
       Logger.verbose(`NadeRepo.getById(${nadeId}) | DB`);
       const nade = nadeDoc ? this.toNadeDTO(nadeDoc) : null;
 
+      // Set elo score if not set
+      if (nadeDoc && !nadeDoc.data.eloScore) {
+        this.updateNade(nadeDoc.ref.id, { eloScore: 1450 });
+      }
+
       this.setNadeInCache(nade);
 
       return nade;
@@ -476,7 +481,7 @@ export class NadeFireRepo implements NadeRepo {
     );
     const score = calculateScore({
       commentCount: nadeData.commentCount,
-      eloScore: nadeData.eloScore,
+      eloScore: nadeData.eloScore || 1450,
       favoriteCount: nadeData.favoriteCount,
       isPro: nadeData.isPro,
     });
