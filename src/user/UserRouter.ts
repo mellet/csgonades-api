@@ -76,6 +76,7 @@ export const makeUserRouter = (userService: UserService): Router => {
 
     validateAllowEdit(context, steamId);
 
+    await userService.recountUserNades(steamId);
     const user = await userService.update(steamId, userUpdateFields);
 
     return res.status(202).send(user);

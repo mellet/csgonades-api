@@ -154,4 +154,16 @@ export class UserService {
       }
     }
   }
+
+  public recountUserNades = async (steamId: string) => {
+    const user = await this.userRepo.byId(steamId, { skipCache: true });
+
+    if (!user) {
+      return;
+    }
+
+    const nades = await this.nadeRepo.getByUser(user.steamId);
+
+    this.userRepo.update(user.steamId, { numNades: nades.length });
+  };
 }
