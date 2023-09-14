@@ -1,4 +1,3 @@
-import moment from "moment";
 import { CommentRepo } from "../comment/repository/CommentRepo";
 import { GoogleApi } from "../external-api/GoogleApi";
 import { FavoriteRepo } from "../favorite/repository/FavoriteRepo";
@@ -6,13 +5,14 @@ import { ImageRepo } from "../imageGallery/ImageGalleryService";
 import { Logger } from "../logger/Logger";
 import { MapEndLocationRepo } from "../maplocation/types/MapEndLocationRepo";
 import { MapLocation, StartLocation } from "../maplocation/types/MapLocations";
-import { MapStartLocationRepo } from "../maplocation/types/MapStartLocationRepo";
+import { MapStartLocationRepoV2 } from "../maplocation/types/MapStartLocationRepoV2";
 import { NotificationRepo } from "../notifications/repository/NotificationRepo";
 import { StatsRepo } from "../stats/repository/StatsRepo";
 import { UserMiniDto } from "../user/UserDTOs";
 import { UserLightModel } from "../user/UserModel";
 import { UserRepo } from "../user/repository/UserRepo";
 import { RequestUser } from "../utils/AuthUtils";
+import { dateIsOlderThanDays } from "../utils/Common";
 import { ErrorFactory } from "../utils/ErrorUtil";
 import { getContributors } from "./dto/MapContributors";
 import { NadeCreateDto, NadeEloGame } from "./dto/NadeCreateDto";
@@ -47,7 +47,7 @@ export type NadeServiceDeps = {
   notificationRepo: NotificationRepo;
   statsRepo: StatsRepo;
   userRepo: UserRepo;
-  mapStartLocationRepo: MapStartLocationRepo;
+  mapStartLocationRepo: MapStartLocationRepoV2;
   mapEndLocationRepo: MapEndLocationRepo;
 };
 
@@ -70,7 +70,7 @@ export class NadeService {
   private statsRepo: StatsRepo;
   private userRepo: UserRepo;
   private mapEndLocationRepo: MapEndLocationRepo;
-  private mapStartLocationRepo: MapStartLocationRepo;
+  private mapStartLocationRepo: MapStartLocationRepoV2;
 
   constructor(deps: NadeServiceDeps) {
     const {
@@ -289,30 +289,28 @@ export class NadeService {
   };
 
   private getDeletedToRemove = async () => {
+    const ONE_MONTH = 30;
     const toDelete = await this.nadeRepo.getDeletedToRemove();
 
-    const olderThanTwoMonths = toDelete.filter((nade) => {
-      const addedDaysAgo = moment().diff(moment(nade.createdAt), "days", false);
-      return addedDaysAgo > 60;
-    });
+    const oldDeclinedNades = toDelete.filter((nade) =>
+      dateIsOlderThanDays(nade.createdAt, ONE_MONTH)
+    );
 
-    const deletePromises = olderThanTwoMonths.map((nade) =>
+    const deletePromises = oldDeclinedNades.map((nade) =>
       this.delete(nade.id, { role: "administrator", steamId: "none" })
     );
     await Promise.all(deletePromises);
   };
 
   private markOldDeclinedNadesAsRemoved = async () => {
+    const TWO_WEEKS = 14;
     const declinedNades = await this.getDeclined();
 
-    const oldDeclinedNades = declinedNades.filter((nade) => {
-      const addedDaysAgo = moment().diff(moment(nade.createdAt), "days", false);
-      return addedDaysAgo > 21;
-    });
+    const nades = declinedNades.filter((nade) =>
+      dateIsOlderThanDays(nade.createdAt, TWO_WEEKS)
+    );
 
-    oldDeclinedNades.forEach((nade) => {
-      this.markAsDeleted(nade.id);
-    });
+    nades.forEach((nade) => this.markAsDeleted(nade.id));
   };
 
   getById = async (nadeId: string): Promise<NadeDto | null> => {

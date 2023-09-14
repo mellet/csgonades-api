@@ -1,3 +1,4 @@
+import moment from "moment";
 import { ErrorFactory } from "./ErrorUtil";
 
 export const removeUndefines = <T extends Object>(object: T): T => {
@@ -23,4 +24,14 @@ export function clamp(num: number, min: number, max: number) {
 export function assertNever(never: never) {
   return ErrorFactory.InternalServerError(`Did not expect to reach this code.`);
   // no-op
+}
+
+export function daysAgoAdded(date: Date) {
+  const addedDaysAgo = moment().diff(moment(date), "days", false);
+  return addedDaysAgo;
+}
+
+export function dateIsOlderThanDays(date: Date, days: number) {
+  const addedDaysAgo = moment().diff(moment(date), "days", false);
+  return addedDaysAgo > days;
 }

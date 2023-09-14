@@ -8,4 +8,5 @@ export interface FavoriteRepo {
   deleteWhereNadeId: (nadeId: string) => Promise<void>;
   byId: (favoriteId: string) => Promise<FavoriteDto | null>;
   byUser: (steamId: string) => Promise<FavoriteDto[]>;
+  byNadeId: (nadeId: string) => Promise<FavoriteDto[]>;
 }

@@ -179,7 +179,7 @@ export class FavoriteFireRepo implements FavoriteRepo {
     }
   };
 
-  private byNadeId = async (nadeId: string): Promise<FavoriteDto[]> => {
+  public byNadeId = async (nadeId: string): Promise<FavoriteDto[]> => {
     try {
       const docs = await query(this.collection, [
         where("nadeId", "==", nadeId),

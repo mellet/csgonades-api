@@ -1,3 +1,4 @@
+import { firestore } from "firebase-admin";
 import { collection, Collection, get, set, update, value } from "typesaurus";
 import { AddModel } from "typesaurus/add";
 import { UpdateModel } from "typesaurus/update";
@@ -24,7 +25,33 @@ export class UserFireRepo implements UserRepo {
     this.collection = collection<UserModel>("users");
     this.db = db;
     this.cache = cache;
+
+    // this.oldInactive();
   }
+
+  oldInactive = async () => {
+    const onYearAgo = new Date().setFullYear(new Date().getFullYear() - 1);
+    const oneYearAgoFirestore = firestore.Timestamp.fromDate(
+      new Date(onYearAgo)
+    );
+
+    const allUsers = await this.db
+      .collection("users")
+      .where("lastActive", "<", oneYearAgoFirestore)
+      .get();
+    const users = allUsers.docs;
+
+    let oldToDeleteCount = 0;
+
+    for (const user of users) {
+      const userData = user.data() as UserModel;
+      if (userData.numNades === 0 || !userData.numNades) {
+        oldToDeleteCount += 1;
+      }
+    }
+
+    console.log("Found old inactive users", users.length, oldToDeleteCount);
+  };
 
   all = async (filter: UserFilter): Promise<UserDto[]> => {
     try {

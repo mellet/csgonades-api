@@ -33,14 +33,14 @@ function createContributorsList(nades: NadeMiniDto[]) {
       contCount[steamId] = {
         ...currentUser,
         nadeCount: currentUser.nadeCount + 1,
-        totalScore: currentUser.totalScore + nade.score,
+        totalScore: currentUser.totalScore + nade.favoriteCount,
       };
     } else {
       contCount[steamId] = {
         ...nade.user,
         nadeCount: 1,
         score: 0,
-        totalScore: nade.score,
+        totalScore: nade.favoriteCount,
       };
     }
   });

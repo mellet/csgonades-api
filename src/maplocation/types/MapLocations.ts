@@ -1,7 +1,7 @@
 import { MapEndLocation } from "./MapEndLocation";
-import { MapStartLocation } from "./MapStartLocation";
+import { MapStartLocationV2 } from "./MapStartLocationV2";
 
-export type StartLocation = MapStartLocation & {
+export type StartLocation = MapStartLocationV2 & {
   count: number;
   hasNew?: boolean;
 };

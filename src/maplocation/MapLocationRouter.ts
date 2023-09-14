@@ -7,20 +7,20 @@ import { adminOnlyHandler } from "../utils/AuthHandlers";
 import { sanitizeIt } from "../utils/Sanitize";
 import { AddMapEndLocation, EditMapEndLocation } from "./types/MapEndLocation";
 import { MapEndLocationRepo } from "./types/MapEndLocationRepo";
+import { MapStartLocationRepoV2 } from "./types/MapStartLocationRepoV2";
 import {
-  AddMapStartLocation,
-  EditMapStartLocation,
-} from "./types/MapStartLocation";
-import { MapStartLocationRepo } from "./types/MapStartLocationRepo";
+  AddMapStartLocationV2,
+  EditMapStartLocationV2,
+} from "./types/MapStartLocationV2";
 
 type NadeRouterServices = {
-  mapStartLocationRepo: MapStartLocationRepo;
+  mapStartLocationRepo: MapStartLocationRepoV2;
   mapEndLocationRepo: MapEndLocationRepo;
 };
 
 export class MapLocationRouter {
   private router: Router;
-  private mapStartLocationRepo: MapStartLocationRepo;
+  private mapStartLocationRepo: MapStartLocationRepoV2;
   private mapEndLocationRepo: MapEndLocationRepo;
 
   constructor(services: NadeRouterServices) {
@@ -110,7 +110,7 @@ export class MapLocationRouter {
   };
 
   private addStartLocation: RequestHandler = async (req, res) => {
-    const startLocation = req.body as AddMapStartLocation;
+    const startLocation = req.body as AddMapStartLocationV2;
     const result = await this.mapStartLocationRepo.addNadeStartLocation(
       startLocation
     );
@@ -135,7 +135,7 @@ export class MapLocationRouter {
   };
 
   private editStartLocation: RequestHandler = async (req, res) => {
-    const startLocationUpdate = req.body as EditMapStartLocation;
+    const startLocationUpdate = req.body as EditMapStartLocationV2;
 
     const result = await this.mapStartLocationRepo.editNadeStartLocation(
       startLocationUpdate

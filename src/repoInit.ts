@@ -9,9 +9,9 @@ import { FavoriteFireRepo } from "./favorite/repository/FavoriteFireRepo";
 import { FavoriteRepo } from "./favorite/repository/FavoriteRepo";
 import { ImageStorageRepo } from "./imageGallery/ImageStorageRepo";
 import { FirebaseMapEndLocationRepo } from "./maplocation/repository/FirebaseMapEndLocationRepo";
-import { FirebaseMapStartLocationRepo } from "./maplocation/repository/FirebaseMapStartLocationRepo";
+import { FirebaseMapStartLocationRepoV2 } from "./maplocation/repository/FirebaseMapStartLocationRepoV2";
 import { MapEndLocationRepo } from "./maplocation/types/MapEndLocationRepo";
-import { MapStartLocationRepo } from "./maplocation/types/MapStartLocationRepo";
+import { MapStartLocationRepoV2 } from "./maplocation/types/MapStartLocationRepoV2";
 import { NadeFireRepo } from "./nade/repository/NadeFireRepo";
 import { NadeRepo } from "./nade/repository/NadeRepo";
 import { NotificationFireRepo } from "./notifications/repository/NotificationFireRepo";
@@ -34,7 +34,7 @@ export interface AppRepositories {
   imageStorageRepo: ImageStorageRepo;
   commentRepo: CommentRepo;
   auditRepo: AuditRepo;
-  mapStartLocationRepo: MapStartLocationRepo;
+  mapStartLocationRepo: MapStartLocationRepoV2;
   mapEndLocationRepo: MapEndLocationRepo;
 }
 
@@ -52,7 +52,7 @@ export function repoInit(
   const imageStorageRepo = new ImageStorageRepo(persist.bucket);
   const commentRepo = new CommentFireRepo();
   const auditRepo = new AuditFireRepo();
-  const mapStartLocationRepo = new FirebaseMapStartLocationRepo();
+  const mapStartLocationRepo = new FirebaseMapStartLocationRepoV2();
   const mapEndLocationRepo = new FirebaseMapEndLocationRepo();
 
   return {
