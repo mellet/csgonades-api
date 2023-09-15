@@ -7,6 +7,7 @@ import {
   order,
   query,
   value,
+  where,
 } from "typesaurus";
 import { AddModel } from "typesaurus/add";
 import { Logger } from "../../logger/Logger";
@@ -27,6 +28,7 @@ export class AuditFireRepo implements AuditRepo {
     try {
       const docs = await query(this.collection, [
         order("createdAt", "desc"),
+        where("steamId", "!=", "76561198026064832"),
         limit(50),
       ]);
       const auditEvents = docs.map(this.docToDto);

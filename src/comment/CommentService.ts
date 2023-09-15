@@ -38,7 +38,7 @@ export class CommentService {
 
   getRecent = async (): Promise<CommentDto[]> => {
     const comments = await this.commentRepo.getRecent();
-    return comments.filter((c) => c.steamId !== "76561198026064832");
+    return comments;
   };
 
   save = async (
