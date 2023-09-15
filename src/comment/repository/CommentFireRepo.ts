@@ -68,15 +68,16 @@ export class CommentFireRepo implements CommentRepo {
     try {
       const nadeCommentDocs = await query(this.collection, [
         order("createdAt", "desc"),
-        where("steamId", "!=", "76561198026064832"),
-        limit(20),
+        limit(50),
       ]);
 
       Logger.verbose(
         `CommentRepo.getRecent() -> ${nadeCommentDocs.length}  | DB`
       );
 
-      return nadeCommentDocs.map(this.toDto);
+      return nadeCommentDocs
+        .map(this.toDto)
+        .filter((c) => c.steamId !== "76561198026064832");
     } catch (error) {
       Logger.error(error);
       throw ErrorFactory.InternalServerError("Failed to recent comments");
