@@ -351,20 +351,23 @@ export class NadeRouter {
   ) => {
     const updatedField: string[] = [];
 
+    if (preUpdateNade.description !== updatedNade.description) {
+      updatedField.push("description");
+    }
     if (preUpdateNade.endPosition !== updatedNade.endPosition) {
       updatedField.push("endPosition");
     }
-    if (preUpdateNade.gfycat?.gfyId !== updatedNade.gfycat?.gfyId) {
-      updatedField.push("gfycat");
+    if (preUpdateNade.gameMode !== updatedNade.gameMode) {
+      updatedField.push("gameMode");
     }
     if (preUpdateNade.youTubeId !== updatedNade.youTubeId) {
       updatedField.push("youtube");
     }
-    if (preUpdateNade.imageMain?.url !== updatedNade.imageMain?.url) {
-      updatedField.push("resultImg");
-    }
-    if (preUpdateNade.imageLineup?.url !== updatedNade.imageLineup?.url) {
+    if (preUpdateNade.images.lineup.small !== updatedNade.images.lineup.small) {
       updatedField.push("lineupImg");
+    }
+    if (preUpdateNade.images.result.small !== updatedNade.images.result.small) {
+      updatedField.push("resultImg");
     }
     if (preUpdateNade.isPro !== updatedNade.isPro) {
       updatedField.push("isPro");
@@ -372,14 +375,32 @@ export class NadeRouter {
     if (preUpdateNade.map !== updatedNade.map) {
       updatedField.push("map");
     }
+    if (preUpdateNade.mapStartLocationId !== updatedNade.mapStartLocationId) {
+      updatedField.push("mapStartLocationId");
+    }
+    if (preUpdateNade.mapEndLocationId !== updatedNade.mapEndLocationId) {
+      updatedField.push("mapEndLocationId");
+    }
     if (preUpdateNade.movement !== updatedNade.movement) {
       updatedField.push("movement");
     }
     if (preUpdateNade.oneWay !== updatedNade.oneWay) {
       updatedField.push("oneWay");
     }
+    if (preUpdateNade.proUrl !== updatedNade.proUrl) {
+      updatedField.push("proUrl");
+    }
+    if (preUpdateNade.setPos !== updatedNade.setPos) {
+      updatedField.push("setPos");
+    }
+    if (preUpdateNade.startPosition !== updatedNade.startPosition) {
+      updatedField.push("startPosition");
+    }
     if (preUpdateNade.status !== updatedNade.status) {
       updatedField.push("status");
+    }
+    if (preUpdateNade.teamSide !== updatedNade.teamSide) {
+      updatedField.push("teamSide");
     }
     if (preUpdateNade.technique !== updatedNade.technique) {
       updatedField.push("technique");
@@ -389,21 +410,6 @@ export class NadeRouter {
     }
     if (preUpdateNade.type !== updatedNade.type) {
       updatedField.push("type");
-    }
-    if (preUpdateNade.description !== updatedNade.description) {
-      updatedField.push("description");
-    }
-    if (preUpdateNade.endPosition !== updatedNade.endPosition) {
-      updatedField.push("endPosition");
-    }
-    if (preUpdateNade.startPosition !== updatedNade.startPosition) {
-      updatedField.push("startPosition");
-    }
-    if (preUpdateNade.setPos !== updatedNade.setPos) {
-      updatedField.push("setPos");
-    }
-    if (preUpdateNade.teamSide !== updatedNade.teamSide) {
-      updatedField.push("teamSide");
     }
 
     if (updatedField.length === 0) {

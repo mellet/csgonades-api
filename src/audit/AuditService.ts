@@ -17,7 +17,7 @@ export class AuditService {
   getAuditEvents = async (): Promise<AuditDto[]> => {
     const audits = await this.auditRepo.getAuditEvents();
     Logger.verbose("AuditService.getAuditEvents", audits.length);
-    return audits;
+    return audits.filter((audit) => audit.byUser.role !== "administrator");
   };
 
   createAuditEvent = async (data: CreateAuditDto): Promise<void> => {

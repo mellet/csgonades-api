@@ -27,7 +27,7 @@ export class AuditFireRepo implements AuditRepo {
     try {
       const docs = await query(this.collection, [
         order("createdAt", "desc"),
-        limit(20),
+        limit(50),
       ]);
       const auditEvents = docs.map(this.docToDto);
 
